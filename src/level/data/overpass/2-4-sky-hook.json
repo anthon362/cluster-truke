@@ -1,0 +1,117 @@
+{
+  "id": "2-4",
+  "name": "Sky Hook",
+  "world": "overpass",
+  "parTime": 16,
+  "killY": -14,
+  "ground": "none",
+  "palette": {
+    "sky": "#bfe3f2",
+    "ground": "#7d8f72",
+    "fog": "#d9eef5",
+    "fogFar": 480,
+    "road": "#4b4f56"
+  },
+  "player": {
+    "convoy": "main",
+    "row": 1,
+    "lane": 2
+  },
+  "hazards": [],
+  "paths": [
+    {
+      "id": "road",
+      "width": 12,
+      "lanes": 3,
+      "points": [
+        [0, 0, -40],
+        [0, 0, 640]
+      ]
+    },
+    {
+      "id": "hook",
+      "width": 4,
+      "lanes": 1,
+      "points": [
+        [8, 0, -40],
+        [8, 0, 300],
+        [8, 3, 360],
+        [8, 3, 700]
+      ],
+      "visible": false
+    }
+  ],
+  "convoys": [
+    {
+      "id": "main",
+      "path": "road",
+      "rows": 14,
+      "lanesUsed": [0, 1, 2],
+      "startAt": 50
+    },
+    {
+      "id": "carried",
+      "path": "hook",
+      "rows": 16,
+      "lanesUsed": [0],
+      "startAt": 50,
+      "float": true
+    }
+  ],
+  "scenery": [
+    {
+      "type": "box",
+      "pos": [0, -0.7, 120],
+      "size": [13.2, 1.4, 360],
+      "lethal": true,
+      "color": "#6a6f77"
+    },
+    {
+      "type": "box",
+      "pos": [0, -7.7, -40],
+      "size": [3.2, 12.6, 3.2],
+      "lethal": true,
+      "color": "#575b62"
+    },
+    {
+      "type": "box",
+      "pos": [0, -7.7, 20],
+      "size": [3.2, 12.6, 3.2],
+      "lethal": true,
+      "color": "#575b62"
+    },
+    {
+      "type": "box",
+      "pos": [0, -7.7, 80],
+      "size": [3.2, 12.6, 3.2],
+      "lethal": true,
+      "color": "#575b62"
+    },
+    {
+      "type": "box",
+      "pos": [0, -7.7, 140],
+      "size": [3.2, 12.6, 3.2],
+      "lethal": true,
+      "color": "#575b62"
+    },
+    {
+      "type": "box",
+      "pos": [0, -7.7, 200],
+      "size": [3.2, 12.6, 3.2],
+      "lethal": true,
+      "color": "#575b62"
+    },
+    {
+      "type": "box",
+      "pos": [0, -7.7, 260],
+      "size": [3.2, 12.6, 3.2],
+      "lethal": true,
+      "color": "#575b62"
+    }
+  ],
+  "goal": {
+    "pos": [8, 3.74, 442.9],
+    "width": 14,
+    "height": 12
+  }
+}

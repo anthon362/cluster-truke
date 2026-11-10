@@ -1,0 +1,109 @@
+{
+  "id": "3-6",
+  "name": "Whiteout",
+  "world": "whiteout",
+  "parTime": 17,
+  "killY": -5,
+  "palette": {
+    "sky": "#e3edf3",
+    "ground": "#d4e2ea",
+    "fog": "#eaf2f6",
+    "fogFar": 320,
+    "road": "#8ea3b1"
+  },
+  "player": {
+    "convoy": "main",
+    "row": 1,
+    "lane": 2
+  },
+  "scenery": [
+    {
+      "type": "box",
+      "pos": [-9.5, 8, 210],
+      "size": [1, 16, 1],
+      "lethal": true,
+      "color": "#e5484d"
+    },
+    {
+      "type": "box",
+      "pos": [9.5, 8, 210],
+      "size": [1, 16, 1],
+      "lethal": true,
+      "color": "#e5484d"
+    },
+    {
+      "type": "box",
+      "pos": [0, 3, 420],
+      "size": [13, 6, 3],
+      "lethal": true,
+      "color": "#7f8b96"
+    }
+  ],
+  "hazards": [
+    {
+      "type": "ice",
+      "pos": [0, 0, 150],
+      "size": [14, 70],
+      "yaw": 0
+    },
+    {
+      "type": "rotor",
+      "pos": [0, 10.2, 210],
+      "radius": 6,
+      "spokes": 3,
+      "speed": 22,
+      "phase": 70,
+      "yaw": 0
+    },
+    {
+      "type": "breakableWall",
+      "pos": [0, 0, 290],
+      "width": 14,
+      "height": 5,
+      "yaw": 0
+    }
+  ],
+  "paths": [
+    {
+      "id": "road",
+      "width": 14,
+      "lanes": 3,
+      "points": [
+        [0, 0, -40],
+        [0, 0, 640]
+      ]
+    },
+    {
+      "id": "side",
+      "width": 8,
+      "lanes": 2,
+      "points": [
+        [9.6, 0, 150],
+        [9.6, 0, 700]
+      ]
+    }
+  ],
+  "convoys": [
+    {
+      "id": "main",
+      "path": "road",
+      "rows": 14,
+      "lanesUsed": [0, 1, 2],
+      "startAt": 50
+    },
+    {
+      "id": "side",
+      "path": "side",
+      "rows": 13,
+      "lanesUsed": [0, 1],
+      "startAt": 100,
+      "speed": 18,
+      "wobble": 0.05
+    }
+  ],
+  "goal": {
+    "pos": [9.6, 0, 443],
+    "width": 14,
+    "height": 12
+  }
+}

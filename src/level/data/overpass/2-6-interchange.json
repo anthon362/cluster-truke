@@ -1,0 +1,195 @@
+{
+  "id": "2-6",
+  "name": "Interchange",
+  "world": "overpass",
+  "parTime": 17,
+  "killY": -14,
+  "ground": "none",
+  "palette": {
+    "sky": "#bfe3f2",
+    "ground": "#7d8f72",
+    "fog": "#d9eef5",
+    "fogFar": 480,
+    "road": "#4b4f56"
+  },
+  "player": {
+    "convoy": "main",
+    "row": 1,
+    "lane": 0
+  },
+  "hazards": [],
+  "paths": [
+    {
+      "id": "deck",
+      "width": 12,
+      "lanes": 3,
+      "points": [
+        [0, 0, -40],
+        [0, 0, 400]
+      ]
+    },
+    {
+      "id": "low",
+      "width": 14,
+      "lanes": 3,
+      "points": [
+        [-16, -7, -40],
+        [-16, -7, 300],
+        [-16, -8.5, 305],
+        [-30, -8.5, 420],
+        [-30, -8.5, 700]
+      ],
+      "visible": false
+    }
+  ],
+  "convoys": [
+    {
+      "id": "main",
+      "path": "deck",
+      "rows": 10,
+      "lanesUsed": [0, 1, 2],
+      "startAt": 50
+    },
+    {
+      "id": "lower",
+      "path": "low",
+      "rows": 20,
+      "lanesUsed": [1, 2],
+      "startAt": 40,
+      "wobble": 0.06
+    }
+  ],
+  "scenery": [
+    {
+      "type": "box",
+      "pos": [-25, -7.7, 121],
+      "size": [70, 1.4, 362],
+      "lethal": true,
+      "color": "#6a6f77"
+    },
+    {
+      "type": "box",
+      "pos": [-25, -9.2, 471],
+      "size": [70, 1.4, 338],
+      "lethal": true,
+      "color": "#6a6f77"
+    },
+    {
+      "type": "box",
+      "pos": [0, -0.7, 101],
+      "size": [13, 1.4, 322],
+      "lethal": true,
+      "color": "#6a6f77"
+    },
+    {
+      "type": "box",
+      "pos": [0, -7.7, -40],
+      "size": [3.2, 12.6, 3.2],
+      "lethal": true,
+      "color": "#575b62"
+    },
+    {
+      "type": "box",
+      "pos": [0, -7.7, 20],
+      "size": [3.2, 12.6, 3.2],
+      "lethal": true,
+      "color": "#575b62"
+    },
+    {
+      "type": "box",
+      "pos": [0, -7.7, 80],
+      "size": [3.2, 12.6, 3.2],
+      "lethal": true,
+      "color": "#575b62"
+    },
+    {
+      "type": "box",
+      "pos": [0, -7.7, 140],
+      "size": [3.2, 12.6, 3.2],
+      "lethal": true,
+      "color": "#575b62"
+    },
+    {
+      "type": "box",
+      "pos": [0, -7.7, 200],
+      "size": [3.2, 12.6, 3.2],
+      "lethal": true,
+      "color": "#575b62"
+    },
+    {
+      "type": "box",
+      "pos": [0, 2.5, 268],
+      "size": [13, 5, 1.2],
+      "lethal": true,
+      "color": "#e5484d"
+    },
+    {
+      "type": "box",
+      "pos": [0, 4.949999999999999, 110],
+      "size": [12.8, 0.7, 0.6],
+      "lethal": true,
+      "color": "#2f8f5b"
+    },
+    {
+      "type": "box",
+      "pos": [-6.4, 2.65, 110],
+      "size": [0.5, 5.3, 0.5],
+      "lethal": true,
+      "color": "#c9ced6"
+    },
+    {
+      "type": "box",
+      "pos": [6.4, 2.65, 110],
+      "size": [0.5, 5.3, 0.5],
+      "lethal": true,
+      "color": "#c9ced6"
+    },
+    {
+      "type": "box",
+      "pos": [0, 4.949999999999999, 175],
+      "size": [12.8, 0.7, 0.6],
+      "lethal": true,
+      "color": "#2f8f5b"
+    },
+    {
+      "type": "box",
+      "pos": [-6.4, 2.65, 175],
+      "size": [0.5, 5.3, 0.5],
+      "lethal": true,
+      "color": "#c9ced6"
+    },
+    {
+      "type": "box",
+      "pos": [6.4, 2.65, 175],
+      "size": [0.5, 5.3, 0.5],
+      "lethal": true,
+      "color": "#c9ced6"
+    },
+    {
+      "type": "box",
+      "pos": [-29, -3.5500000000000003, 380],
+      "size": [30, 0.7, 0.6],
+      "lethal": true,
+      "color": "#2f8f5b"
+    },
+    {
+      "type": "box",
+      "pos": [-44, -5.85, 380],
+      "size": [0.5, 5.3, 0.5],
+      "lethal": true,
+      "color": "#c9ced6"
+    },
+    {
+      "type": "box",
+      "pos": [-14, -5.85, 380],
+      "size": [0.5, 5.3, 0.5],
+      "lethal": true,
+      "color": "#c9ced6"
+    }
+  ],
+  "goal": {
+    "pos": [-31.16, -8.5, 445.74],
+    "width": 16,
+    "height": 13
+  }
+}

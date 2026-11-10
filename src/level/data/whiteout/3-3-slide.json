@@ -1,0 +1,96 @@
+{
+  "id": "3-3",
+  "name": "Slide",
+  "world": "whiteout",
+  "parTime": 17,
+  "killY": -5,
+  "palette": {
+    "sky": "#e3edf3",
+    "ground": "#d4e2ea",
+    "fog": "#eaf2f6",
+    "fogFar": 320,
+    "road": "#8ea3b1"
+  },
+  "player": {
+    "convoy": "main",
+    "row": 1,
+    "lane": 1
+  },
+  "scenery": [
+    {
+      "type": "box",
+      "pos": [3.78, 2.1, 176.41],
+      "size": [5, 5, 5],
+      "rot": [0, 8.05, 0],
+      "lethal": true,
+      "color": "#7f8b96"
+    },
+    {
+      "type": "box",
+      "pos": [-3.16, 1.6, 205.95],
+      "size": [4, 4, 4],
+      "rot": [0, 5.98, 0],
+      "lethal": true,
+      "color": "#7f8b96"
+    },
+    {
+      "type": "box",
+      "pos": [-28.25, 2.1, 354.34],
+      "size": [5, 5, 5],
+      "rot": [0, 36.489999999999995, 0],
+      "lethal": true,
+      "color": "#7f8b96"
+    },
+    {
+      "type": "box",
+      "pos": [-18.45, 1.6, 383.28],
+      "size": [4, 4, 4],
+      "rot": [0, 39.84, 0],
+      "lethal": true,
+      "color": "#7f8b96"
+    }
+  ],
+  "hazards": [
+    {
+      "type": "ice",
+      "pos": [-5.51, 0, 174.45],
+      "size": [16, 110],
+      "yaw": -11.95
+    },
+    {
+      "type": "ice",
+      "pos": [-17.68, 0, 356.43],
+      "size": [16, 110],
+      "yaw": 17.59
+    }
+  ],
+  "paths": [
+    {
+      "id": "road",
+      "width": 16,
+      "lanes": 3,
+      "points": [
+        [0, 0, -40],
+        [0, 0, 140],
+        [-24, 0, 260],
+        [-24, 0, 330],
+        [10, 0, 450],
+        [10, 0, 700]
+      ]
+    }
+  ],
+  "convoys": [
+    {
+      "id": "main",
+      "path": "road",
+      "rows": 14,
+      "lanesUsed": [0, 1, 2],
+      "startAt": 50
+    }
+  ],
+  "goal": {
+    "pos": [7.46, 0, 435.46],
+    "width": 16,
+    "height": 12
+  }
+}

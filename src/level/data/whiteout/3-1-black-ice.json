@@ -1,0 +1,89 @@
+{
+  "id": "3-1",
+  "name": "Black Ice",
+  "world": "whiteout",
+  "parTime": 16,
+  "killY": -5,
+  "palette": {
+    "sky": "#e3edf3",
+    "ground": "#d4e2ea",
+    "fog": "#eaf2f6",
+    "fogFar": 320,
+    "road": "#8ea3b1"
+  },
+  "player": {
+    "convoy": "main",
+    "row": 1,
+    "lane": 1
+  },
+  "scenery": [
+    {
+      "type": "box",
+      "pos": [-13.01, 1.6, 161.37],
+      "size": [4, 4, 4],
+      "rot": [0, 26.07, 0],
+      "lethal": true,
+      "color": "#7f8b96"
+    },
+    {
+      "type": "box",
+      "pos": [35.8, 1.6, 286.97],
+      "size": [4, 4, 4],
+      "rot": [0, 24.81, 0],
+      "lethal": true,
+      "color": "#7f8b96"
+    },
+    {
+      "type": "box",
+      "pos": [1.86, 1.6, 414.31],
+      "size": [4, 4, 4],
+      "rot": [0, 7.130000000000001, 0],
+      "lethal": true,
+      "color": "#7f8b96"
+    }
+  ],
+  "hazards": [
+    {
+      "type": "ice",
+      "pos": [8.55, 0, 209.29],
+      "size": [16, 90],
+      "yaw": 10.74
+    },
+    {
+      "type": "ice",
+      "pos": [19.57, 0, 397.85],
+      "size": [16, 70],
+      "yaw": -10.14
+    }
+  ],
+  "paths": [
+    {
+      "id": "road",
+      "width": 16,
+      "lanes": 3,
+      "points": [
+        [0, 0, -40],
+        [0, 0, 150],
+        [22, 0, 290],
+        [22, 0, 380],
+        [4, 0, 480],
+        [4, 0, 700]
+      ]
+    }
+  ],
+  "convoys": [
+    {
+      "id": "main",
+      "path": "road",
+      "rows": 14,
+      "lanesUsed": [0, 1, 2],
+      "startAt": 50,
+      "wobble": 0.06
+    }
+  ],
+  "goal": {
+    "pos": [10.39, 0, 439.85],
+    "width": 16,
+    "height": 12
+  }
+}

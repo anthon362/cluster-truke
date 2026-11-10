@@ -1,0 +1,72 @@
+{
+  "id": "3-4",
+  "name": "Ice Shelf",
+  "world": "whiteout",
+  "parTime": 16,
+  "killY": -5,
+  "palette": {
+    "sky": "#e3edf3",
+    "ground": "#d4e2ea",
+    "fog": "#eaf2f6",
+    "fogFar": 320,
+    "road": "#8ea3b1"
+  },
+  "player": {
+    "convoy": "main",
+    "row": 1,
+    "lane": 1
+  },
+  "scenery": [
+    {
+      "type": "box",
+      "pos": [0, 0.5, 216],
+      "size": [18, 1, 32.462439083762796],
+      "rot": [-3.5763343749973515, 0, 0],
+      "lethal": true,
+      "color": "#f4f8fb"
+    },
+    {
+      "type": "box",
+      "pos": [0, 1, 282.5],
+      "size": [18, 2, 101],
+      "lethal": true,
+      "color": "#f4f8fb"
+    }
+  ],
+  "hazards": [
+    {
+      "type": "ice",
+      "pos": [0, 2, 285],
+      "size": [18, 90]
+    }
+  ],
+  "paths": [
+    {
+      "id": "road",
+      "width": 14,
+      "lanes": 3,
+      "points": [
+        [0, 0, -40],
+        [0, 0, 200],
+        [0, 2, 232],
+        [0, 2, 330],
+        [0, 0, 335],
+        [0, 0, 700]
+      ]
+    }
+  ],
+  "convoys": [
+    {
+      "id": "main",
+      "path": "road",
+      "rows": 14,
+      "lanesUsed": [0, 1, 2],
+      "startAt": 50
+    }
+  ],
+  "goal": {
+    "pos": [0, -2.1, 442.33],
+    "width": 16,
+    "height": 12
+  }
+}
