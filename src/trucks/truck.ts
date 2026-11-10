@@ -353,6 +353,13 @@ export class Truck {
     this.panicSwerve = swerve;
   }
 
+  /** Change velocity by `dv` and add some yaw spin (kicked by the player's jump). */
+  shove(dv: Vector3, spinY: number): void {
+    if (!this.isSolid) return;
+    this.body.applyImpulse({ x: dv.x * T.mass, y: dv.y * T.mass, z: dv.z * T.mass }, true);
+    this.body.applyTorqueImpulse({ x: 0, y: spinY * YAW_INERTIA, z: 0 }, true);
+  }
+
   /** Drive faster for a while (tailwind). */
   boost(factor: number, seconds: number): void {
     this.boostFactor = factor;
@@ -360,9 +367,9 @@ export class Truck {
   }
 
   /** Bring a spare truck into play at a pose, already rolling along its path. */
-  spawnAt(pos: Vector3, yaw: number, s: number, laneOffset: number): void {
+  spawnAt(pos: Vector3, yaw: number, path: Path, s: number, laneOffset: number): void {
     const a = this.assignment;
-    this.assignment = { ...a, laneOffset, startS: s };
+    this.assignment = { ...a, path, dir: 1, laneOffset, startS: s };
     this.s = s;
     q1.setFromAxisAngle(UP, yaw);
     this.body.setTranslation({ x: pos.x, y: pos.y, z: pos.z }, true);
