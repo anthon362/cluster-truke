@@ -202,10 +202,12 @@ export class Truck {
 
       // Forward: accelerate toward cruise speed (or the truck just ahead).
       if (this.boostLeft > 0) this.boostLeft -= dt;
-      const want = Math.min(this.wantedSpeed(time), this.followSpeed);
+      // A boosted driver stops minding the gap and leans on the truck ahead.
+      const boosted = this.boostLeft > 0;
+      const want = boosted ? this.wantedSpeed(time) : Math.min(this.wantedSpeed(time), this.followSpeed);
       const vF = lin.x * fwd.x + lin.z * fwd.z;
       const dvF = Math.min(
-        Math.max(want - vF, -(this.braking ? T.brakeAccel : T.accel) * dt),
+        Math.max(want - vF, -(this.braking && !boosted ? T.brakeAccel : T.accel) * dt),
         T.accel * dt,
       );
       // Lateral grip: cancel sideways sliding.

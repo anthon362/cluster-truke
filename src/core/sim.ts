@@ -60,6 +60,8 @@ export class Sim {
   readonly abilities: AbilityManager;
   /** World speed this step (1 = normal). Abilities lower it; it is reset every step. */
   timeScale = 1;
+  /** The world speed the running step is actually being played at (last step's request). */
+  appliedTimeScale = 1;
   /** A cinematic ability is running (letterbox in the UI). */
   cinematic = false;
   /** This attempt is the first try of the session on this level. */
@@ -145,6 +147,7 @@ export class Sim {
     this.attempts++;
     this.score.reset();
     this.timeScale = 1;
+    this.appliedTimeScale = 1;
     this.cinematic = false;
     this.abilities?.reset();
     this.wasGrounded = true;
@@ -185,6 +188,7 @@ export class Sim {
   step(input: MoveInput): void {
     const dt = TUNING.loop.fixedStep;
     this.events.length = 0;
+    this.appliedTimeScale = this.timeScale;
     this.timeScale = 1;
     if (this.state === 'playing') this.abilities.step(dt, input);
     for (const t of this.trucks) t.drive(dt, this.clock, this.stepCount, this.pool);

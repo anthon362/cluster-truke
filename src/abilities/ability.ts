@@ -47,7 +47,7 @@ export abstract class Ability {
   update(_dt: number, _input: MoveInput): void {}
 
   protected real(dt: number): number {
-    return dt / this.sim.timeScale;
+    return dt / this.sim.appliedTimeScale;
   }
 }
 
