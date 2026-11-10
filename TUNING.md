@@ -105,6 +105,37 @@ interpretation that affects feel.
   After winning the player keeps moving and can no longer fail.
 - **The 0.05 s grace applies to every lethal touch**, not only when sliding off a wreck.
 
+## M4 (engine part; the six levels follow after the theme is approved)
+
+**Values changed from the design document:** none.
+
+**Own earlier values changed:**
+
+| Key                     | Old | New | Why                                                                                                                                                                                                                |
+| ----------------------- | --- | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `player.sideNormalMaxY` | 0.5 | 0.8 | Bug fix. Hanging at the top edge of a truck's back, the grip switched on and off every other step and the player hovered there forever. Contacts now count as a side until the surface is flat enough to stand on. |
+
+**Values the document did not give (added):**
+
+| Key                                                     | Value                     | Why                                                                                                                                  |
+| ------------------------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `truck.brakeAccel`                                      | 20 m/s^2                  | Trucks brake hard when a wreck or obstacle is ahead. Without it one wreck set off a chain of explosions back through the whole lane. |
+| `hazards.brick*`                                        | 1.5 x 1.25 x 0.6 m, 18 kg | Breakable wall bricks. Light, so trucks plough through.                                                                              |
+| `hazards.wallTrigger`                                   | 1.2 m                     | A wall shatters just before a truck touches it, so the truck never hits a solid wall.                                                |
+| `hazards.wallFling` / `wallScatter` / `wallFlingRadius` | 0.7 / 5 / 3               | How bricks fly.                                                                                                                      |
+| `hazards.debrisLife`                                    | 5 s                       | Bricks disappear after this.                                                                                                         |
+| `hazards.debrisKnock*`                                  | 3 m/s, 0.35, 0.9 m        | Flying bricks nudge the player (never lethal).                                                                                       |
+| `hazards.spinnerThickness` / `spinnerHub`               | 1 / 1.4 m                 | Spinning pusher size.                                                                                                                |
+
+**Interpretations:**
+
+- **Pushers shove, they do not detonate.** A truck hit by a spinning arm is pushed around
+  rather than exploding from the impact itself. It can still explode from what happens next
+  (other trucks, tipping over).
+- **An intact breakable wall is lethal to the player; the flying bricks are not.**
+- **Ramps and gaps are built from rotated boxes** plus `"ground": "none"`, rather than a
+  special hazard type.
+
 ## What to adjust if it feels wrong
 
 | Feels like                                    | Change                                                               |
@@ -127,3 +158,6 @@ interpretation that affects feel.
 | Climbing a truck side too slow / too easy     | `player.clingAccel`, `player.clingMaxRise`, `player.clingCatchAccel` |
 | Side kick-off too weak                        | `player.clingTapUp`, `player.clingTapAway`                           |
 | Camera shake too strong                       | `camera.shakeMaxAngle`                                               |
+| Wall bricks fly too wildly / too little       | `hazards.wallFling`, `hazards.wallScatter`                           |
+| Bricks shove you too hard                     | `hazards.debrisKnock`                                                |
+| Pile-ups spread too far back                  | `truck.brakeAccel`, `truck.panicDistance`                            |

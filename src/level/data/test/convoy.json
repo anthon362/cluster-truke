@@ -1,0 +1,51 @@
+{
+  "id": "test-convoy",
+  "name": "Convoy",
+  "world": "test",
+  "parTime": 40,
+  "killY": -5,
+  "palette": {
+    "sky": "#9fd3e6",
+    "ground": "#d9b382",
+    "fog": "#cfe6ea",
+    "fogFar": 420
+  },
+  "player": {
+    "convoy": "main",
+    "row": 1,
+    "lane": 1
+  },
+  "paths": [
+    {
+      "id": "road",
+      "width": 14,
+      "lanes": 3,
+      "points": [
+        [0, 0, 0],
+        [0, 0, 160],
+        [45, 0, 320],
+        [45, 0, 470],
+        [-25, 0, 640],
+        [-25, 0, 820],
+        [10, 0, 1000],
+        [10, 0, 1300]
+      ]
+    }
+  ],
+  "convoys": [
+    {
+      "id": "main",
+      "path": "road",
+      "rows": 20,
+      "lanesUsed": [0, 1, 2],
+      "startAt": 10
+    }
+  ],
+  "scenery": [],
+  "hazards": [],
+  "goal": {
+    "pos": [-25, 0, 740],
+    "width": 18,
+    "height": 12
+  }
+}

@@ -71,7 +71,7 @@ export const TUNING = {
     /** A truck face this close counts as touched for side clinging. */
     clingReach: 0.15,
     /** Contact normals flatter than this (|y|) count as a truck side. */
-    sideNormalMaxY: 0.5,
+    sideNormalMaxY: 0.8,
     /** Speed an explosion at point-blank range adds to the player. */
     blastSpeed: 14,
     /** Upward share added to the blast direction. */
@@ -146,6 +146,8 @@ export const TUNING = {
     senseHeight: 1.5,
     /** Closer than this to a driving truck ahead: match its speed. */
     followDistance: 4,
+    /** Deceleration when braking for an obstacle or wreck ahead (m/s^2). */
+    brakeAccel: 20,
     panicTime: 1.2,
     /** Sideways dodge when panicking (m). */
     panicSwerve: 3.4,
@@ -193,6 +195,29 @@ export const TUNING = {
     particleSpeed: 13,
     particleSize: 0.45,
     particleGravity: 18,
+  },
+
+  hazards: {
+    /** Breakable wall bricks (m) and mass. */
+    brickWidth: 1.5,
+    brickHeight: 1.25,
+    brickDepth: 0.6,
+    brickMass: 18,
+    /** A truck this close to a wall (beyond its own half length) shatters it. */
+    wallTrigger: 1.2,
+    /** Share of the truck's velocity given to bricks in its way. */
+    wallFling: 0.7,
+    wallScatter: 5,
+    /** How wide around the truck bricks get flung (m). */
+    wallFlingRadius: 3,
+    debrisLife: 5,
+    /** Debris moving faster than this relative to the player knocks them. */
+    debrisKnockSpeed: 3,
+    debrisKnock: 0.35,
+    debrisReach: 0.9,
+    /** Spinning pusher arm cross-section and hub size (m). */
+    spinnerThickness: 1,
+    spinnerHub: 1.4,
   },
 
   goal: {

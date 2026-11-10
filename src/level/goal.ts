@@ -1,7 +1,7 @@
 import { Vector3 } from 'three';
 import { TUNING } from '../config/tuning';
 import type { Path } from '../trucks/path';
-import type { GoalDef } from './types';
+import type { GoalDef } from './schema';
 
 /**
  * The finish gate: an upright rectangle. Passing through it in either

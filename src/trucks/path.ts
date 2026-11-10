@@ -21,6 +21,8 @@ export class Path {
     points: readonly (readonly [number, number, number])[],
     public readonly width: number,
     public readonly lanes: number,
+    /** Whether the road ribbon is drawn. */
+    public readonly visible = true,
   ) {
     if (points.length < 2) throw new Error(`Path "${id}" needs at least 2 points`);
     const curve = new CatmullRomCurve3(

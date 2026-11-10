@@ -87,6 +87,8 @@ export class Truck {
   private panicSide = 0;
   /** Speed limit from a driving truck close ahead. */
   private followSpeed = Infinity;
+  /** Something that is not a driving truck is in the way: brake hard. */
+  private braking = false;
   private tippedTime = 0;
   private wreckLeft = 0;
   private friction = -1;
@@ -137,6 +139,7 @@ export class Truck {
     this.wobblePhase = rng.range(0, Math.PI * 2);
     this.panicLeft = 0;
     this.followSpeed = Infinity;
+    this.braking = false;
     this.tippedTime = 0;
     this.wreckLeft = 0;
     this.s = a.startS;
@@ -184,8 +187,10 @@ export class Truck {
       // Forward: accelerate toward cruise speed (or the truck just ahead).
       const want = Math.min(this.wantedSpeed(time), this.followSpeed);
       const vF = lin.x * fwd.x + lin.z * fwd.z;
-      const maxDv = T.accel * dt;
-      const dvF = Math.min(Math.max(want - vF, -maxDv), maxDv);
+      const dvF = Math.min(
+        Math.max(want - vF, -(this.braking ? T.brakeAccel : T.accel) * dt),
+        T.accel * dt,
+      );
       // Lateral grip: cancel sideways sliding.
       const vR = lin.x * right.x + lin.z * right.z;
       const dvR = -vR * T.lateralGrip;
@@ -387,6 +392,7 @@ export class Truck {
       this.body,
     );
     this.followSpeed = Infinity;
+    this.braking = false;
     if (!hit) return;
     const other = lookup.byCollider(hit.collider.handle);
     if (other && other.driving) {
@@ -396,7 +402,9 @@ export class Truck {
       }
       return;
     }
-    // Scenery, a wreck or a tumbling truck: swerve to a side and hope.
+    // Scenery, a wreck or a tumbling truck: stand on the brakes, swerve to a side and hope.
+    this.braking = true;
+    this.followSpeed = 0;
     if (this.panicLeft <= 0) {
       this.panicLeft = T.panicTime;
       this.panicSide = (this.index * 7 + Math.floor(this.s)) % 2 === 0 ? 1 : -1;
