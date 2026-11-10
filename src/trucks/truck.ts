@@ -204,7 +204,9 @@ export class Truck {
       if (this.boostLeft > 0) this.boostLeft -= dt;
       // A boosted driver stops minding the gap and leans on the truck ahead.
       const boosted = this.boostLeft > 0;
-      const want = boosted ? this.wantedSpeed(time) : Math.min(this.wantedSpeed(time), this.followSpeed);
+      const want = boosted
+        ? this.wantedSpeed(time)
+        : Math.min(this.wantedSpeed(time), this.followSpeed);
       const vF = lin.x * fwd.x + lin.z * fwd.z;
       const dvF = Math.min(
         Math.max(want - vF, -(this.braking && !boosted ? T.brakeAccel : T.accel) * dt),

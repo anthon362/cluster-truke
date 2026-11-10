@@ -34,6 +34,8 @@ export class Lunge extends Ability {
     // Spread the impulse over the dash so it reads as a burst, not a teleport.
     const step = Math.min(dt, this.left);
     this.left -= step;
-    this.sim.player.push(new Vector3().copy(this.dir).multiplyScalar((A.speed / A.duration) * step));
+    this.sim.player.push(
+      new Vector3().copy(this.dir).multiplyScalar((A.speed / A.duration) * step),
+    );
   }
 }

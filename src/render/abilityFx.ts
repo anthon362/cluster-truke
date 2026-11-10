@@ -28,8 +28,14 @@ export class AbilityFx {
     geo.setAttribute('position', this.linePos);
     this.line = new Line(geo, new LineBasicMaterial({ color: PALETTE.towLine, fog: false }));
     this.line.frustumCulled = false;
-    this.marker = new Mesh(new SphereGeometry(0.28, 10, 8), new MeshBasicMaterial({ color: PALETTE.marker }));
-    this.flare = new Mesh(new SphereGeometry(0.6, 10, 8), new MeshBasicMaterial({ color: PALETTE.flare, fog: false }));
+    this.marker = new Mesh(
+      new SphereGeometry(0.28, 10, 8),
+      new MeshBasicMaterial({ color: PALETTE.marker }),
+    );
+    this.flare = new Mesh(
+      new SphereGeometry(0.6, 10, 8),
+      new MeshBasicMaterial({ color: PALETTE.flare, fog: false }),
+    );
     scene.add(this.line, this.marker, this.flare);
   }
 

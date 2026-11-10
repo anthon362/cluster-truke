@@ -29,7 +29,11 @@ export class Hud {
       root.className = `ability-bar ${side} hidden`;
       root.innerHTML = `<div class="name"></div><div class="track"><div class="fill"></div></div>`;
       parent.appendChild(root);
-      this.bars.push({ root, name: root.querySelector('.name')!, fill: root.querySelector('.fill')! });
+      this.bars.push({
+        root,
+        name: root.querySelector('.name')!,
+        fill: root.querySelector('.fill')!,
+      });
     }
     this.popups = document.createElement('div');
     this.popups.className = 'popups';

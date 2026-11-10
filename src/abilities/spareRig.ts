@@ -16,7 +16,11 @@ export class SpareRig extends Ability {
   private readonly cd = new Cooldown(A.cooldown);
   readonly marker: Thrown;
   /** One box covering the whole truck, slightly shrunk, for the "is this spot free" test. */
-  private readonly probe = new RAPIER.Cuboid(T.width / 2 - 0.05, T.trailerRoof / 2 - 0.05, T.length / 2 - 0.05);
+  private readonly probe = new RAPIER.Cuboid(
+    T.width / 2 - 0.05,
+    T.trailerRoof / 2 - 0.05,
+    T.length / 2 - 0.05,
+  );
   /** How many trucks this ability has called in (tests). */
   spawned = 0;
 

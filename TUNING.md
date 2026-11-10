@@ -181,6 +181,43 @@ as written (`score.*`).
 - **AIRBORNE HOP** needs an actual jump (not walking off) from a truck with no corner near the ground.
 - **AIR TIME is capped at 3,000 per attempt**, as specified; the other bonuses are not capped.
 
+## M5 (part 2: abilities and shop)
+
+The ability set, prices and timings are original to this game (decided by me, as asked):
+twelve abilities, six per slot, 322,000 points in total. The design document's list of
+fourteen is not used. All values are in `abilities.*` in `tuning.ts`; prices are in
+`src/config/abilities.ts`.
+
+| Ability      | Slot     | Price  | Key values                                         |
+| ------------ | -------- | ------ | -------------------------------------------------- |
+| SECOND WIND  | movement | 12,000 | air jump 8 m/s                                     |
+| LUNGE        | movement | 18,000 | +18 m/s over 0.15 s, cooldown 4 s                  |
+| KICK OFF     | movement | 22,000 | player +3 m/s, truck -4 m/s                        |
+| HANG TIME    | movement | 26,000 | 1.8 s hover, 6 s to refill                         |
+| SLIPSTREAM   | movement | 30,000 | up to +6 m/s after 2 s standing                    |
+| TOW LINE     | movement | 38,000 | range 28 m, reel speed 30 m/s, cooldown 5 s        |
+| SLOW LANE    | utility  | 15,000 | 0.4 x time for 3 s, refill after 2 s               |
+| ROAD FLARE   | utility  | 20,000 | trucks within 16 m swerve for 3 s, cooldown 9 s    |
+| MAGNET BOOTS | utility  | 28,000 | 4 s lock, refill after 3 s                         |
+| SPARE RIG    | utility  | 32,000 | cooldown 7 s, two spare trucks per level           |
+| TAILWIND     | utility  | 36,000 | trucks within 25 m at 1.3 x for 3 s, cooldown 12 s |
+| SHOWTIME     | utility  | 45,000 | 0.6 x time for 4 s, points x 2, cooldown 14 s      |
+
+**Notes:**
+
+- **Why twelve and not fourteen:** two more would have been filler or near-copies of the
+  reference game's remaining abilities (teleport, freeze all trucks, time-moves-when-you-move).
+- **Ability timers run in real seconds**, so slow motion does not stretch a cooldown or make
+  an energy meter last longer.
+- **`player.maxSpeed` 60 m/s** is a new hard clamp on the player's own speed, checked every
+  step, so no combination of abilities can exceed it.
+- **SPARE RIG tests the spot before the truck exists**: the truck-sized box is raised in
+  0.5 m steps until it overlaps nothing, then the truck is created there and drops.
+- **A boosted truck (TAILWIND) ignores its following distance** and leans on the truck
+  ahead; otherwise the unboosted trucks in front cancelled the effect.
+- **`?abilities=all`** unlocks every ability for the session without saving anything;
+  `?equip=towLine,slowLane` equips at start.
+
 ## What to adjust if it feels wrong
 
 | Feels like                                    | Change                                                               |
@@ -207,3 +244,5 @@ as written (`score.*`).
 | Bricks shove you too hard                     | `hazards.debrisKnock`                                                |
 | Pile-ups spread too far back                  | `truck.brakeAccel`, `truck.panicDistance`                            |
 | Points come too fast / too slowly             | `score.*` (each bonus has its own value)                             |
+| An ability is too strong / weak               | `abilities.<name>.*`                                                 |
+| Prices                                        | `src/config/abilities.ts`                                            |

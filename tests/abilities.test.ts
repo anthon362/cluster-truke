@@ -51,7 +51,11 @@ describe('ability table', () => {
       });
       const held = input({ primaryHeld: true, secondaryHeld: true, pitch: -0.5, moveF: 1 });
       run(sim, 40, held);
-      run(sim, 1, input({ jumpPressed: true, jumpHeld: true, primaryHeld: true, secondaryHeld: true }));
+      run(
+        sim,
+        1,
+        input({ jumpPressed: true, jumpHeld: true, primaryHeld: true, secondaryHeld: true }),
+      );
       run(sim, 90, held);
       run(sim, 30, input());
       sim.reset();
@@ -168,7 +172,11 @@ describe('TOW LINE', () => {
     // Aim at the roof of the trailer ahead.
     const here = sim.player.groundTruck!;
     const target = sim.pool.find('main', here.assignment.row + 1, here.assignment.lane)!;
-    const to = target.pos.clone().add(new Vector3(0, T.trailerRoof, -1.4)).sub(sim.player.pos).add(new Vector3(0, -A.towLine.eyeHeight, 0));
+    const to = target.pos
+      .clone()
+      .add(new Vector3(0, T.trailerRoof, -1.4))
+      .sub(sim.player.pos)
+      .add(new Vector3(0, -A.towLine.eyeHeight, 0));
     const aim = { yaw: Math.atan2(-to.x, -to.z), pitch: Math.atan2(to.y, Math.hypot(to.x, to.z)) };
     const d0 = sim.player.pos.distanceTo(target.pos);
     sim.step(input({ ...aim, primaryHeld: true }));
@@ -242,7 +250,11 @@ describe('SLOW LANE', () => {
 describe('SPARE RIG', () => {
   /** Does the truck's bounding box overlap any other truck, scenery or hazard? */
   function overlapsAnything(sim: Sim, truck: Sim['trucks'][number]): boolean {
-    const shape = new RAPIER.Cuboid(T.width / 2 - 0.05, T.trailerRoof / 2 - 0.05, T.length / 2 - 0.05);
+    const shape = new RAPIER.Cuboid(
+      T.width / 2 - 0.05,
+      T.trailerRoof / 2 - 0.05,
+      T.length / 2 - 0.05,
+    );
     const centre = new Vector3(0, T.trailerRoof / 2, 0).applyQuaternion(truck.rot).add(truck.pos);
     let hit = false;
     sim.physics.world.intersectionsWithShape(
@@ -288,7 +300,8 @@ describe('SPARE RIG', () => {
       const sim = new Sim({ seed: 21, god: true, level: TEST_LEVELS.block, utility: 'spareRig' });
       run(sim, 3, input());
       const rig = sim.abilities.get<SpareRig>('spareRig')!;
-      if (name === 'inside a truck') point.copy(sim.pool.find('main', 10, 1)!.pos).add(new Vector3(0, 1, 0));
+      if (name === 'inside a truck')
+        point.copy(sim.pool.find('main', 10, 1)!.pos).add(new Vector3(0, 1, 0));
       const ok = rig.spawnAt(point);
       const spare = sim.trucks.find((t) => t.spare && t.state === 'alive');
       expect(ok, name).toBe(true);
@@ -405,7 +418,10 @@ describe('SHOWTIME', () => {
     const plain = single(null);
     run(plain, 7, input());
     const pv = plain.trucks[0].body.linvel();
-    plain.player.placeInAir(new Vector3(0, 30, -1.4).add(plain.trucks[0].pos), new Vector3(pv.x, 0, pv.z));
+    plain.player.placeInAir(
+      new Vector3(0, 30, -1.4).add(plain.trucks[0].pos),
+      new Vector3(pv.x, 0, pv.z),
+    );
     for (let i = 0; i < 4 * HZ && !plain.player.grounded; i++) plain.step(input());
     expect(doubled).toBeGreaterThan(plain.score.total * 1.8);
     // It ends on its own.
@@ -449,7 +465,9 @@ describe('velocity clamps hold with every ability', () => {
         }
       }
       expect(playerTop, a.id).toBeLessThanOrEqual(P.maxSpeed + 0.01);
-      expect(truckTop, a.id).toBeLessThanOrEqual(TUNING.physics.maxTruckSpeed + dt * TUNING.physics.gravity + 0.01);
+      expect(truckTop, a.id).toBeLessThanOrEqual(
+        TUNING.physics.maxTruckSpeed + dt * TUNING.physics.gravity + 0.01,
+      );
     }
   }, 180000);
 });

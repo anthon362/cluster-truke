@@ -466,3 +466,9 @@ button.go {
   opacity: 0.35;
   cursor: default;
 }
+.timer,
+.level-name,
+.ability-bar,
+.popups {
+  z-index: 2;
+}

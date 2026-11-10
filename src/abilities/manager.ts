@@ -74,10 +74,22 @@ export class AbilityManager {
 
   step(dt: number, input: MoveInput): void {
     this.prevPrimary = this.route(this.movement, !!input.primaryHeld, this.prevPrimary, dt, input);
-    this.prevSecondary = this.route(this.utility, !!input.secondaryHeld, this.prevSecondary, dt, input);
+    this.prevSecondary = this.route(
+      this.utility,
+      !!input.secondaryHeld,
+      this.prevSecondary,
+      dt,
+      input,
+    );
   }
 
-  private route(a: Ability | null, held: boolean, was: boolean, dt: number, input: MoveInput): boolean {
+  private route(
+    a: Ability | null,
+    held: boolean,
+    was: boolean,
+    dt: number,
+    input: MoveInput,
+  ): boolean {
     if (!a) return held;
     if (held && !was) a.onPress(input);
     if (held) a.onHold(dt, input);
