@@ -1,0 +1,164 @@
+/**
+ * Every gameplay number lives here. Systems code must not contain magic numbers.
+ * Values marked (estimate) are starting points; changes are logged in TUNING.md.
+ */
+
+const DEG = Math.PI / 180;
+
+export const TUNING = {
+  loop: {
+    fixedStep: 1 / 60,
+    maxSubSteps: 4,
+    /** Longest real frame time fed to the accumulator (tab switch protection). */
+    maxFrameTime: 0.25,
+    /** Debug overlay warns when one physics step takes longer than this (ms). */
+    stepBudgetMs: 6,
+  },
+
+  physics: {
+    /** Gravity for trucks and other rigid bodies (m/s^2). */
+    gravity: 22,
+    /** Hard clamp on any truck's speed (m/s). */
+    maxTruckSpeed: 60,
+    /** Hard clamp on velocity a truck may hand over to the player (m/s). */
+    maxTransferSpeed: 40,
+    /** Half extent of the flat test ground used until levels exist (m). */
+    testGroundHalfSize: 20000,
+  },
+
+  player: {
+    radius: 0.4,
+    height: 1.8,
+    eyeHeight: 1.65,
+    walkSpeed: 9,
+    sprintSpeed: 14,
+    /** Strafe and backward speed as a fraction of the forward value. */
+    strafeMultiplier: 0.55,
+    groundAccel: 60,
+    groundDecel: 40,
+    /** Slow-down rate on the ground while faster than the input cap. */
+    overspeedBleed: 8,
+    airAccel: 14,
+    airDrag: 0,
+    gravity: 22,
+    jumpVelocity: 10,
+    /** Upward velocity multiplier when jump is released while rising. */
+    jumpCutMultiplier: 0.5,
+    coyoteTime: 0.15,
+    jumpBuffer: 0.12,
+    /** Side-of-truck climbing (M2). */
+    clingAccel: 30,
+    clingMaxRise: 6,
+    clingTapUp: 10,
+    clingTapAway: 3,
+    /** Surfaces steeper than this are not standable; the player slides. */
+    slideAngle: 35 * DEG,
+    /** Gap kept between the capsule and trucks. */
+    skin: 0.02,
+    /** How far below the feet a grounded player keeps sticking to a truck. */
+    groundSnap: 0.3,
+    /** How far below the feet an airborne player looks for a landing. */
+    groundProbe: 0.05,
+    /** Landing is accepted while moving up relative to the truck slower than this. */
+    maxLandingRise: 0.5,
+    slideIterations: 4,
+    depenetrationIterations: 3,
+    /** Lethal test capsule is this fraction of the collision capsule (M3). */
+    lethalCapsuleScale: 0.9,
+    /** Grace before a lethal overlap counts while sliding off a wreck (M3). */
+    lethalGrace: 0.05,
+  },
+
+  camera: {
+    fovDefault: 90,
+    fovMin: 50,
+    fovMax: 140,
+    sprintFovKick: 8,
+    sprintFovTime: 0.2,
+    landingDip: 0.08,
+    landingDipTime: 0.1,
+    /** Landing speed (m/s) that produces the full dip. */
+    landingDipFullSpeed: 12,
+    strafeRoll: 2 * DEG,
+    strafeRollTime: 0.15,
+    pitchLimit: 89 * DEG,
+    /** Radians of rotation per pixel of mouse movement at sensitivity 1. */
+    mouseRadPerPixel: 0.0022,
+    sensitivityDefault: 1,
+    near: 0.05,
+    far: 900,
+  },
+
+  truck: {
+    length: 10,
+    width: 2.6,
+    trailerLength: 7.2,
+    trailerRoof: 3.8,
+    cabLength: 2.4,
+    cabRoof: 2.9,
+    cabGap: 0.4,
+    mass: 800,
+    /** Share of the mass carried by the trailer collider. */
+    trailerMassShare: 0.7,
+    cruiseSpeed: 18,
+    cruiseSpeedMin: 8,
+    cruiseSpeedMax: 35,
+    accel: 8,
+    /** Fraction of sideways velocity cancelled per step while driving. */
+    lateralGrip: 0.9,
+    /** Same on ice (M6). */
+    lateralGripIce: 0.15,
+    lookAhead: 8,
+    /** Yaw rate requested per radian of heading error (1/s). */
+    steerGain: 3,
+    /** Fraction of the yaw-rate error corrected per step. */
+    steerResponse: 0.3,
+    maxSteerRate: 1.2,
+    uprightLimit: 40 * DEG,
+    groundRayLength: 0.3,
+    /** Rays start this far above the truck's base. */
+    groundRayLift: 0.5,
+    friction: 0,
+    restitution: 0.1,
+    laneSpacing: 3.4,
+    rowSpacing: 13,
+    convoyRowsMin: 8,
+    convoyRowsMax: 20,
+    maxActive: 80,
+    wobbleAmplitude: 0.12,
+    wobbleHzMin: 0.2,
+    wobbleHzMax: 0.5,
+    speedVariance: 0.1,
+    panicDistance: 15,
+    explodeClosingSpeed: 25,
+    explodeUpsideDownTime: 2,
+    explosionRadius: 8,
+    wreckLifetime: 4,
+    despawnBehind: 60,
+  },
+
+  /** Stand-in for level data until M4. */
+  testLevel: {
+    killY: -5,
+    /** Feet lower than this count as touching the ground. */
+    groundTouchY: 0.05,
+  },
+
+  score: {
+    finish: 500,
+    ace: 1000,
+    speedMax: 1500,
+    speedZeroAtPar: 2,
+    speedMaxAtPar: 0.6,
+    airTimePerSecond: 150,
+    airTimeThreshold: 1,
+    airTimeCap: 3000,
+    rowSkip: 100,
+    airborneHop: 300,
+    closeCall: 250,
+    closeCallDistance: 1,
+    worldClear: 5000,
+  },
+} as const;
+
+export type Tuning = typeof TUNING;

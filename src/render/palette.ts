@@ -1,0 +1,35 @@
+/** Visual-only constants. Nothing here affects gameplay. */
+export const PALETTE = {
+  sky: 0x9fd3e6,
+  fog: 0xcfe6ea,
+  fogNear: 60,
+  fogFar: 420,
+  ground: 0xd9b382,
+  road: 0x4a4f57,
+  roadLine: 0xf2e9d0,
+  post: 0xe9573f,
+  truckTrailer: 0xf4efe4,
+  truckStripe: 0xff7a1a,
+  truckCab: 0x1fa3a3,
+  truckDark: 0x23262b,
+  truckGlass: 0x9fe3ff,
+  sun: 0xfff2d6,
+  hemiSky: 0xcfe9ff,
+  hemiGround: 0xb08a5a,
+} as const;
+
+export const SCENE_DIMS = {
+  roadWidth: 14,
+  dashLength: 4,
+  dashSpacing: 12,
+  dashCount: 48,
+  postSpacing: 24,
+  postCount: 24,
+  postOffset: 10,
+  postHeight: 3,
+  groundSize: 1800,
+  wheelRadius: 0.55,
+  wheelWidth: 0.45,
+  chassisClearance: 0.6,
+  stripeHeight: 0.35,
+} as const;
