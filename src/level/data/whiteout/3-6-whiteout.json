@@ -33,7 +33,7 @@
     },
     {
       "type": "box",
-      "pos": [0, 3, 420],
+      "pos": [0, 3, 425],
       "size": [13, 6, 3],
       "lethal": true,
       "color": "#7f8b96"
@@ -57,7 +57,7 @@
     },
     {
       "type": "breakableWall",
-      "pos": [0, 0, 290],
+      "pos": [0, 0, 280],
       "width": 14,
       "height": 5,
       "yaw": 0
@@ -78,7 +78,9 @@
       "width": 8,
       "lanes": 2,
       "points": [
-        [9.6, 0, 150],
+        [80, 0, -40],
+        [80, 0, 150],
+        [9.6, 0, 340],
         [9.6, 0, 700]
       ]
     }
@@ -94,15 +96,15 @@
     {
       "id": "side",
       "path": "side",
-      "rows": 13,
+      "rows": 16,
       "lanesUsed": [0, 1],
-      "startAt": 100,
-      "speed": 18,
-      "wobble": 0.05
+      "startAt": 64,
+      "wobble": 0.04,
+      "speedVariance": 0.03
     }
   ],
   "goal": {
-    "pos": [9.6, 0, 443],
+    "pos": [1.69, 0, 442.87],
     "width": 14,
     "height": 12
   }

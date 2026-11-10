@@ -1,5 +1,5 @@
 // Builds the WHITEOUT (world 3) level files. Run: node scripts/build-whiteout.mjs
-import { GOAL_S, LANE, ROW, START, goalAt, makePath, wall, writeLevels } from './level-kit.mjs';
+import { GOAL_S, START, goalAt, makePath, wall, writeLevels } from './level-kit.mjs';
 
 const PALETTE = { sky: '#e3edf3', ground: '#d4e2ea', fog: '#eaf2f6', fogFar: 320, road: '#8ea3b1' };
 const SNOW = '#f4f8fb';
@@ -182,14 +182,24 @@ const levels = [];
   ]);
 }
 
-// 3-6 Whiteout: ice, a wheel, a snow wall, and then the road is closed: change to the side road.
+// 3-6 Whiteout: ice, a wheel, a snow wall, and then the road is closed. A second convoy
+// sweeps in from the right and runs alongside for the last stretch: change over to it.
 {
+  const MERGE_Z = 340;
   const sidePts = [
-    [9.6, 0, 150],
+    [80, 0, -40],
+    [80, 0, 150],
+    [9.6, 0, MERGE_Z],
     [9.6, 0, 700],
   ];
   const path = makePath(straight);
   const side = makePath(sidePts);
+  // Path distance at which the side road has finished merging.
+  let mergeS = 0;
+  while (side.at(mergeS).pos[2] < MERGE_Z) mergeS += 1;
+  // Start the side convoy so each of its rows reaches the merge exactly beside the same row of the main convoy.
+  const sideStart = Math.round(mergeS - (MERGE_Z - (START - 40)));
+  const goalS = mergeS + (GOAL_S - 40 - MERGE_Z);
   levels.push([
     'whiteout',
     level(6, 'Whiteout', 17, {
@@ -200,28 +210,25 @@ const levels = [];
       ],
       convoys: [
         { id: 'main', path: 'road', rows: 14, lanesUsed: [0, 1, 2], startAt: START },
-        // Starts level with the convoy's front and is long enough to still be alongside the last rows.
         {
           id: 'side',
           path: 'side',
-          rows: 13,
+          rows: 16,
           lanesUsed: [0, 1],
-          startAt: 100,
-          speed: 18,
-          wobble: 0.05,
+          startAt: sideStart,
+          wobble: 0.04,
+          speedVariance: 0.03,
         },
       ],
       scenery: [
         ...pylons(path, 250),
         // Road closed.
-        { type: 'box', pos: [0, 3, 420], size: [13, 6, 3], lethal: true, color: ROCK },
+        { type: 'box', pos: [0, 3, 425], size: [13, 6, 3], lethal: true, color: ROCK },
       ],
-      hazards: [ice(path, 190, 70, 14), rotor(path, 250, 22, 70), wall(path, 330, 5)],
-      goal: { pos: side.at(GOAL_S - 190).pos, width: 14, height: 12 },
+      hazards: [ice(path, 190, 70, 14), rotor(path, 250, 22, 70), wall(path, 320, 5)],
+      goal: { pos: side.at(goalS).pos, width: 14, height: 12 },
     }),
   ]);
 }
 
-void LANE;
-void ROW;
 writeLevels('whiteout', levels);
