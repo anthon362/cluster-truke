@@ -27,13 +27,23 @@ export class DebugOverlay {
       `fps         ${loop.fps.toFixed(0)}`,
       `step        ${loop.stepMs.toFixed(2)} ms${over ? '  OVER BUDGET' : ''}`,
       `bodies      ${sim.physics.activeBodyCount} active / ${sim.physics.bodyCount}`,
+      `trucks      ${count(sim, 'driving')} driving, ${count(sim, 'wreck')} wrecks, ${count(sim, 'gone')} gone, ${sim.explosions} explosions`,
       `speed       ${p.relativeSpeed.toFixed(1)} m/s on truck, ${world.toFixed(1)} m/s world`,
       `vertical    ${p.vel.y.toFixed(1)} m/s`,
-      `state       ${p.grounded ? 'grounded' : 'air'}  falls ${sim.falls}`,
+      `state       ${p.grounded ? 'grounded' : p.clinging ? 'clinging' : 'air'}  falls ${sim.falls}`,
+      `level       ${sim.level.id}`,
       `time        ${sim.time.toFixed(2)} s`,
       `seed        ${sim.seed}${sim.god ? '  GOD' : ''}`,
     ];
     this.el.textContent = lines.join('\n');
     this.el.classList.toggle('warn', over);
   }
+}
+
+function count(sim: Sim, what: 'driving' | 'wreck' | 'gone'): number {
+  let n = 0;
+  for (const t of sim.trucks) {
+    if (what === 'driving' ? t.driving : t.state === what) n++;
+  }
+  return n;
 }

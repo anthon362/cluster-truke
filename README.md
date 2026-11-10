@@ -21,7 +21,8 @@ Open the printed localhost URL and click to play.
 | Esc     | Pause (releases the mouse)                      |
 | F3      | Debug overlay                                   |
 
-URL parameters: `?seed=123` fixed seed, `?god=1` no falling-off reset, `?debug=1` overlay open.
+URL parameters: `?seed=123` fixed seed, `?god=1` no falling-off reset, `?debug=1` overlay open,
+`?level=convoy` (default), `?level=block` (obstacle on the road), `?level=single` (one truck).
 
 ## Other commands
 

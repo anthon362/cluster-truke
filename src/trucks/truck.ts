@@ -1,22 +1,10 @@
 import { Quaternion, Vector3 } from 'three';
 import { TUNING } from '../config/tuning';
+import type { Rng } from '../core/rng';
 import { GROUP, PhysicsWorld, RAPIER, groups } from '../physics/world';
+import type { Path } from './path';
 
 const T = TUNING.truck;
-
-/** Where a truck is trying to go. Spline paths with lanes arrive in M2. */
-export interface TruckRoute {
-  /** Point to steer at, `lookAhead` metres beyond the given position. */
-  target(pos: Vector3, lookAhead: number, out: Vector3): Vector3;
-}
-
-/** A straight lane along +Z at a fixed X. */
-export class StraightRoute implements TruckRoute {
-  constructor(public readonly x: number) {}
-  target(pos: Vector3, lookAhead: number, out: Vector3): Vector3 {
-    return out.set(this.x, 0, pos.z + lookAhead);
-  }
-}
 
 /**
  * Truck geometry in body-local space. Origin is the centre of the base,
@@ -38,19 +26,50 @@ export const TRUCK_SHAPE = (() => {
   };
 })();
 
+/** Where and how a truck is asked to drive. */
+export interface TruckAssignment {
+  convoy: string;
+  row: number;
+  lane: number;
+  path: Path;
+  laneOffset: number;
+  /** +1 along the path, -1 against it. */
+  dir: 1 | -1;
+  /** Path distance of the spawn point. */
+  startS: number;
+  speed: number;
+  speedVariance: number;
+  wobble: number;
+  /** 0 for the rear row .. 1 for the front row. */
+  rowFraction: number;
+  spawnDelay: number;
+}
+
+/** alive: normal body. wreck: exploded, still solid. gone: removed from play. */
+export type TruckState = 'waiting' | 'alive' | 'wreck' | 'gone';
+
+/** What the forward sensing ray needs to know about other trucks. */
+export interface TruckLookup {
+  byCollider(handle: number): Truck | undefined;
+}
+
 const UP = new Vector3(0, 1, 0);
 const v1 = new Vector3();
 const v2 = new Vector3();
 const v3 = new Vector3();
+const v4 = new Vector3();
 const q1 = new Quaternion();
+const YAW_INERTIA = (T.mass * (T.length * T.length + T.width * T.width)) / 12;
 
 export class Truck {
   readonly body: RAPIER.RigidBody;
   readonly colliders: RAPIER.Collider[] = [];
-  cruiseSpeed: number = T.cruiseSpeed;
-  route: TruckRoute;
-  /** True while the drive model is in control (upright and wheels on the ground). */
+  state: TruckState = 'alive';
+  /** True while the drive model is in control (upright and on the ground). */
   driving = false;
+  cruiseSpeed: number = T.cruiseSpeed;
+  /** Progress along the path (m). */
+  s = 0;
 
   /** Transforms before and after the latest physics step, for render interpolation. */
   readonly prevPos = new Vector3();
@@ -58,22 +77,30 @@ export class Truck {
   readonly pos = new Vector3();
   readonly rot = new Quaternion();
 
-  private readonly spawnPos = new Vector3();
+  private wobbleAmp = 0;
+  private wobbleHz = 0;
+  private wobblePhase = 0;
+  private speedHz = 0;
+  private speedPhase = 0;
+  private speedAmp = 0;
+  private panicLeft = 0;
+  private panicSide = 0;
+  /** Speed limit from a driving truck close ahead. */
+  private followSpeed = Infinity;
+  private tippedTime = 0;
+  private wreckLeft = 0;
+  private friction = -1;
+  private readonly preVel = new Vector3();
   private readonly ray = new RAPIER.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -1, z: 0 });
 
   constructor(
     private readonly physics: PhysicsWorld,
-    spawn: Vector3,
-    route: TruckRoute,
+    public readonly index: number,
+    public assignment: TruckAssignment,
   ) {
-    this.route = route;
-    this.spawnPos.copy(spawn);
     const world = physics.world;
     this.body = world.createRigidBody(
-      RAPIER.RigidBodyDesc.dynamic()
-        .setTranslation(spawn.x, spawn.y, spawn.z)
-        .setCcdEnabled(true)
-        .setCanSleep(false),
+      RAPIER.RigidBodyDesc.dynamic().setCcdEnabled(true).setCanSleep(false),
     );
     const parts = [
       { ...TRUCK_SHAPE.trailer, mass: T.mass * T.trailerMassShare },
@@ -83,88 +110,225 @@ export class Truck {
       const desc = RAPIER.ColliderDesc.cuboid(p.half.x, p.half.y, p.half.z)
         .setTranslation(p.centre.x, p.centre.y, p.centre.z)
         .setMass(p.mass)
-        .setFriction(T.friction)
         .setFrictionCombineRule(RAPIER.CoefficientCombineRule.Min)
         .setRestitution(T.restitution)
         .setCollisionGroups(groups(GROUP.TRUCK));
       this.colliders.push(world.createCollider(desc, this.body));
     }
-    this.reset();
   }
 
-  /** Back to the spawn point, already rolling at cruise speed. */
-  reset(): void {
-    const s = this.spawnPos;
-    this.body.setTranslation({ x: s.x, y: s.y, z: s.z }, true);
-    this.body.setRotation({ x: 0, y: 0, z: 0, w: 1 }, true);
-    this.body.setLinvel({ x: 0, y: 0, z: this.cruiseSpeed }, true);
+  get isSolid(): boolean {
+    return this.state === 'alive' || this.state === 'wreck';
+  }
+
+  /** Back to the spawn point with fresh driver noise. Reuses the body (pooling). */
+  reset(rng: Rng): void {
+    const a = this.assignment;
+    // Speed wanders around the convoy speed instead of being a fixed offset, so
+    // drivers bunch up and spread out without the formation drifting apart.
+    this.cruiseSpeed = a.speed;
+    this.speedAmp = a.speedVariance * rng.range(0.5, 1);
+    this.speedHz = rng.range(T.speedWanderHzMin, T.speedWanderHzMax);
+    this.speedPhase = rng.range(0, Math.PI * 2);
+    // Rear rows are sloppier than the lead rows, so skill at the front is rewarded.
+    const calm = T.leadRowCalm + (1 - T.leadRowCalm) * (1 - a.rowFraction);
+    this.wobbleAmp = a.wobble * calm * rng.range(0.5, 1);
+    this.wobbleHz = rng.range(T.wobbleHzMin, T.wobbleHzMax);
+    this.wobblePhase = rng.range(0, Math.PI * 2);
+    this.panicLeft = 0;
+    this.followSpeed = Infinity;
+    this.tippedTime = 0;
+    this.wreckLeft = 0;
+    this.s = a.startS;
+
+    const p = a.path.pointAt(a.startS, a.laneOffset, v1);
+    const t = a.path.tangentAt(a.startS, v2).multiplyScalar(a.dir);
+    const yaw = Math.atan2(t.x, t.z);
+    q1.setFromAxisAngle(UP, yaw);
+    this.body.setTranslation({ x: p.x, y: p.y, z: p.z }, true);
+    this.body.setRotation({ x: q1.x, y: q1.y, z: q1.z, w: q1.w }, true);
+    this.body.setLinvel({ x: t.x * this.cruiseSpeed, y: 0, z: t.z * this.cruiseSpeed }, true);
     this.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+    this.setState(a.spawnDelay > 0 ? 'waiting' : 'alive');
+    this.setFriction(T.friction);
+    this.driving = this.state === 'alive';
     this.readTransform();
     this.prevPos.copy(this.pos);
     this.prevRot.copy(this.rot);
+    this.preVel.set(t.x * this.cruiseSpeed, 0, t.z * this.cruiseSpeed);
   }
 
   /** Apply drive forces. Call once per fixed step before the physics step. */
-  drive(dt: number): void {
+  drive(dt: number, time: number, step: number, lookup: TruckLookup): void {
     this.prevPos.copy(this.pos);
     this.prevRot.copy(this.rot);
+    if (this.state === 'waiting' && time >= this.assignment.spawnDelay) this.setState('alive');
+    if (!this.isSolid) return;
 
     const body = this.body;
-    const rot = q1.copy(body.rotation() as Quaternion);
+    const rot = q1.copy(this.rot);
     const up = v1.copy(UP).applyQuaternion(rot);
     const upright = up.y > Math.cos(T.uprightLimit);
-    this.driving = upright && this.wheelsOnGround(rot);
-    if (!this.driving) return; // pure physics debris
+    this.driving = this.state === 'alive' && upright && this.wheelsOnGround(rot);
+    this.setFriction(this.driving ? T.friction : T.debrisFriction);
 
-    const mass = body.mass();
+    if (this.driving) {
+      const a = this.assignment;
+      const lin = body.linvel();
+      const fwd = v1.set(0, 0, 1).applyQuaternion(rot);
+      if ((step + this.index) % T.senseInterval === 0) this.sense(fwd, lookup);
+      fwd.y = 0;
+      fwd.normalize();
+      const right = v2.set(fwd.z, 0, -fwd.x);
+
+      // Forward: accelerate toward cruise speed (or the truck just ahead).
+      const want = Math.min(this.wantedSpeed(time), this.followSpeed);
+      const vF = lin.x * fwd.x + lin.z * fwd.z;
+      const maxDv = T.accel * dt;
+      const dvF = Math.min(Math.max(want - vF, -maxDv), maxDv);
+      // Lateral grip: cancel sideways sliding.
+      const vR = lin.x * right.x + lin.z * right.z;
+      const dvR = -vR * T.lateralGrip;
+      body.applyImpulse(
+        {
+          x: (fwd.x * dvF + right.x * dvR) * T.mass,
+          y: 0,
+          z: (fwd.z * dvF + right.z * dvR) * T.mass,
+        },
+        true,
+      );
+
+      // Steering: yaw toward a look-ahead point on the lane, plus driver noise.
+      this.s = a.path.project(this.pos, this.s);
+      let offset = a.laneOffset;
+      if (this.panicLeft > 0) {
+        this.panicLeft -= dt;
+        offset += this.panicSide * T.panicSwerve * a.dir;
+      }
+      const target = a.path.pointAt(this.s + T.lookAhead * a.dir, offset, v3);
+      const toX = target.x - this.pos.x;
+      const toZ = target.z - this.pos.z;
+      // Signed heading error around +Y.
+      let err = Math.atan2(fwd.z * toX - fwd.x * toZ, fwd.x * toX + fwd.z * toZ);
+      err += this.wobbleAmp * Math.sin(time * this.wobbleHz * Math.PI * 2 + this.wobblePhase);
+      const wantYaw = Math.min(Math.max(err * T.steerGain, -T.maxSteerRate), T.maxSteerRate);
+      const ang = body.angvel();
+      body.applyTorqueImpulse(
+        { x: 0, y: (wantYaw - ang.y) * T.steerResponse * YAW_INERTIA, z: 0 },
+        true,
+      );
+    }
+
     const lin = body.linvel();
-    const fwd = v1.set(0, 0, 1).applyQuaternion(rot);
-    fwd.y = 0;
-    fwd.normalize();
-    const right = v2.set(fwd.z, 0, -fwd.x);
-
-    // Forward: accelerate toward cruise speed.
-    const vF = lin.x * fwd.x + lin.z * fwd.z;
-    const maxDv = T.accel * dt;
-    const dvF = Math.min(Math.max(this.cruiseSpeed - vF, -maxDv), maxDv);
-    // Lateral grip: cancel sideways sliding.
-    const vR = lin.x * right.x + lin.z * right.z;
-    const dvR = -vR * T.lateralGrip;
-    body.applyImpulse(
-      {
-        x: (fwd.x * dvF + right.x * dvR) * mass,
-        y: 0,
-        z: (fwd.z * dvF + right.z * dvR) * mass,
-      },
-      true,
-    );
-
-    // Steering: yaw toward the look-ahead point on the route.
-    const p = body.translation();
-    const target = this.route.target(v3.set(p.x, p.y, p.z), T.lookAhead, v3);
-    const toX = target.x - p.x;
-    const toZ = target.z - p.z;
-    // Signed heading error around +Y (positive = target is to the left).
-    const err = Math.atan2(fwd.z * toX - fwd.x * toZ, fwd.x * toX + fwd.z * toZ);
-    const wantYawRate = Math.min(Math.max(err * T.steerGain, -T.maxSteerRate), T.maxSteerRate);
-    const ang = body.angvel();
-    const yawInertia = (mass * (T.length * T.length + T.width * T.width)) / 12;
-    body.applyTorqueImpulse(
-      { x: 0, y: (wantYawRate - ang.y) * T.steerResponse * yawInertia, z: 0 },
-      true,
-    );
+    this.preVel.set(lin.x, lin.y, lin.z);
   }
 
-  /** Read the post-step transform and enforce the speed clamp. */
-  afterStep(): void {
-    const lin = this.body.linvel();
+  /** Convoy speed plus driver wander, nudged back toward the formation slot. */
+  private wantedSpeed(time: number): number {
+    const a = this.assignment;
+    const wander = this.speedAmp * Math.sin(time * this.speedHz * Math.PI * 2 + this.speedPhase);
+    const slotS = a.startS + a.dir * a.speed * Math.max(0, time - a.spawnDelay);
+    const behind = (slotS - this.s) * a.dir;
+    const limit = a.speedVariance * T.slotCatchUp;
+    const catchUp = Math.min(Math.max((behind * T.slotGain) / a.speed, -limit), limit);
+    return a.speed * (1 + wander + catchUp);
+  }
+
+  /**
+   * Read the post-step transform, clamp speeds and update timers.
+   * Returns true if this truck should explode now.
+   */
+  afterStep(dt: number): boolean {
+    if (!this.isSolid) return false;
+    const body = this.body;
+    const lin = body.linvel();
     const speed = Math.hypot(lin.x, lin.y, lin.z);
     const max = TUNING.physics.maxTruckSpeed;
     if (speed > max) {
       const k = max / speed;
-      this.body.setLinvel({ x: lin.x * k, y: lin.y * k, z: lin.z * k }, true);
+      body.setLinvel({ x: lin.x * k, y: lin.y * k, z: lin.z * k }, true);
+    }
+    const ang = body.angvel();
+    const spin = Math.hypot(ang.x, ang.y, ang.z);
+    if (spin > T.maxAngularSpeed) {
+      const k = T.maxAngularSpeed / spin;
+      body.setAngvel({ x: ang.x * k, y: ang.y * k, z: ang.z * k }, true);
     }
     this.readTransform();
+
+    if (this.state === 'wreck') {
+      this.wreckLeft -= dt;
+      if (this.wreckLeft <= 0) this.setState('gone');
+      return false;
+    }
+
+    // Heavy impact: the step changed our velocity a lot.
+    const dv = Math.hypot(lin.x - this.preVel.x, lin.y - this.preVel.y, lin.z - this.preVel.z);
+    if (dv > T.explodeDeltaV) return true;
+
+    // Lying on a side or the roof for too long.
+    const upY = v1.copy(UP).applyQuaternion(this.rot).y;
+    if (upY < T.tippedDot) {
+      this.tippedTime += dt;
+      if (this.tippedTime >= T.explodeUpsideDownTime) return true;
+    } else {
+      this.tippedTime = 0;
+    }
+    return false;
+  }
+
+  /** Become a wreck: still solid for a while, no longer driven. */
+  explode(rng: Rng): void {
+    if (this.state !== 'alive') return;
+    this.setState('wreck');
+    this.wreckLeft = T.wreckLifetime;
+    this.driving = false;
+    this.body.applyImpulse({ x: 0, y: T.wreckPop * T.mass, z: 0 }, true);
+    this.body.applyTorqueImpulse(
+      {
+        x: rng.range(-1, 1) * T.blastSpin * YAW_INERTIA,
+        y: rng.range(-1, 1) * T.blastSpin * YAW_INERTIA,
+        z: rng.range(-1, 1) * T.blastSpin * YAW_INERTIA * 0.3,
+      },
+      true,
+    );
+  }
+
+  /** Shove from an explosion at `origin`. */
+  blast(origin: Vector3, rng: Rng): void {
+    if (!this.isSolid) return;
+    const com = this.body.worldCom();
+    const d = v1.set(com.x - origin.x, com.y - origin.y, com.z - origin.z);
+    const dist = d.length();
+    if (dist >= T.explosionRadius || dist < 1e-3) return;
+    const k = (1 - dist / T.explosionRadius) * T.blastSpeed * T.mass;
+    d.multiplyScalar(1 / dist);
+    d.y += T.blastUp;
+    this.body.applyImpulse({ x: d.x * k, y: d.y * k, z: d.z * k }, true);
+    const spin = (k / T.mass / T.blastSpeed) * T.blastSpin * YAW_INERTIA;
+    this.body.applyTorqueImpulse(
+      { x: rng.range(-1, 1) * spin, y: rng.range(-1, 1) * spin, z: rng.range(-1, 1) * spin * 0.3 },
+      true,
+    );
+  }
+
+  /** This attempt's driver noise, for checking seeds. */
+  get noiseSignature(): string {
+    return [
+      this.wobbleAmp,
+      this.wobbleHz,
+      this.wobblePhase,
+      this.speedAmp,
+      this.speedHz,
+      this.speedPhase,
+    ]
+      .map((n) => n.toFixed(5))
+      .join(',');
+  }
+
+  /** Remove from play (fell out of the world, left far behind). */
+  despawn(): void {
+    if (this.state !== 'gone') this.setState('gone');
   }
 
   /** World velocity of the truck's surface at a world-space point. */
@@ -182,6 +346,18 @@ export class Truck {
     );
   }
 
+  private setState(state: TruckState): void {
+    this.state = state;
+    const solid = state === 'alive' || state === 'wreck';
+    if (this.body.isEnabled() !== solid) this.body.setEnabled(solid);
+  }
+
+  private setFriction(value: number): void {
+    if (value === this.friction) return;
+    this.friction = value;
+    for (const c of this.colliders) c.setFriction(value);
+  }
+
   private readTransform(): void {
     const p = this.body.translation();
     const r = this.body.rotation();
@@ -189,8 +365,46 @@ export class Truck {
     this.rot.set(r.x, r.y, r.z, r.w);
   }
 
+  /** Look ahead: follow a driving truck, panic at obstacles and wrecks. */
+  private sense(fwd: Vector3, lookup: TruckLookup): void {
+    const o = v4
+      .set(0, T.senseHeight, T.length / 2 + 0.2)
+      .applyQuaternion(this.rot)
+      .add(this.pos);
+    this.ray.origin.x = o.x;
+    this.ray.origin.y = o.y;
+    this.ray.origin.z = o.z;
+    this.ray.dir.x = fwd.x;
+    this.ray.dir.y = fwd.y;
+    this.ray.dir.z = fwd.z;
+    const hit = this.physics.world.castRay(
+      this.ray,
+      T.panicDistance,
+      true,
+      undefined,
+      groups(GROUP.TRUCK, GROUP.TRUCK | GROUP.WORLD),
+      undefined,
+      this.body,
+    );
+    this.followSpeed = Infinity;
+    if (!hit) return;
+    const other = lookup.byCollider(hit.collider.handle);
+    if (other && other.driving) {
+      if (hit.timeOfImpact < T.followDistance) {
+        const lin = other.body.linvel();
+        this.followSpeed = Math.max(0, lin.x * fwd.x + lin.z * fwd.z);
+      }
+      return;
+    }
+    // Scenery, a wreck or a tumbling truck: swerve to a side and hope.
+    if (this.panicLeft <= 0) {
+      this.panicLeft = T.panicTime;
+      this.panicSide = (this.index * 7 + Math.floor(this.s)) % 2 === 0 ? 1 : -1;
+    }
+  }
+
   private wheelsOnGround(rot: Quaternion): boolean {
-    const p = this.body.translation();
+    const p = this.pos;
     const hx = T.width / 2;
     const hz = T.length / 2;
     const filter = groups(GROUP.TRUCK, GROUP.WORLD);
@@ -201,6 +415,9 @@ export class Truck {
       this.ray.origin.x = p.x + local.x;
       this.ray.origin.y = p.y + local.y;
       this.ray.origin.z = p.z + local.z;
+      this.ray.dir.x = 0;
+      this.ray.dir.y = -1;
+      this.ray.dir.z = 0;
       const hit = this.physics.world.castRay(
         this.ray,
         T.groundRayLift + T.groundRayLength,

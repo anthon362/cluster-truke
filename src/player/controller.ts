@@ -1,7 +1,7 @@
 import { Quaternion, Vector3 } from 'three';
 import { TUNING } from '../config/tuning';
 import { GROUP, PhysicsWorld, RAPIER, groups } from '../physics/world';
-import type { Truck } from '../trucks/truck';
+import type { Truck, TruckLookup } from '../trucks/truck';
 import { MoveInput, Vec2, airMove, groundMove, wishVelocity } from './movement';
 
 const P = TUNING.player;
@@ -46,15 +46,56 @@ export class PlayerController {
   private jumpRising = false;
 
   private readonly shape: RAPIER.Capsule;
+  /** Slightly fatter capsule used to find truck faces within cling reach. */
+  private readonly reachShape: RAPIER.Capsule;
   private readonly queryGroups = groups(GROUP.PLAYER, GROUP.TRUCK);
-  private readonly trucksByCollider = new Map<number, Truck>();
+  /** Truck side or back currently within reach (airborne only). */
+  private sideTruck: Truck | null = null;
+  private readonly sideNormal = new Vector3();
+  /** True while holding on to a truck side. */
+  clinging = false;
 
-  constructor(private readonly physics: PhysicsWorld) {
+  constructor(
+    private readonly physics: PhysicsWorld,
+    private readonly trucks: TruckLookup,
+  ) {
     this.shape = new RAPIER.Capsule(P.height / 2 - P.radius, P.radius);
+    this.reachShape = new RAPIER.Capsule(P.height / 2 - P.radius, P.radius + P.clingReach);
   }
 
-  registerTruck(truck: Truck): void {
-    for (const c of truck.colliders) this.trucksByCollider.set(c.handle, truck);
+  /** Put the player in the air at a position with a world velocity (tests, abilities). */
+  placeInAir(pos: Vector3, vel: Vector3): void {
+    this.pos.copy(pos);
+    this.prevPos.copy(pos);
+    this.vel.copy(vel);
+    this.frameVel.set(0, 0, 0);
+    this.grounded = false;
+    this.groundTruck = null;
+    this.sideTruck = null;
+    this.clinging = false;
+    this.jumpAvailable = false;
+    this.jumpRising = false;
+    this.jumpBufferLeft = 0;
+    this.timeSinceGrounded = P.coyoteTime + 1;
+  }
+
+  /** Shove from an explosion at `origin`. Never lethal. */
+  blast(origin: Vector3): void {
+    const d = tmpA.subVectors(this.pos, origin);
+    const dist = d.length();
+    const radius = TUNING.truck.explosionRadius;
+    if (dist >= radius || dist < 1e-3) return;
+    const k = (1 - dist / radius) * P.blastSpeed;
+    d.multiplyScalar(1 / dist);
+    d.y += P.blastUp;
+    this.vel.addScaledVector(d, k);
+    if (this.grounded) {
+      this.grounded = false;
+      this.groundTruck = null;
+      this.jumpAvailable = false;
+      this.timeSinceGrounded = P.coyoteTime + 1;
+    }
+    this.jumpRising = false;
   }
 
   get feetY(): number {
@@ -86,6 +127,8 @@ export class PlayerController {
     this.jumpBufferLeft = 0;
     this.jumpAvailable = true;
     this.jumpRising = false;
+    this.sideTruck = null;
+    this.clinging = false;
     this.storeLocal();
   }
 
@@ -97,6 +140,13 @@ export class PlayerController {
 
     wishVelocity(input, wish);
     let carried = false;
+
+    // The truck under us may have despawned.
+    if (this.grounded && !this.groundTruck?.isSolid) {
+      this.grounded = false;
+      this.groundTruck = null;
+    }
+    this.clinging = false;
 
     if (this.grounded && this.groundTruck) {
       // Velocity is kept relative to the truck, then rebuilt in world space.
@@ -111,6 +161,28 @@ export class PlayerController {
       this.timeSinceGrounded += dt;
       rel2.x = this.vel.x - this.frameVel.x;
       rel2.z = this.vel.z - this.frameVel.z;
+      // Clinging: holding jump against a truck side rides that truck and climbs it.
+      const side = this.sideTruck?.isSolid ? this.sideTruck : null;
+      if (side && input.jumpHeld) {
+        this.clinging = true;
+        this.lastTruck = side;
+        // Switch reference frame to that truck without changing world velocity,
+        // then let grip pull us along with it when no direction is held.
+        this.readFrameVelocity(side);
+        rel2.x = this.vel.x - this.frameVel.x;
+        rel2.z = this.vel.z - this.frameVel.z;
+        if (Math.hypot(wish.x, wish.z) < 1e-6) {
+          const sp = Math.hypot(rel2.x, rel2.z);
+          const k = sp > 1e-6 ? Math.max(0, sp - P.clingGrip * dt) / sp : 0;
+          rel2.x *= k;
+          rel2.z *= k;
+        }
+        const rise = this.vel.y - this.frameVel.y;
+        if (rise < P.clingMaxRise) {
+          const accel = rise < 0 ? P.clingCatchAccel : P.clingAccel;
+          this.vel.y = this.frameVel.y + Math.min(P.clingMaxRise, rise + accel * dt);
+        }
+      }
       airMove(rel2, wish, dt);
       this.vel.x = this.frameVel.x + rel2.x;
       this.vel.z = this.frameVel.z + rel2.z;
@@ -138,6 +210,14 @@ export class PlayerController {
       }
       this.jumpBufferLeft = 0;
       this.timeSinceGrounded = P.coyoteTime + dt;
+    } else if (this.jumpBufferLeft > 0 && !this.grounded && this.sideTruck?.isSolid) {
+      // Tap jump on a truck side: kick up and away from it.
+      this.readFrameVelocity(this.sideTruck);
+      this.vel.y = this.frameVel.y + P.clingTapUp;
+      this.vel.x += this.sideNormal.x * P.clingTapAway;
+      this.vel.z += this.sideNormal.z * P.clingTapAway;
+      this.jumpBufferLeft = 0;
+      this.jumpRising = false;
     }
 
     // A carried player already has the truck's motion; only add their own.
@@ -147,7 +227,34 @@ export class PlayerController {
     this.collideAndSlide(tmpA);
     this.depenetrate();
     this.probeGround(dt);
+    this.findSide();
     this.storeLocal();
+  }
+
+  /** Look for a truck side or back within reach while airborne. */
+  private findSide(): void {
+    this.sideTruck = null;
+    if (this.grounded) return;
+    let best: number = P.clingReach;
+    this.physics.world.intersectionsWithShape(
+      this.pos,
+      IDENTITY,
+      this.reachShape,
+      (collider) => {
+        const c = collider.contactShape(this.shape, this.pos, IDENTITY, P.clingReach);
+        if (c && c.distance < best && Math.abs(c.normal1.y) < P.sideNormalMaxY) {
+          const truck = this.trucks.byCollider(collider.handle);
+          if (truck) {
+            best = c.distance;
+            this.sideTruck = truck;
+            this.sideNormal.set(c.normal1.x, 0, c.normal1.z).normalize();
+          }
+        }
+        return true;
+      },
+      undefined,
+      this.queryGroups,
+    );
   }
 
   private storeLocal(): void {
@@ -194,7 +301,7 @@ export class PlayerController {
       move.multiplyScalar(1 - t);
       move.addScaledVector(n, -move.dot(n));
       // Lose the velocity component going into the surface, measured relative to it.
-      const truck = this.trucksByCollider.get(hit.collider.handle);
+      const truck = this.trucks.byCollider(hit.collider.handle);
       const surfaceVel = truck ? truck.pointVelocity(this.pos, new Vector3()) : new Vector3();
       const into =
         (this.vel.x - surfaceVel.x) * n.x +
@@ -245,7 +352,7 @@ export class PlayerController {
       undefined,
       this.queryGroups,
     );
-    const truck = hit ? this.trucksByCollider.get(hit.collider.handle) : undefined;
+    const truck = hit ? this.trucks.byCollider(hit.collider.handle) : undefined;
     let standing = false;
     if (hit && truck && hit.normal1.y >= Math.cos(P.slideAngle)) {
       tmpA.set(this.pos.x, this.feetY - hit.time_of_impact, this.pos.z);
