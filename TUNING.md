@@ -84,6 +84,27 @@ interpretation that affects feel.
   at 18+ m/s relative, holding W gives no steering. Letting go of W and strafing still works.
   Worth a feel check; if it is confusing, air control can be made direction-only above the cap.
 
+## M3
+
+**Values changed from the design document:** none.
+
+**Values the document did not give (added):**
+
+| Key                 | Value                | Why                                                                                                                                                    |
+| ------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `goal.margin`       | 0.4 m                | The gate counts as crossed this far outside its frame (the player's radius).                                                                           |
+| `ui.failInputDelay` | 0.15 s               | Fresh key presses are ignored this long after failing, so a jump pressed as you die does not skip the FAILED screen. Restart is still far under 0.3 s. |
+| `music.*`           | 150 BPM, volume 0.14 | Placeholder loop.                                                                                                                                      |
+
+**Interpretations (please review):**
+
+- **"Truck contact always wins" applies to the ground only.** While you stand on or hold on to
+  a truck, touching the ground does not kill (for example on a low wreck). Lethal scenery and
+  hazards always kill, otherwise riding a truck would make you immune to every obstacle.
+- **After failing the player freezes but the world keeps running** behind the FAILED screen.
+  After winning the player keeps moving and can no longer fail.
+- **The 0.05 s grace applies to every lethal touch**, not only when sliding off a wreck.
+
 ## What to adjust if it feels wrong
 
 | Feels like                                    | Change                                                               |

@@ -1,5 +1,17 @@
 # Changelog
 
+## M3 — Win, lose, instant restart
+
+- Goal gate (`src/level/goal.ts`): passing through in any state wins; visible from far away.
+- Lethal ground and scenery with a slightly smaller test capsule and a short grace; kill height.
+- Attempt states (playing / won / failed) in the simulation, attempt timer, attempt counter.
+- App state machine: start, playing, paused, failed, won. FAILED overlay restarts on any key;
+  FINISHED overlay shows time and best time with a Retry button (R or Enter also work).
+- Instant restart: pooled bodies reset in place; restart time shown in the F3 overlay.
+- Best times saved in localStorage under one versioned key (`src/core/save.ts`).
+- Placeholder music loop that starts once and is never restarted; `M` mutes.
+- HUD timer at the top centre.
+
 ## M2 — Convoy and truck physics
 
 - Spline paths with lanes (`src/trucks/path.ts`); trucks steer toward a look-ahead point on

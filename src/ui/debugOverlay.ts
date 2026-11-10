@@ -18,7 +18,11 @@ export class DebugOverlay {
     this.el.classList.toggle('hidden', !this.visible);
   }
 
-  update(sim: Sim, loop: GameLoop): void {
+  update(
+    sim: Sim,
+    loop: GameLoop,
+    app: { lastRestartMs: number; restarts: number; musicStarts: number },
+  ): void {
     if (!this.visible) return;
     const p = sim.player;
     const over = loop.stepMs > TUNING.loop.stepBudgetMs;
@@ -30,7 +34,9 @@ export class DebugOverlay {
       `trucks      ${count(sim, 'driving')} driving, ${count(sim, 'wreck')} wrecks, ${count(sim, 'gone')} gone, ${sim.explosions} explosions`,
       `speed       ${p.relativeSpeed.toFixed(1)} m/s on truck, ${world.toFixed(1)} m/s world`,
       `vertical    ${p.vel.y.toFixed(1)} m/s`,
-      `state       ${p.grounded ? 'grounded' : p.clinging ? 'clinging' : 'air'}  falls ${sim.falls}`,
+      `player      ${p.grounded ? 'grounded' : p.clinging ? 'clinging' : 'air'}`,
+      `attempt     #${sim.attempts} ${sim.state}${sim.failReason ? ` (${sim.failReason})` : ''}, ${sim.falls} fails`,
+      `restart     ${app.lastRestartMs.toFixed(2)} ms last, ${app.restarts} total, music started ${app.musicStarts}x`,
       `level       ${sim.level.id}`,
       `time        ${sim.time.toFixed(2)} s`,
       `seed        ${sim.seed}${sim.god ? '  GOD' : ''}`,

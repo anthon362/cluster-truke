@@ -9,12 +9,16 @@ import {
   InstancedMesh,
   Matrix4,
   Mesh,
+  MeshBasicMaterial,
   MeshLambertMaterial,
+  DoubleSide,
   PlaneGeometry,
   Quaternion,
   Scene,
   Vector3,
 } from 'three';
+import { TUNING } from '../config/tuning';
+import type { Goal } from '../level/goal';
 import type { LevelDef } from '../level/types';
 import type { Path } from '../trucks/path';
 import { PALETTE, SCENE_DIMS as D } from './palette';
@@ -26,7 +30,7 @@ export class LevelScene {
   readonly scene = new Scene();
   private readonly ground: Mesh;
 
-  constructor(level: LevelDef, paths: Iterable<Path>) {
+  constructor(level: LevelDef, paths: Iterable<Path>, goal: Goal) {
     const s = this.scene;
     s.background = new Color(PALETTE.sky);
     s.fog = new Fog(PALETTE.fog, PALETTE.fogNear, PALETTE.fogFar);
@@ -44,6 +48,8 @@ export class LevelScene {
 
     for (const path of paths) this.addRoad(path);
 
+    this.addGoal(goal);
+
     const blockMat = new MeshLambertMaterial({ color: PALETTE.block, flatShading: true });
     for (const item of level.scenery) {
       const mesh = new Mesh(new BoxGeometry(item.size[0], item.size[1], item.size[2]), blockMat);
@@ -55,6 +61,39 @@ export class LevelScene {
   /** Keep the (featureless) ground plane under the viewer. */
   update(view: Vector3): void {
     this.ground.position.set(view.x, 0, view.z);
+  }
+
+  /** A bright gate that ignores fog, so it reads from far away. */
+  private addGoal(goal: Goal): void {
+    const yaw = Math.atan2(goal.normal.x, goal.normal.z);
+    const w = goal.halfWidth * 2;
+    const pw = TUNING.goal.pillarWidth;
+    const frameMat = new MeshBasicMaterial({ color: PALETTE.goalPillar, fog: false });
+    const sheet = new Mesh(
+      new PlaneGeometry(w, goal.height),
+      new MeshBasicMaterial({
+        color: PALETTE.goal,
+        transparent: true,
+        opacity: 0.28,
+        side: DoubleSide,
+        depthWrite: false,
+        fog: false,
+      }),
+    );
+    sheet.position.set(0, goal.height / 2, 0);
+    const group = new Mesh();
+    group.add(sheet);
+    for (const side of [-1, 1]) {
+      const pillar = new Mesh(new BoxGeometry(pw, goal.height + pw, pw), frameMat);
+      pillar.position.set(side * (w / 2 + pw / 2), (goal.height + pw) / 2, 0);
+      group.add(pillar);
+    }
+    const beam = new Mesh(new BoxGeometry(w + pw * 2, pw, pw), frameMat);
+    beam.position.set(0, goal.height + pw / 2, 0);
+    group.add(beam);
+    group.position.copy(goal.centre);
+    group.rotation.y = yaw;
+    this.scene.add(group);
   }
 
   private addRoad(path: Path): void {
