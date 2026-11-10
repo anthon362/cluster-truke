@@ -2,12 +2,13 @@ import { GAME_TITLE } from '../config/meta';
 import type { Bonus } from '../score/score';
 import { formatTime } from './format';
 
-export type OverlayKind = 'none' | 'start' | 'paused' | 'failed' | 'won' | 'levels';
+export type OverlayKind = 'none' | 'start' | 'paused' | 'failed' | 'won' | 'levels' | 'shop';
 
 const KEYS = `
   <div class="keys">
     <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move &nbsp; <kbd>Shift</kbd> sprint &nbsp;
     <kbd>Space</kbd> jump<br />
+    <kbd>Left mouse</kbd> movement ability &nbsp; <kbd>Right mouse</kbd> utility ability<br />
     <kbd>R</kbd> restart &nbsp; <kbd>Esc</kbd> pause &nbsp; <kbd>M</kbd> mute &nbsp; <kbd>F3</kbd> debug
   </div>`;
 
@@ -29,16 +30,23 @@ export class Overlays {
 
   constructor(
     parent: HTMLElement,
-    handlers: { play(): void; retry(): void; next(): void; levels(): void },
+    handlers: { play(): void; retry(): void; next(): void; levels(): void; shop(): void },
   ) {
     this.start = el(
       'start',
       `<h1></h1><div class="go"></div>${KEYS}
-       <div class="buttons"><button type="button" class="pick">Levels</button></div>`,
+       <div class="buttons">
+         <button type="button" class="pick">Levels</button>
+         <button type="button" class="shop-open">Abilities</button>
+       </div>`,
     );
     this.start.querySelector('.pick')!.addEventListener('click', (e) => {
       e.stopPropagation();
       handlers.levels();
+    });
+    this.start.querySelector('.shop-open')!.addEventListener('click', (e) => {
+      e.stopPropagation();
+      handlers.shop();
     });
     this.startTitle = this.start.querySelector('h1')!;
     this.startGo = this.start.querySelector('.go')!;
@@ -58,6 +66,7 @@ export class Overlays {
          <button type="button" class="next primary">Next</button>
          <button type="button" class="retry">Retry</button>
          <button type="button" class="pick">Levels</button>
+         <button type="button" class="shop-open">Abilities</button>
        </div>
        <div class="hint"><kbd>Enter</kbd> next &nbsp; <kbd>R</kbd> retry</div>`,
     );
@@ -70,6 +79,7 @@ export class Overlays {
     this.nextButton.addEventListener('click', handlers.next);
     this.won.querySelector('.retry')!.addEventListener('click', handlers.retry);
     this.won.querySelector('.pick')!.addEventListener('click', handlers.levels);
+    this.won.querySelector('.shop-open')!.addEventListener('click', handlers.shop);
 
     parent.append(this.start, this.failed, this.won);
     this.show('start');

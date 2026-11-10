@@ -1,5 +1,6 @@
 import { Vector3, WebGLRenderer } from 'three';
 import { Music } from './audio/music';
+import { ABILITIES, type AbilityId, abilityInfo } from './config/abilities';
 import { GAME_TITLE } from './config/meta';
 import { TUNING } from './config/tuning';
 import { Input } from './core/input';
@@ -12,12 +13,14 @@ import type { LevelDef } from './level/schema';
 import { initPhysics } from './physics/world';
 import { CameraRig } from './player/camera';
 import type { MoveInput } from './player/movement';
+import { AbilityFx } from './render/abilityFx';
 import { LevelScene } from './render/levelScene';
 import { TruckRenderer } from './render/truckMesh';
 import { DebugOverlay } from './ui/debugOverlay';
 import { Hud } from './ui/hud';
 import { LevelSelect } from './ui/levelSelect';
 import { Overlays } from './ui/overlays';
+import { Shop } from './ui/shop';
 
 /**
  * start:   title overlay, nothing simulated yet
@@ -26,8 +29,9 @@ import { Overlays } from './ui/overlays';
  * failed:  attempt over, world keeps moving, any key restarts
  * won:     attempt over, result shown, mouse released for the buttons
  * levels:  level list
+ * shop:    ability shop
  */
-type AppState = 'start' | 'playing' | 'paused' | 'failed' | 'won' | 'levels';
+type AppState = 'start' | 'playing' | 'paused' | 'failed' | 'won' | 'levels' | 'shop';
 
 /** Everything that belongs to one loaded level and is replaced when switching. */
 interface Loaded {
@@ -35,6 +39,7 @@ interface Loaded {
   scene: LevelScene;
   truckRenderer: TruckRenderer;
   particles: Particles;
+  abilityFx: AbilityFx;
 }
 
 /** How long to wait for the browser to grant mouse capture before showing "paused". */
@@ -68,6 +73,21 @@ async function boot(): Promise<void> {
     }
   })();
   const save = loadSave(storage);
+  // ?abilities=all: every ability is owned for this session (testing). Nothing is saved while it is on.
+  const allAbilities = params.get('abilities') === 'all';
+  if (allAbilities) save.owned = ABILITIES.map((a) => a.id);
+  // ?equip=towLine,slowLane: start with these equipped (they must be owned or unlocked as above).
+  for (const id of (params.get('equip') ?? '').split(',')) {
+    const info = abilityInfo(id.trim());
+    if (info && save.owned.includes(info.id)) save.equipped[info.slot] = info.id;
+  }
+  const persist = () => {
+    if (!allAbilities) storeSave(storage, save);
+  };
+  const equippedId = (slot: 'movement' | 'utility'): AbilityId | null => {
+    const info = abilityInfo(save.equipped[slot] ?? '');
+    return info && info.slot === slot ? info.id : null;
+  };
 
   const canvas = document.getElementById('game') as HTMLCanvasElement;
   const ui = document.getElementById('ui') as HTMLElement;
@@ -82,7 +102,14 @@ async function boot(): Promise<void> {
   const attempted = new Set<string>();
   const build = (level: LevelDef): Loaded => {
     // The first-try bonus is once per level per session, however the level is reached.
-    const sim = new Sim({ seed, god, level, firstTry: !attempted.has(level.id) });
+    const sim = new Sim({
+      seed,
+      god,
+      level,
+      firstTry: !attempted.has(level.id),
+      movement: equippedId('movement'),
+      utility: equippedId('utility'),
+    });
     attempted.add(level.id);
     const scene = new LevelScene(sim.level, sim.pool.paths.values(), sim.goal, sim.hazards);
     hud.setLevel(level.id, level.name);
@@ -91,6 +118,7 @@ async function boot(): Promise<void> {
       scene,
       truckRenderer: new TruckRenderer(scene.scene, sim.trucks.length),
       particles: new Particles(scene.scene),
+      abilityFx: new AbilityFx(scene.scene),
     };
   };
   let game = build(firstLevel);
@@ -174,7 +202,28 @@ async function boot(): Promise<void> {
       state = 'levels';
       levelSelect.show(true, save, game.sim.level.id);
     },
+    shop: () => {
+      if (input.locked) document.exitPointerLock();
+      shopReturn = state === 'won' ? 'won' : state === 'start' ? 'start' : 'paused';
+      state = 'shop';
+      shop.show(true);
+    },
   });
+  let shopReturn: AppState = 'start';
+  const shop = new Shop(
+    ui,
+    save,
+    () => {
+      // Bought or (un)equipped: save, and apply to the level that is loaded right now.
+      persist();
+      game.sim.abilities.equip('movement', equippedId('movement'));
+      game.sim.abilities.equip('utility', equippedId('utility'));
+    },
+    () => {
+      shop.show(false);
+      state = shopReturn;
+    },
+  );
   const levelSelect = new LevelSelect(ui, LEVEL_ENTRIES, (id) => {
     music.start();
     const level = findLevel(id);
@@ -200,6 +249,8 @@ async function boot(): Promise<void> {
   const loop = new GameLoop({
     // The world keeps moving behind the fail and win screens.
     isRunning: () => state === 'playing' || state === 'failed' || state === 'won',
+    // Slow-motion abilities slow the world; mouse look stays real-time.
+    timeScale: () => game.sim.timeScale,
     step: () => {
       const { sim, particles } = game;
       lastInput = input.sample();
@@ -228,7 +279,7 @@ async function boot(): Promise<void> {
           }
           // Points are banked only now, on finishing.
           save.points += sim.score.total;
-          storeSave(storage, save);
+          persist();
           overlays.setWinPoints(sim.score.breakdown(), sim.score.total, save.points);
           overlays.setWinResult(e.time, save.bestTimes[sim.level.id], newBest, !!nextLevel());
           // Free the mouse for the buttons.
@@ -237,7 +288,7 @@ async function boot(): Promise<void> {
       }
     },
     render: (alpha, dt) => {
-      const { sim, scene, truckRenderer, particles } = game;
+      const { sim, scene, truckRenderer, particles, abilityFx } = game;
       if (input.consume('debug')) debug.toggle();
       if (input.consume('mute')) music.toggleMute();
 
@@ -256,15 +307,19 @@ async function boot(): Promise<void> {
 
       overlays.show(state === 'playing' ? 'none' : state);
       hud.setTime(sim.time);
+      hud.setAbilities(sim.abilities.movement, sim.abilities.utility);
+      ui.classList.toggle('letterbox', sim.cinematic && state === 'playing');
+      ui.classList.toggle('slowmo', !sim.cinematic && sim.timeScale < 1 && state === 'playing');
 
       // Mouse look stays real-time even between physics steps.
       const view: MoveInput = { ...lastInput, yaw: input.yaw, pitch: input.pitch };
       rig.update(sim.player, view, alpha, Math.min(dt, TUNING.loop.maxFrameTime));
       truckRenderer.update(sim.trucks, alpha);
-      if (state !== 'paused' && state !== 'start' && state !== 'levels') {
+      if (state === 'playing' || state === 'failed' || state === 'won') {
         particles.update(Math.min(dt, TUNING.loop.maxFrameTime));
       }
       scene.update(rig.camera.position, alpha);
+      abilityFx.update(sim, rig.camera.position, performance.now() / 1000);
       renderer.render(scene.scene, rig.camera);
       debug.update(sim, loop, { lastRestartMs, restarts, musicStarts: music.starts });
     },

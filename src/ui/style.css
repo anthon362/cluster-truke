@@ -320,3 +320,149 @@ button.go {
 .won h2 {
   font-size: 72px;
 }
+
+.ability-bar {
+  position: absolute;
+  bottom: 22px;
+  width: 190px;
+  opacity: 0.75;
+}
+.ability-bar.left {
+  left: 24px;
+}
+.ability-bar.right {
+  right: 24px;
+  text-align: right;
+}
+.ability-bar.hidden {
+  display: none;
+}
+.ability-bar.ready {
+  opacity: 1;
+}
+.ability-bar .name {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+  margin-bottom: 4px;
+}
+.ability-bar .track {
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+.ability-bar .fill {
+  height: 100%;
+  background: #ffd166;
+}
+.ability-bar.ready .fill {
+  background: #3dffb0;
+}
+.letterbox::before,
+.letterbox::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 11vh;
+  background: #000;
+}
+.letterbox::before {
+  top: 0;
+}
+.letterbox::after {
+  bottom: 0;
+}
+.letterbox {
+  box-shadow: inset 0 0 0 100vmax rgba(255, 170, 60, 0.1);
+}
+.slowmo {
+  box-shadow: inset 0 0 140px 30px rgba(80, 190, 255, 0.35);
+}
+.shop {
+  background: rgba(16, 20, 26, 0.94);
+  pointer-events: auto;
+  justify-content: flex-start;
+  padding: 4vh 0 30px;
+  overflow-y: auto;
+  gap: 8px;
+}
+.shop h3 {
+  margin: 0;
+  font-size: 34px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+.shop h4 {
+  margin: 8px 0;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  opacity: 0.75;
+  text-align: left;
+}
+.shop-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+  width: min(900px, 94vw);
+}
+.shop-list {
+  display: grid;
+  gap: 8px;
+}
+.shop-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.09);
+  text-align: left;
+}
+.shop-card.equipped {
+  border-color: #3dffb0;
+}
+.shop-card .name {
+  font-size: 17px;
+  font-weight: 800;
+}
+.shop-card .control {
+  grid-column: 1;
+  font-size: 12px;
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.shop-card .desc {
+  grid-column: 1;
+  font-size: 14px;
+  opacity: 0.9;
+}
+.shop-card button {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  min-width: 118px;
+  border: 0;
+  padding: 9px 12px;
+  border-radius: 6px;
+  font: 700 15px inherit;
+  font-family: inherit;
+  color: inherit;
+  background: #ff7a1a;
+  cursor: pointer;
+}
+.shop-card.owned button {
+  background: rgba(255, 255, 255, 0.2);
+}
+.shop-card.equipped button {
+  background: #1f9d73;
+}
+.shop-card button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
