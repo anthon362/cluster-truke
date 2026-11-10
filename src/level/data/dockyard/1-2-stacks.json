@@ -1,0 +1,188 @@
+{
+  "id": "1-2",
+  "name": "Stacks",
+  "world": "dockyard",
+  "parTime": 16,
+  "killY": -5,
+  "ground": "none",
+  "palette": {
+    "sky": "#f3d9b8",
+    "ground": "#17545c",
+    "fog": "#ecd3b4",
+    "fogFar": 460,
+    "road": "#565b63"
+  },
+  "player": {
+    "convoy": "main",
+    "row": 1,
+    "lane": 1
+  },
+  "hazards": [],
+  "paths": [
+    {
+      "id": "road",
+      "width": 14,
+      "lanes": 3,
+      "points": [
+        [0, 0, -40],
+        [0, 0, 640]
+      ],
+      "visible": false
+    }
+  ],
+  "convoys": [
+    {
+      "id": "main",
+      "path": "road",
+      "rows": 14,
+      "lanesUsed": [1],
+      "startAt": 50,
+      "wobble": 0.08
+    },
+    {
+      "id": "right",
+      "path": "road",
+      "rows": 6,
+      "lanesUsed": [2],
+      "startAt": 89
+    },
+    {
+      "id": "left",
+      "path": "road",
+      "rows": 6,
+      "lanesUsed": [0],
+      "startAt": 154
+    }
+  ],
+  "scenery": [
+    {
+      "type": "box",
+      "pos": [0, -1, 95],
+      "size": [26, 2, 310],
+      "lethal": true,
+      "color": "#565b63"
+    },
+    {
+      "type": "box",
+      "pos": [-5.2, -1, 310],
+      "size": [15.6, 2, 120],
+      "lethal": true,
+      "color": "#565b63"
+    },
+    {
+      "type": "box",
+      "pos": [5.2, -1, 415],
+      "size": [15.6, 2, 90],
+      "lethal": true,
+      "color": "#565b63"
+    },
+    {
+      "type": "box",
+      "pos": [0, -1, 510],
+      "size": [26, 2, 100],
+      "lethal": true,
+      "color": "#565b63"
+    },
+    {
+      "type": "box",
+      "pos": [-9.5, 4.35, 244],
+      "size": [2.6, 8.7, 12],
+      "rot": [0, 0, 0],
+      "lethal": true,
+      "color": "#d9772b"
+    },
+    {
+      "type": "box",
+      "pos": [-9.5, 2.9, 257],
+      "size": [2.6, 5.8, 12],
+      "rot": [0, 0, 0],
+      "lethal": true,
+      "color": "#2f6f9f"
+    },
+    {
+      "type": "box",
+      "pos": [9.5, 4.35, 364],
+      "size": [2.6, 8.7, 12],
+      "rot": [0, 0, 0],
+      "lethal": true,
+      "color": "#a33b32"
+    },
+    {
+      "type": "box",
+      "pos": [9.5, 2.9, 377],
+      "size": [2.6, 5.8, 12],
+      "rot": [0, 0, 0],
+      "lethal": true,
+      "color": "#c8b23a"
+    },
+    {
+      "type": "box",
+      "pos": [-10.5, 2.9, 60],
+      "size": [2.6, 5.8, 12],
+      "rot": [0, 0, 0],
+      "lethal": true,
+      "color": "#d9772b"
+    },
+    {
+      "type": "box",
+      "pos": [10.5, 1.45, 110],
+      "size": [2.6, 2.9, 12],
+      "rot": [0, 0, 0],
+      "lethal": true,
+      "color": "#2f6f9f"
+    },
+    {
+      "type": "box",
+      "pos": [-10.5, 1.45, 160],
+      "size": [2.6, 2.9, 12],
+      "rot": [0, 0, 0],
+      "lethal": true,
+      "color": "#c8b23a"
+    },
+    {
+      "type": "box",
+      "pos": [10.5, 2.9, 480],
+      "size": [2.6, 5.8, 12],
+      "rot": [0, 0, 0],
+      "lethal": true,
+      "color": "#a33b32"
+    },
+    {
+      "type": "box",
+      "pos": [-10.5, 4.35, 500],
+      "size": [2.6, 8.7, 12],
+      "rot": [0, 0, 0],
+      "lethal": true,
+      "color": "#3f8f6b"
+    },
+    {
+      "type": "box",
+      "pos": [-15, 8.5, 140],
+      "size": [1.6, 17, 1.6],
+      "rot": [0, 0, 0],
+      "lethal": true,
+      "color": "#e0a526"
+    },
+    {
+      "type": "box",
+      "pos": [15, 8.5, 140],
+      "size": [1.6, 17, 1.6],
+      "rot": [0, 0, 0],
+      "lethal": true,
+      "color": "#e0a526"
+    },
+    {
+      "type": "box",
+      "pos": [0, 17, 140],
+      "size": [34, 2, 2.4],
+      "rot": [0, 0, 0],
+      "lethal": true,
+      "color": "#e0a526"
+    }
+  ],
+  "goal": {
+    "pos": [0, 0, 443],
+    "width": 16,
+    "height": 12
+  }
+}

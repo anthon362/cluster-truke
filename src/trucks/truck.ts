@@ -87,9 +87,11 @@ export class Truck {
   private panicSide = 0;
   /** Speed limit from a driving truck close ahead. */
   private followSpeed = Infinity;
-  /** Something that is not a driving truck is in the way: brake hard. */
+  /** Closing fast on a slower truck ahead: brake hard. */
   private braking = false;
+  private senseFlip = 1;
   private tippedTime = 0;
+  private stuckTime = 0;
   private wreckLeft = 0;
   private friction = -1;
   private readonly preVel = new Vector3();
@@ -141,6 +143,7 @@ export class Truck {
     this.followSpeed = Infinity;
     this.braking = false;
     this.tippedTime = 0;
+    this.stuckTime = 0;
     this.wreckLeft = 0;
     this.s = a.startS;
 
@@ -271,6 +274,14 @@ export class Truck {
     const dv = Math.hypot(lin.x - this.preVel.x, lin.y - this.preVel.y, lin.z - this.preVel.z);
     if (dv > T.explodeDeltaV) return true;
 
+    // Pinned against something while trying to drive (not merely queueing behind a truck).
+    if (this.driving && speed < T.stuckSpeed && this.followSpeed === Infinity) {
+      this.stuckTime += dt;
+      if (this.stuckTime >= T.stuckTime) return true;
+    } else {
+      this.stuckTime = 0;
+    }
+
     // Lying on a side or the roof for too long.
     const upY = v1.copy(UP).applyQuaternion(this.rot).y;
     if (upY < T.tippedDot) {
@@ -372,8 +383,10 @@ export class Truck {
 
   /** Look ahead: follow a driving truck, panic at obstacles and wrecks. */
   private sense(fwd: Vector3, lookup: TruckLookup): void {
+    // Alternate between the left and right side so partial overlaps are noticed too.
+    this.senseFlip = -this.senseFlip;
     const o = v4
-      .set(0, T.senseHeight, T.length / 2 + 0.2)
+      .set(this.senseFlip * T.senseSide, T.senseHeight, T.length / 2 + 0.2)
       .applyQuaternion(this.rot)
       .add(this.pos);
     this.ray.origin.x = o.x;
@@ -394,17 +407,27 @@ export class Truck {
     this.followSpeed = Infinity;
     this.braking = false;
     if (!hit) return;
+    // On a bend the straight ray sweeps across neighbouring lanes; only react
+    // to things that are actually in this truck's lane.
+    const a = this.assignment;
+    const hx = o.x + fwd.x * hit.timeOfImpact;
+    const hz = o.z + fwd.z * hit.timeOfImpact;
+    const at = v4.set(hx, 0, hz);
+    const sHit = a.path.project(at, this.s + hit.timeOfImpact * a.dir);
+    if (Math.abs(a.path.lateralAt(at, sHit) - a.laneOffset) > T.senseLaneHalfWidth) return;
     const other = lookup.byCollider(hit.collider.handle);
     if (other && other.driving) {
-      if (hit.timeOfImpact < T.followDistance) {
-        const lin = other.body.linvel();
-        this.followSpeed = Math.max(0, lin.x * fwd.x + lin.z * fwd.z);
-      }
+      // Keep a gap that shrinks with distance; brake hard if closing fast.
+      const lin = other.body.linvel();
+      const mine = this.body.linvel();
+      const theirs = lin.x * fwd.x + lin.z * fwd.z;
+      const gap = Math.max(0, hit.timeOfImpact - T.followDistance);
+      this.followSpeed = Math.max(0, theirs + gap * T.followGain);
+      this.braking = mine.x * fwd.x + mine.z * fwd.z - this.followSpeed > T.brakeMargin;
       return;
     }
-    // Scenery, a wreck or a tumbling truck: stand on the brakes, swerve to a side and hope.
-    this.braking = true;
-    this.followSpeed = 0;
+    // Scenery, a wreck or a tumbling truck: these drivers notice far too late
+    // to brake. Swerve a little and hope.
     if (this.panicLeft <= 0) {
       this.panicLeft = T.panicTime;
       this.panicSide = (this.index * 7 + Math.floor(this.s)) % 2 === 0 ? 1 : -1;

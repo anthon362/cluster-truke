@@ -144,17 +144,26 @@ export const TUNING = {
     senseInterval: 6,
     /** Height of the forward sensing ray above the truck base. */
     senseHeight: 1.5,
+    /** Things further than this from the lane centre are not "in my lane" (m). */
+    senseLaneHalfWidth: 1.6,
     /** Closer than this to a driving truck ahead: match its speed. */
     followDistance: 4,
-    /** Deceleration when braking for an obstacle or wreck ahead (m/s^2). */
+    /** Deceleration when the truck ahead is much slower (m/s^2). */
     brakeAccel: 20,
+    /** Extra speed allowed per metre of gap beyond `followDistance` (1/s). */
+    followGain: 1.5,
+    /** Brake hard once this much faster than the following speed (m/s). */
+    brakeMargin: 4,
+    /** The sensing ray alternates between this far left and right of centre (m). */
+    senseSide: 0.9,
     panicTime: 1.2,
-    /** Sideways dodge when panicking (m). */
-    panicSwerve: 3.4,
+    /** Sideways dodge when panicking (m). Kept inside the lane's neighbourhood so a
+     *  panicking driver jostles neighbours rather than changing lane into them. */
+    panicSwerve: 1.3,
     /** Driver noise multiplier for the front row (rear row is always 1). */
     leadRowCalm: 0.4,
     /** Velocity change within one step that blows a truck up (m/s). */
-    explodeDeltaV: 9,
+    explodeDeltaV: 13,
     /** Up-vector Y below this counts as tipped for the timed explosion. */
     tippedDot: 0.2,
     /** Speed an explosion adds to a truck at point-blank range. */
@@ -183,6 +192,10 @@ export const TUNING = {
     panicDistance: 15,
     explodeClosingSpeed: 25,
     explodeUpsideDownTime: 2,
+    /** A truck that wants to drive but has been pinned below `stuckSpeed` this long gives up (explodes),
+     *  so a blocked lane always clears. Trucks queueing behind another truck are exempt. */
+    stuckTime: 3,
+    stuckSpeed: 1.5,
     explosionRadius: 8,
     wreckLifetime: 4,
     despawnBehind: 60,

@@ -1,0 +1,177 @@
+{
+  "id": "1-5",
+  "name": "Drawbridge",
+  "world": "dockyard",
+  "parTime": 16,
+  "killY": -11,
+  "ground": "none",
+  "palette": {
+    "sky": "#f3d9b8",
+    "ground": "#17545c",
+    "fog": "#ecd3b4",
+    "fogFar": 460,
+    "road": "#565b63"
+  },
+  "player": {
+    "convoy": "main",
+    "row": 1,
+    "lane": 2
+  },
+  "hazards": [],
+  "paths": [
+    {
+      "id": "deck",
+      "width": 12,
+      "lanes": 3,
+      "points": [
+        [0, 0, -40],
+        [0, 0, 400]
+      ],
+      "visible": false
+    },
+    {
+      "id": "quay",
+      "width": 14,
+      "lanes": 3,
+      "points": [
+        [15, -6, -40],
+        [15, -6, 700]
+      ]
+    }
+  ],
+  "convoys": [
+    {
+      "id": "main",
+      "path": "deck",
+      "rows": 10,
+      "lanesUsed": [0, 1, 2],
+      "startAt": 50
+    },
+    {
+      "id": "lower",
+      "path": "quay",
+      "rows": 20,
+      "lanesUsed": [1, 2],
+      "startAt": 40,
+      "wobble": 0.06
+    }
+  ],
+  "scenery": [
+    {
+      "type": "box",
+      "pos": [10, -7, 290],
+      "size": [60, 2, 700],
+      "lethal": true,
+      "color": "#8d9299"
+    },
+    {
+      "type": "box",
+      "pos": [0, -0.6, 101],
+      "size": [13, 1.2, 322],
+      "lethal": true,
+      "color": "#7b8087"
+    },
+    {
+      "type": "box",
+      "pos": [0, -3.6, -40],
+      "size": [3, 4.8, 3],
+      "lethal": true,
+      "color": "#5c6168"
+    },
+    {
+      "type": "box",
+      "pos": [0, -3.6, 10],
+      "size": [3, 4.8, 3],
+      "lethal": true,
+      "color": "#5c6168"
+    },
+    {
+      "type": "box",
+      "pos": [0, -3.6, 60],
+      "size": [3, 4.8, 3],
+      "lethal": true,
+      "color": "#5c6168"
+    },
+    {
+      "type": "box",
+      "pos": [0, -3.6, 110],
+      "size": [3, 4.8, 3],
+      "lethal": true,
+      "color": "#5c6168"
+    },
+    {
+      "type": "box",
+      "pos": [0, -3.6, 160],
+      "size": [3, 4.8, 3],
+      "lethal": true,
+      "color": "#5c6168"
+    },
+    {
+      "type": "box",
+      "pos": [0, -3.6, 210],
+      "size": [3, 4.8, 3],
+      "lethal": true,
+      "color": "#5c6168"
+    },
+    {
+      "type": "box",
+      "pos": [0, -3.6, 260],
+      "size": [3, 4.8, 3],
+      "lethal": true,
+      "color": "#5c6168"
+    },
+    {
+      "type": "box",
+      "pos": [0, 3.2, 274],
+      "size": [13, 1.2, 26],
+      "rot": [-16, 0, 0],
+      "lethal": true,
+      "color": "#e0a526"
+    },
+    {
+      "type": "box",
+      "pos": [28, -3.1, 100],
+      "size": [2.6, 5.8, 12],
+      "rot": [0, 0, 0],
+      "lethal": true,
+      "color": "#d9772b"
+    },
+    {
+      "type": "box",
+      "pos": [28, -4.55, 113],
+      "size": [2.6, 2.9, 12],
+      "rot": [0, 0, 0],
+      "lethal": true,
+      "color": "#2f6f9f"
+    },
+    {
+      "type": "box",
+      "pos": [-10, -3.1, 200],
+      "size": [2.6, 5.8, 12],
+      "rot": [0, 0, 0],
+      "lethal": true,
+      "color": "#c8b23a"
+    },
+    {
+      "type": "box",
+      "pos": [28, -1.65, 330],
+      "size": [2.6, 8.7, 12],
+      "rot": [0, 0, 0],
+      "lethal": true,
+      "color": "#a33b32"
+    },
+    {
+      "type": "box",
+      "pos": [-10, -4.55, 400],
+      "size": [2.6, 2.9, 12],
+      "rot": [0, 0, 0],
+      "lethal": true,
+      "color": "#3f8f6b"
+    }
+  ],
+  "goal": {
+    "pos": [15, -6, 443],
+    "width": 16,
+    "height": 13
+  }
+}

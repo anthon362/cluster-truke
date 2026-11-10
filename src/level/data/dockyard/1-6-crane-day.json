@@ -1,0 +1,160 @@
+{
+  "id": "1-6",
+  "name": "Crane Day",
+  "world": "dockyard",
+  "parTime": 17,
+  "killY": -5,
+  "ground": "none",
+  "palette": {
+    "sky": "#f3d9b8",
+    "ground": "#17545c",
+    "fog": "#ecd3b4",
+    "fogFar": 460,
+    "road": "#565b63"
+  },
+  "player": {
+    "convoy": "main",
+    "row": 1,
+    "lane": 1
+  },
+  "hazards": [
+    {
+      "type": "spinner",
+      "pos": [6.59, 2.2, 191.02],
+      "length": 12.4,
+      "speed": 36,
+      "phase": 0
+    },
+    {
+      "type": "breakableWall",
+      "pos": [-11.22, 0, 279.42],
+      "width": 14,
+      "height": 5,
+      "yaw": -1.6
+    },
+    {
+      "type": "spinner",
+      "pos": [-12.98, 2.2, 371.01],
+      "length": 12.4,
+      "speed": -36,
+      "phase": 90
+    }
+  ],
+  "paths": [
+    {
+      "id": "road",
+      "width": 14,
+      "lanes": 3,
+      "points": [
+        [0, 0, -40],
+        [0, 0, 150],
+        [-10, 0, 250],
+        [-10, 0, 330],
+        [6, 0, 420],
+        [6, 0, 640]
+      ]
+    }
+  ],
+  "convoys": [
+    {
+      "id": "main",
+      "path": "road",
+      "rows": 14,
+      "lanesUsed": [1],
+      "startAt": 50,
+      "wobble": 0.08
+    },
+    {
+      "id": "right",
+      "path": "road",
+      "rows": 6,
+      "lanesUsed": [2],
+      "startAt": 76
+    },
+    {
+      "id": "left",
+      "path": "road",
+      "rows": 6,
+      "lanesUsed": [0],
+      "startAt": 154
+    }
+  ],
+  "scenery": [
+    {
+      "type": "box",
+      "pos": [-2, -1, 250],
+      "size": [60, 2, 620],
+      "lethal": true,
+      "color": "#8d9299"
+    },
+    {
+      "type": "box",
+      "pos": [-13.99, 2.9, 60.15],
+      "size": [2.6, 5.8, 12],
+      "rot": [0, 0.57, 0],
+      "lethal": true,
+      "color": "#d9772b"
+    },
+    {
+      "type": "box",
+      "pos": [16.09, 1.45, 110.15],
+      "size": [2.6, 2.9, 12],
+      "rot": [0, -0.56, 0],
+      "lethal": true,
+      "color": "#2f6f9f"
+    },
+    {
+      "type": "box",
+      "pos": [3.58, 2.9, 289.6],
+      "size": [2.6, 5.8, 12],
+      "rot": [0, -0.69, 0],
+      "lethal": true,
+      "color": "#c8b23a"
+    },
+    {
+      "type": "box",
+      "pos": [-22.01, 1.45, 351.95],
+      "size": [2.6, 2.9, 12],
+      "rot": [0, 10.65, 0],
+      "lethal": true,
+      "color": "#a33b32"
+    },
+    {
+      "type": "box",
+      "pos": [22.93, 4.35, 457.47],
+      "size": [2.6, 8.7, 12],
+      "rot": [0, 1.37, 0],
+      "lethal": true,
+      "color": "#3f8f6b"
+    },
+    {
+      "type": "box",
+      "pos": [-18.82, 8.5, 90.01],
+      "size": [1.6, 17, 1.6],
+      "rot": [0, 0.04, 0],
+      "lethal": true,
+      "color": "#e0a526"
+    },
+    {
+      "type": "box",
+      "pos": [21.18, 8.5, 89.98],
+      "size": [1.6, 17, 1.6],
+      "rot": [0, 0.04, 0],
+      "lethal": true,
+      "color": "#e0a526"
+    },
+    {
+      "type": "box",
+      "pos": [1.18, 17, 90],
+      "size": [44, 2, 2.4],
+      "rot": [0, 0.04, 0],
+      "lethal": true,
+      "color": "#e0a526"
+    }
+  ],
+  "goal": {
+    "pos": [7.36, 0, 440.83],
+    "width": 16,
+    "height": 12
+  }
+}
