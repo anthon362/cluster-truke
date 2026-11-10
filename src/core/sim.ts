@@ -1,5 +1,7 @@
 import { Euler, Quaternion, Vector3 } from 'three';
 import { TUNING } from '../config/tuning';
+import { AbilityManager } from '../abilities/manager';
+import type { AbilityId } from '../config/abilities';
 import { type Hazard, createHazard } from '../level/hazards';
 import { TEST_LEVELS } from '../level/levels';
 import { Goal } from '../level/goal';
@@ -21,6 +23,9 @@ export interface SimOptions {
   level?: LevelDef;
   /** Whether the first attempt on this Sim can earn the first-try bonus (default true). */
   firstTry?: boolean;
+  /** Abilities in play. Levels never require any. */
+  movement?: AbilityId | null;
+  utility?: AbilityId | null;
 }
 
 export type SimEvent =
@@ -52,6 +57,11 @@ export class Sim {
   readonly goal: Goal;
   readonly hazards: Hazard[] = [];
   readonly score: ScoreKeeper;
+  readonly abilities: AbilityManager;
+  /** World speed this step (1 = normal). Abilities lower it; it is reset every step. */
+  timeScale = 1;
+  /** A cinematic ability is running (letterbox in the UI). */
+  cinematic = false;
   /** This attempt is the first try of the session on this level. */
   firstTry: boolean;
   private wasGrounded = true;
@@ -107,6 +117,9 @@ export class Sim {
       registerPusher: (handle: number) => void this.pushers.add(handle),
     };
     for (const h of this.level.hazards) this.hazards.push(createHazard(h, ctx));
+    this.abilities = new AbilityManager(this);
+    this.abilities.equip('movement', options.movement ?? null);
+    this.abilities.equip('utility', options.utility ?? null);
     this.reset();
   }
 
@@ -131,6 +144,9 @@ export class Sim {
     if (this.attempts > 0) this.firstTry = false;
     this.attempts++;
     this.score.reset();
+    this.timeScale = 1;
+    this.cinematic = false;
+    this.abilities?.reset();
     this.wasGrounded = true;
     this.takeoffTruck = null;
     this.events.length = 0;
@@ -142,6 +158,18 @@ export class Sim {
       .applyQuaternion(truck.rot)
       .add(truck.pos);
     this.player.spawnOn(truck, feet);
+  }
+
+  /** Ask for slow motion this step; the slowest request wins. */
+  slowTime(scale: number): void {
+    this.timeScale = Math.min(this.timeScale, scale);
+  }
+
+  /** Make sure `count` spare trucks exist for abilities to call in. */
+  ensureSpares(count: number): void {
+    const have = this.trucks.filter((t) => t.spare).length;
+    if (have >= count) return;
+    for (const t of this.pool.addSpares(this.physics, count - have)) t.reset(this.rng);
   }
 
   /** Free the physics world when switching level. */
@@ -157,6 +185,8 @@ export class Sim {
   step(input: MoveInput): void {
     const dt = TUNING.loop.fixedStep;
     this.events.length = 0;
+    this.timeScale = 1;
+    if (this.state === 'playing') this.abilities.step(dt, input);
     for (const t of this.trucks) t.drive(dt, this.clock, this.stepCount, this.pool);
     for (const h of this.hazards) h.update(dt);
     this.physics.step();
