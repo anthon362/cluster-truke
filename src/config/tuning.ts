@@ -265,6 +265,9 @@ export const TUNING = {
     /** Spinning pusher arm cross-section and hub size (m). */
     spinnerThickness: 1,
     spinnerHub: 1.4,
+    /** Rotor (vertical spoked wheel) spoke cross-section and hub size (m). */
+    rotorThickness: 0.7,
+    rotorHub: 1.6,
   },
 
   goal: {

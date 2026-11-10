@@ -41,6 +41,11 @@ export interface ConvoyDef {
   reverse?: boolean;
   /** Seconds before this convoy appears. */
   spawnDelay?: number;
+  /**
+   * Carried trucks: they glide along the path at its height, ignore gravity and
+   * cannot be knocked off course. Used as moving stepping stones over gaps.
+   */
+  float?: boolean;
 }
 
 export interface SceneryDef {
@@ -76,8 +81,32 @@ export interface SpinnerDef {
   phase?: number;
 }
 
-export type HazardDef = BreakableWallDef | SpinnerDef;
-export const HAZARD_TYPES = ['breakableWall', 'spinner'] as const;
+export interface IceDef {
+  type: 'ice';
+  /** Centre of the patch on the road surface. */
+  pos: Vec3;
+  /** Width (x) and length (z) of the patch. */
+  size: readonly [number, number];
+  /** Degrees around Y. */
+  yaw?: number;
+}
+
+export interface RotorDef {
+  type: 'rotor';
+  /** Hub position. The wheel stands across the road and turns like a windmill. */
+  pos: Vec3;
+  radius: number;
+  spokes: number;
+  /** Degrees per second. */
+  speed: number;
+  /** Starting angle in degrees. */
+  phase?: number;
+  /** Direction the wheel faces, degrees around Y (0 = +Z). */
+  yaw?: number;
+}
+
+export type HazardDef = BreakableWallDef | SpinnerDef | IceDef | RotorDef;
+export const HAZARD_TYPES = ['breakableWall', 'spinner', 'ice', 'rotor'] as const;
 
 export interface GoalDef {
   /** Centre of the gate's base. */
@@ -303,6 +332,7 @@ export function validateLevel(raw: unknown, source = 'level'): LevelDef {
         'wobble',
         'reverse',
         'spawnDelay',
+        'float',
       ],
       at,
     );
@@ -320,6 +350,7 @@ export function validateLevel(raw: unknown, source = 'level'): LevelDef {
     c.num(co, 'wobble', at, { min: 0, max: 0.5, optional: true });
     c.num(co, 'spawnDelay', at, { min: 0, optional: true });
     c.bool(co, 'reverse', at, true);
+    c.bool(co, 'float', at, true);
     const laneCount = lanesByPath.get(path);
     if (path && laneCount === undefined) {
       c.fail(
@@ -418,6 +449,26 @@ export function validateLevel(raw: unknown, source = 'level'): LevelDef {
       c.num(ho, 'length', at, { min: 2, max: 60 });
       c.num(ho, 'speed', at, { min: -360, max: 360 });
       c.num(ho, 'phase', at, { optional: true });
+    } else if (ho.type === 'ice') {
+      c.unknownKeys(ho, ['type', 'pos', 'size', 'yaw'], at);
+      c.vec3(ho, 'pos', at);
+      const size = ho.size;
+      if (
+        !Array.isArray(size) ||
+        size.length !== 2 ||
+        size.some((n) => typeof n !== 'number' || !(n > 0))
+      ) {
+        c.fail(`${at}.size`, `expected [width, length] larger than 0, got ${describe(size)}`);
+      }
+      c.num(ho, 'yaw', at, { optional: true });
+    } else if (ho.type === 'rotor') {
+      c.unknownKeys(ho, ['type', 'pos', 'radius', 'spokes', 'speed', 'phase', 'yaw'], at);
+      c.vec3(ho, 'pos', at);
+      c.num(ho, 'radius', at, { min: 2, max: 30 });
+      c.num(ho, 'spokes', at, { min: 1, max: 8, int: true });
+      c.num(ho, 'speed', at, { min: -360, max: 360 });
+      c.num(ho, 'phase', at, { optional: true });
+      c.num(ho, 'yaw', at, { optional: true });
     } else {
       c.fail(
         `${at}.type`,

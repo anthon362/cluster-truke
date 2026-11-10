@@ -14,6 +14,8 @@ export class LevelSelect {
     parent: HTMLElement,
     private readonly entries: readonly LevelEntry[],
     private readonly onPick: (id: string) => void,
+    /** Whether a level may be played yet. */
+    private readonly unlocked: (id: string) => boolean,
   ) {
     this.el = document.createElement('div');
     this.el.className = 'overlay levels hidden';
@@ -64,6 +66,11 @@ export class LevelSelect {
       time.textContent =
         best !== undefined ? `✓ ${formatTime(best)}` : `par ${formatTime(level.parTime)}`;
       tile.append(id, name, time);
+      if (!this.unlocked(level.id)) {
+        tile.disabled = true;
+        tile.classList.add('locked');
+        time.textContent = 'locked: finish the level before it';
+      }
       tile.addEventListener('click', () => this.onPick(level.id));
       this.list.appendChild(tile);
     }

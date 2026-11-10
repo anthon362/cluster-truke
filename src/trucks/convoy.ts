@@ -45,6 +45,7 @@ export class TruckPool implements TruckLookup {
         wobble: 0,
         speedVariance: 0,
         spawnDelay: 0,
+        float: false,
       });
       truck.spare = true;
       this.trucks.push(truck);
@@ -91,6 +92,7 @@ export class TruckPool implements TruckLookup {
           wobble: c.wobble ?? T.wobbleAmplitude,
           rowFraction: c.rows > 1 ? row / (c.rows - 1) : 1,
           spawnDelay: c.spawnDelay ?? 0,
+          float: c.float ?? false,
         });
       }
     }

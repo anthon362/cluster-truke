@@ -43,6 +43,8 @@ export interface TruckAssignment {
   /** 0 for the rear row .. 1 for the front row. */
   rowFraction: number;
   spawnDelay: number;
+  /** Carried along the path with no physics response (see ConvoyDef.float). */
+  float?: boolean;
 }
 
 /** alive: normal body. wreck: exploded, still solid. gone: removed from play. */
@@ -98,6 +100,8 @@ export class Truck {
   /** A spare truck stays out of play until an ability calls it in. */
   spare = false;
   private slotFree = false;
+  /** Steps of reduced grip left (set by ice patches). */
+  private iceSteps = 0;
   private tippedTime = 0;
   private stuckTime = 0;
   private wreckLeft = 0;
@@ -155,6 +159,11 @@ export class Truck {
     this.wreckLeft = 0;
     this.s = a.startS;
 
+    this.body.setBodyType(
+      a.float ? RAPIER.RigidBodyType.KinematicPositionBased : RAPIER.RigidBodyType.Dynamic,
+      true,
+    );
+    this.iceSteps = 0;
     const p = a.path.pointAt(a.startS, a.laneOffset, v1);
     const t = a.path.tangentAt(a.startS, v2).multiplyScalar(a.dir);
     const yaw = Math.atan2(t.x, t.z);
@@ -182,6 +191,7 @@ export class Truck {
     this.prevRot.copy(this.rot);
     if (this.state === 'waiting' && time >= this.assignment.spawnDelay) this.setState('alive');
     if (!this.isSolid) return;
+    if (this.assignment.float) return this.glide(dt);
 
     const body = this.body;
     const rot = q1.copy(this.rot);
@@ -214,7 +224,8 @@ export class Truck {
       );
       // Lateral grip: cancel sideways sliding.
       const vR = lin.x * right.x + lin.z * right.z;
-      const dvR = -vR * T.lateralGrip;
+      const dvR = -vR * (this.iceSteps > 0 ? T.lateralGripIce : T.lateralGrip);
+      if (this.iceSteps > 0) this.iceSteps--;
       body.applyImpulse(
         {
           x: (fwd.x * dvF + right.x * dvR) * T.mass,
@@ -263,12 +274,34 @@ export class Truck {
     return a.speed * (1 + wander + catchUp) * (this.boostLeft > 0 ? this.boostFactor : 1);
   }
 
+  /** The truck is on ice for the next couple of steps. */
+  onIce(): void {
+    this.iceSteps = 2;
+  }
+
+  /** Carried trucks: follow the path exactly, at its height. */
+  private glide(dt: number): void {
+    const a = this.assignment;
+    this.s += a.speed * a.dir * dt;
+    const p = a.path.pointAt(this.s, a.laneOffset, v1);
+    const t = a.path.tangentAt(this.s, v2).multiplyScalar(a.dir);
+    q1.setFromAxisAngle(UP, Math.atan2(t.x, t.z));
+    this.body.setNextKinematicTranslation({ x: p.x, y: p.y, z: p.z });
+    this.body.setNextKinematicRotation({ x: q1.x, y: q1.y, z: q1.z, w: q1.w });
+    this.driving = true;
+    this.onGround = true;
+  }
+
   /**
    * Read the post-step transform, clamp speeds and update timers.
    * Returns true if this truck should explode now.
    */
   afterStep(dt: number): boolean {
     if (!this.isSolid) return false;
+    if (this.assignment.float) {
+      this.readTransform();
+      return false;
+    }
     const body = this.body;
     const lin = body.linvel();
     const speed = Math.hypot(lin.x, lin.y, lin.z);
@@ -316,7 +349,7 @@ export class Truck {
 
   /** Become a wreck: still solid for a while, no longer driven. */
   explode(rng: Rng): void {
-    if (this.state !== 'alive') return;
+    if (this.state !== 'alive' || this.assignment.float) return;
     this.setState('wreck');
     this.wreckLeft = T.wreckLifetime;
     this.driving = false;
@@ -333,7 +366,7 @@ export class Truck {
 
   /** Shove from an explosion at `origin`. */
   blast(origin: Vector3, rng: Rng): void {
-    if (!this.isSolid) return;
+    if (!this.isSolid || this.assignment.float) return;
     const com = this.body.worldCom();
     const d = v1.set(com.x - origin.x, com.y - origin.y, com.z - origin.z);
     const dist = d.length();

@@ -17,6 +17,8 @@ export const PALETTE = {
   brickA: 0xd9a066,
   brickB: 0xc4874c,
   hazard: 0xf2c230,
+  ice: 0xbfe9ff,
+  rotor: 0xe5484d,
   hazardDark: 0x3b3f46,
   towLine: 0xffffff,
   marker: 0xffe066,

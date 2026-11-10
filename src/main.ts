@@ -9,6 +9,7 @@ import { claimWorldClear, loadSave, recordTime, storeSave } from './core/save';
 import { Sim } from './core/sim';
 import { Particles } from './fx/particles';
 import { LEVELS, LEVEL_ENTRIES, findLevel } from './level/levels';
+import { isUnlocked, nextCampaignLevel } from './level/progress';
 import type { LevelDef } from './level/schema';
 import { initPhysics } from './physics/world';
 import { CameraRig } from './player/camera';
@@ -172,12 +173,13 @@ async function boot(): Promise<void> {
     state = 'playing';
     captureMouse();
   };
-  const nextLevel = (): LevelDef | undefined => {
-    const i = LEVELS.findIndex((l) => l.id === game.sim.level.id);
-    const next = LEVELS[i + 1];
-    // Do not roll from the campaign into the test levels (or between worlds of tests).
-    return next && next.world === game.sim.level.world ? next : undefined;
+  // ?unlock=1 opens every level (testing).
+  const unlockAll = params.get('unlock') === '1';
+  const unlocked = (id: string): boolean => {
+    const level = findLevel(id);
+    return !!level && (unlockAll || isUnlocked(level, LEVELS, save.bestTimes));
   };
+  const nextLevel = (): LevelDef | undefined => nextCampaignLevel(game.sim.level, LEVELS);
 
   const debug = new DebugOverlay(ui);
   if (params.get('debug') === '1') debug.toggle(true);
@@ -227,10 +229,10 @@ async function boot(): Promise<void> {
   const levelSelect = new LevelSelect(ui, LEVEL_ENTRIES, (id) => {
     music.start();
     const level = findLevel(id);
-    if (!level) return;
+    if (!level || !unlocked(id)) return;
     levelSelect.show(false, save, id);
     loadLevel(level);
-  });
+  }, unlocked);
   window.addEventListener('keydown', (e) => {
     if (e.code !== 'Enter' || state !== 'won') return;
     const next = nextLevel();
