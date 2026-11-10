@@ -17,7 +17,7 @@ export class LevelSelect {
   ) {
     this.el = document.createElement('div');
     this.el.className = 'overlay levels hidden';
-    this.el.innerHTML = `<h3>Choose a level</h3><div class="level-list"></div>`;
+    this.el.innerHTML = `<h3>Choose a level</h3><div class="hint bank"></div><div class="level-list"></div>`;
     this.list = this.el.querySelector('.level-list')!;
     parent.appendChild(this.el);
   }
@@ -25,6 +25,8 @@ export class LevelSelect {
   show(visible: boolean, save: SaveData, currentId: string): void {
     this.el.classList.toggle('hidden', !visible);
     if (!visible) return;
+    this.el.querySelector('.bank')!.textContent =
+      `Bank: ${save.points.toLocaleString('en-US')} points`;
     this.list.replaceChildren();
     let world = '';
     for (const entry of this.entries) {

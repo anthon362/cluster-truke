@@ -67,6 +67,8 @@ export class Truck {
   state: TruckState = 'alive';
   /** True while the drive model is in control (upright and on the ground). */
   driving = false;
+  /** At least one corner is within reach of the ground (false while flying or stacked on trucks). */
+  onGround = true;
   cruiseSpeed: number = T.cruiseSpeed;
   /** Progress along the path (m). */
   s = 0;
@@ -158,6 +160,7 @@ export class Truck {
     this.setState(a.spawnDelay > 0 ? 'waiting' : 'alive');
     this.setFriction(T.friction);
     this.driving = this.state === 'alive';
+    this.onGround = true;
     this.readTransform();
     this.prevPos.copy(this.pos);
     this.prevRot.copy(this.rot);
@@ -175,7 +178,8 @@ export class Truck {
     const rot = q1.copy(this.rot);
     const up = v1.copy(UP).applyQuaternion(rot);
     const upright = up.y > Math.cos(T.uprightLimit);
-    this.driving = this.state === 'alive' && upright && this.wheelsOnGround(rot);
+    this.onGround = this.wheelsOnGround(rot);
+    this.driving = this.state === 'alive' && upright && this.onGround;
     this.setFriction(this.driving ? T.friction : T.debrisFriction);
 
     if (this.driving) {

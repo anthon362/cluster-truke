@@ -4,7 +4,7 @@ import { GAME_TITLE } from './config/meta';
 import { TUNING } from './config/tuning';
 import { Input } from './core/input';
 import { GameLoop } from './core/loop';
-import { loadSave, recordTime, storeSave } from './core/save';
+import { claimWorldClear, loadSave, recordTime, storeSave } from './core/save';
 import { Sim } from './core/sim';
 import { Particles } from './fx/particles';
 import { LEVELS, LEVEL_ENTRIES, findLevel } from './level/levels';
@@ -79,8 +79,11 @@ async function boot(): Promise<void> {
   const music = new Music();
   const hud = new Hud(ui);
 
+  const attempted = new Set<string>();
   const build = (level: LevelDef): Loaded => {
-    const sim = new Sim({ seed, god, level });
+    // The first-try bonus is once per level per session, however the level is reached.
+    const sim = new Sim({ seed, god, level, firstTry: !attempted.has(level.id) });
+    attempted.add(level.id);
     const scene = new LevelScene(sim.level, sim.pool.paths.values(), sim.goal, sim.hazards);
     hud.setLevel(level.id, level.name);
     return {
@@ -119,6 +122,7 @@ async function boot(): Promise<void> {
   const restart = () => {
     const t0 = performance.now();
     game.sim.reset();
+    hud.clearPopups();
     lastRestartMs = performance.now() - t0;
     restarts++;
     faceForward();
@@ -133,6 +137,7 @@ async function boot(): Promise<void> {
     game.scene.dispose();
     game.sim.dispose();
     game = build(level);
+    hud.clearPopups();
     faceForward();
     wasGrounded = true;
     input.consumeAnyPress();
@@ -207,13 +212,24 @@ async function boot(): Promise<void> {
         if (e.type === 'explosion') {
           particles.burst(e.pos);
           rig.onExplosion(e.pos.distanceTo(sim.player.pos));
+        } else if (e.type === 'bonus') {
+          hud.popBonus(e.bonus);
         } else if (e.type === 'failed') {
           state = 'failed';
           failedAt = performance.now();
         } else if (e.type === 'won') {
           state = 'won';
           const newBest = recordTime(save, sim.level.id, e.time);
-          if (newBest) storeSave(storage, save);
+          // One-time bonus when this win completes the world.
+          const world = sim.level.world;
+          const worldIds = LEVELS.filter((l) => l.world === world).map((l) => l.id);
+          if (world !== 'test' && claimWorldClear(save, world, worldIds)) {
+            hud.popBonus(sim.score.worldClear());
+          }
+          // Points are banked only now, on finishing.
+          save.points += sim.score.total;
+          storeSave(storage, save);
+          overlays.setWinPoints(sim.score.breakdown(), sim.score.total, save.points);
           overlays.setWinResult(e.time, save.bestTimes[sim.level.id], newBest, !!nextLevel());
           // Free the mouse for the buttons.
           if (input.locked) document.exitPointerLock();

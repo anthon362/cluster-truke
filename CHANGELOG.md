@@ -1,5 +1,15 @@
 # Changelog
 
+## M5 (part 1) — Points and save
+
+- Event-driven scoring (`src/score/score.ts`): FINISH, ACE, SPEED, AIR TIME, ROW SKIP,
+  AIRBORNE HOP, CLOSE CALL, WORLD CLEAR. Each bonus pops up the moment it is earned.
+- Points are banked only on finishing; failing loses them. The win screen shows the breakdown
+  and the bank balance.
+- Save format version 2: points, owned and equipped abilities, best times, cleared worlds,
+  with an upgrade path from version 1 and tolerance for damaged data.
+- Still to come in M5: the abilities and the shop, once the ability list is approved.
+
 ## M4 (part 2) — World 1: DOCKYARD
 
 - Six levels in `src/level/data/dockyard/`: First Shift, Stacks, Paper Wall, Rush Hour,

@@ -263,3 +263,60 @@ button.go {
   opacity: 0.8;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
 }
+
+.popups {
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+.popup {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #ffd166;
+  text-shadow: 0 2px 5px rgba(0, 0, 0, 0.65);
+  white-space: pre;
+  animation: popup 1.5s ease-out forwards;
+}
+@keyframes popup {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.9);
+  }
+  12% {
+    opacity: 1;
+    transform: translateY(0) scale(1.06);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(-6px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-16px) scale(1);
+  }
+}
+.breakdown {
+  display: grid;
+  gap: 2px;
+  min-width: 260px;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+.breakdown div {
+  display: flex;
+  justify-content: space-between;
+  gap: 28px;
+}
+.breakdown span:last-child {
+  font-weight: 700;
+  color: #ffd166;
+}
+.won h2 {
+  font-size: 72px;
+}

@@ -6,6 +6,7 @@ import { Goal } from '../level/goal';
 import type { LevelDef } from '../level/schema';
 import { GROUP, PhysicsWorld, RAPIER, groups } from '../physics/world';
 import { PlayerController } from '../player/controller';
+import { type Bonus, ScoreKeeper } from '../score/score';
 import type { MoveInput } from '../player/movement';
 import { TruckPool } from '../trucks/convoy';
 import { TRUCK_SHAPE, Truck } from '../trucks/truck';
@@ -18,10 +19,13 @@ export interface SimOptions {
   god?: boolean;
   /** Defaults to the one-truck test level. */
   level?: LevelDef;
+  /** Whether the first attempt on this Sim can earn the first-try bonus (default true). */
+  firstTry?: boolean;
 }
 
 export type SimEvent =
   | { type: 'explosion'; pos: Vector3 }
+  | { type: 'bonus'; bonus: Bonus }
   | { type: 'failed'; reason: FailReason }
   | { type: 'won'; time: number };
 
@@ -47,6 +51,11 @@ export class Sim {
   stepCount = 0;
   readonly goal: Goal;
   readonly hazards: Hazard[] = [];
+  readonly score: ScoreKeeper;
+  /** This attempt is the first try of the session on this level. */
+  firstTry: boolean;
+  private wasGrounded = true;
+  private takeoffTruck: Truck | null = null;
   state: SimState = 'playing';
   failReason: FailReason | null = null;
   /** Attempt timer in seconds; stops at the goal or on failing. */
@@ -71,6 +80,8 @@ export class Sim {
     this.fixedSeed = options.seed;
     this.rng = new Rng(options.seed ?? Rng.randomSeed());
     this.god = options.god ?? false;
+    this.score = new ScoreKeeper(this.level.parTime);
+    this.firstTry = options.firstTry ?? true;
     this.groundHandle = this.level.ground === 'none' ? null : this.physics.addTestGround().handle;
     const deg = Math.PI / 180;
     for (const s of this.level.scenery) {
@@ -117,7 +128,11 @@ export class Sim {
     this.failReason = null;
     this.lethalTime = 0;
     this.explosions = 0;
+    if (this.attempts > 0) this.firstTry = false;
     this.attempts++;
+    this.score.reset();
+    this.wasGrounded = true;
+    this.takeoffTruck = null;
     this.events.length = 0;
     this.pool.reset(this.rng);
     for (const h of this.hazards) h.reset();
@@ -157,10 +172,12 @@ export class Sim {
     this.player.step(dt, input);
     if (this.state !== 'playing') return;
     this.time += dt;
+    this.trackStyle();
 
     // Goal first: reaching it wins even if the same step would have killed.
     if (this.goal.crossed(this.player.prevPos, this.player.pos)) {
       this.state = 'won';
+      this.emit(this.score.finished(this.time, this.firstTry));
       this.events.push({ type: 'won', time: this.time });
       return;
     }
@@ -173,6 +190,30 @@ export class Sim {
       this.player.prevPos.copy(this.player.pos);
       this.events.push({ type: 'failed', reason });
     }
+  }
+
+  private emit(bonuses: Bonus[]): void {
+    for (const bonus of bonuses) this.events.push({ type: 'bonus', bonus });
+  }
+
+  /** Turn what the player just did into scoring events. */
+  private trackStyle(): void {
+    const p = this.player;
+    if (this.wasGrounded && !p.grounded) {
+      const from = p.lastTruck;
+      this.takeoffTruck = from;
+      this.emit(this.score.leftGround(this.time, p.jumped, !!from && !from.onGround));
+    } else if (!this.wasGrounded && p.grounded) {
+      const from = this.takeoffTruck?.assignment;
+      const to = p.groundTruck?.assignment;
+      const skipped = from && to && from.convoy === to.convoy ? Math.abs(to.row - from.row) - 1 : 0;
+      this.emit(this.score.landed(this.time, Math.max(0, skipped)));
+    } else if (!p.grounded) {
+      p.lethalNearby((handle) => {
+        if (!this.harmless.has(handle)) this.score.passedClose();
+      });
+    }
+    this.wasGrounded = p.grounded;
   }
 
   /**

@@ -57,6 +57,10 @@ export class PlayerController {
   private readonly sideNormal = new Vector3();
   /** True while holding on to a truck side. */
   clinging = false;
+  /** True on the step a jump (ground, coyote or side kick) fired. */
+  jumped = false;
+  /** Fatter capsule for near-miss detection. */
+  private readonly nearShape: RAPIER.Capsule;
 
   constructor(
     private readonly physics: PhysicsWorld,
@@ -64,6 +68,10 @@ export class PlayerController {
   ) {
     this.shape = new RAPIER.Capsule(P.height / 2 - P.radius, P.radius);
     this.reachShape = new RAPIER.Capsule(P.height / 2 - P.radius, P.radius + P.clingReach);
+    this.nearShape = new RAPIER.Capsule(
+      P.height / 2 - P.radius,
+      P.radius + TUNING.score.closeCallDistance,
+    );
     const k = P.lethalCapsuleScale;
     this.lethalShape = new RAPIER.Capsule((P.height / 2 - P.radius) * k, P.radius * k);
   }
@@ -71,6 +79,21 @@ export class PlayerController {
   /** True while standing on or holding on to a truck. */
   get onTruck(): boolean {
     return this.grounded || this.clinging;
+  }
+
+  /** Report every lethal collider within near-miss distance of the player. */
+  lethalNearby(visit: (colliderHandle: number) => void): void {
+    this.physics.world.intersectionsWithShape(
+      this.pos,
+      IDENTITY,
+      this.nearShape,
+      (collider) => {
+        visit(collider.handle);
+        return true;
+      },
+      undefined,
+      this.lethalGroups,
+    );
   }
 
   /** Report every lethal collider the (shrunken) player capsule overlaps. */
@@ -174,6 +197,7 @@ export class PlayerController {
 
   step(dt: number, input: MoveInput): void {
     this.prevPos.copy(this.pos);
+    this.jumped = false;
 
     if (input.jumpPressed) this.jumpBufferLeft = P.jumpBuffer;
     else this.jumpBufferLeft = Math.max(0, this.jumpBufferLeft - dt);
@@ -249,6 +273,7 @@ export class PlayerController {
         this.vel.y = this.frameVel.y + P.jumpVelocity * P.jumpCutMultiplier;
       }
       this.jumpBufferLeft = 0;
+      this.jumped = true;
       this.timeSinceGrounded = P.coyoteTime + dt;
     } else if (this.jumpBufferLeft > 0 && !this.grounded && this.sideTruck?.isSolid) {
       // Tap jump on a truck side: kick up and away from it.
@@ -258,6 +283,7 @@ export class PlayerController {
       this.vel.z += this.sideNormal.z * P.clingTapAway;
       this.jumpBufferLeft = 0;
       this.jumpRising = false;
+      this.jumped = true;
     }
 
     // A carried player already has the truck's motion; only add their own.

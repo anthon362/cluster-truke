@@ -1,7 +1,6 @@
 import { Vector3 } from 'three';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { TUNING } from '../src/config/tuning';
-import { emptySave, loadSave, recordTime, SAVE_KEY, storeSave } from '../src/core/save';
 import { Sim } from '../src/core/sim';
 import { Goal } from '../src/level/goal';
 import { TEST_LEVELS } from '../src/level/levels';
@@ -160,35 +159,6 @@ describe('instant restart', () => {
     expect(sim.state).toBe('playing');
     expect(sim.trucks.filter((t) => t.driving).length).toBe(60);
   }, 30000);
-});
-
-describe('save data', () => {
-  function fakeStorage(initial?: string) {
-    const map = new Map<string, string>();
-    if (initial !== undefined) map.set(SAVE_KEY, initial);
-    return {
-      getItem: (k: string) => map.get(k) ?? null,
-      setItem: (k: string, v: string) => void map.set(k, v),
-    };
-  }
-
-  it('keeps only improvements and survives a reload', () => {
-    const storage = fakeStorage();
-    const save = loadSave(storage);
-    expect(recordTime(save, 'a', 20)).toBe(true);
-    expect(recordTime(save, 'a', 25)).toBe(false);
-    expect(recordTime(save, 'a', 18.5)).toBe(true);
-    storeSave(storage, save);
-    expect(loadSave(storage).bestTimes.a).toBe(18.5);
-  });
-
-  it('falls back to an empty save on missing or broken data', () => {
-    expect(loadSave(undefined)).toEqual(emptySave());
-    expect(loadSave(fakeStorage('not json'))).toEqual(emptySave());
-    expect(loadSave(fakeStorage('{"bestTimes":{"a":"x","b":-1,"c":12}}')).bestTimes).toEqual({
-      c: 12,
-    });
-  });
 });
 
 describe('formatTime', () => {

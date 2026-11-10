@@ -166,6 +166,21 @@ so these own earlier values and rules changed. None of them are design-document 
 - **Slabs count as scenery, not ground.** On these levels the quay is built from boxes, so
   the "standing on a truck forgives touching the ground" rule does not apply to it.
 
+## M5 (part 1: points and save)
+
+**Values changed from the design document:** none. All bonus values in section 7.1 are used
+as written (`score.*`).
+
+**Interpretations:**
+
+- **First try (ACE) is once per level per session**, however the level is reached. Restarting
+  or re-entering the level later in the same session does not give it again.
+- **ROW SKIP counts rows within one convoy.** Landing on a different convoy pays nothing.
+- **CLOSE CALL** is measured with a capsule 1 m larger than the player, against lethal things
+  only (ground, scenery, hazards), and is paid when you next land on a truck.
+- **AIRBORNE HOP** needs an actual jump (not walking off) from a truck with no corner near the ground.
+- **AIR TIME is capped at 3,000 per attempt**, as specified; the other bonuses are not capped.
+
 ## What to adjust if it feels wrong
 
 | Feels like                                    | Change                                                               |
@@ -191,3 +206,4 @@ so these own earlier values and rules changed. None of them are design-document 
 | Wall bricks fly too wildly / too little       | `hazards.wallFling`, `hazards.wallScatter`                           |
 | Bricks shove you too hard                     | `hazards.debrisKnock`                                                |
 | Pile-ups spread too far back                  | `truck.brakeAccel`, `truck.panicDistance`                            |
+| Points come too fast / too slowly             | `score.*` (each bonus has its own value)                             |
