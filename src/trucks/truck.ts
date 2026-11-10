@@ -92,6 +92,12 @@ export class Truck {
   /** Closing fast on a slower truck ahead: brake hard. */
   private braking = false;
   private senseFlip = 1;
+  private panicSwerve: number = T.panicSwerve;
+  private boostLeft = 0;
+  private boostFactor = 1;
+  /** A spare truck stays out of play until an ability calls it in. */
+  spare = false;
+  private slotFree = false;
   private tippedTime = 0;
   private stuckTime = 0;
   private wreckLeft = 0;
@@ -157,7 +163,10 @@ export class Truck {
     this.body.setRotation({ x: q1.x, y: q1.y, z: q1.z, w: q1.w }, true);
     this.body.setLinvel({ x: t.x * this.cruiseSpeed, y: 0, z: t.z * this.cruiseSpeed }, true);
     this.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
-    this.setState(a.spawnDelay > 0 ? 'waiting' : 'alive');
+    this.panicSwerve = T.panicSwerve;
+    this.boostLeft = 0;
+    this.slotFree = false;
+    this.setState(this.spare ? 'gone' : a.spawnDelay > 0 ? 'waiting' : 'alive');
     this.setFriction(T.friction);
     this.driving = this.state === 'alive';
     this.onGround = true;
@@ -192,6 +201,7 @@ export class Truck {
       const right = v2.set(fwd.z, 0, -fwd.x);
 
       // Forward: accelerate toward cruise speed (or the truck just ahead).
+      if (this.boostLeft > 0) this.boostLeft -= dt;
       const want = Math.min(this.wantedSpeed(time), this.followSpeed);
       const vF = lin.x * fwd.x + lin.z * fwd.z;
       const dvF = Math.min(
@@ -215,7 +225,8 @@ export class Truck {
       let offset = a.laneOffset;
       if (this.panicLeft > 0) {
         this.panicLeft -= dt;
-        offset += this.panicSide * T.panicSwerve * a.dir;
+        offset += this.panicSide * this.panicSwerve * a.dir;
+        if (this.panicLeft <= 0) this.panicSwerve = T.panicSwerve;
       }
       const target = a.path.pointAt(this.s + T.lookAhead * a.dir, offset, v3);
       const toX = target.x - this.pos.x;
@@ -242,8 +253,10 @@ export class Truck {
     const slotS = a.startS + a.dir * a.speed * Math.max(0, time - a.spawnDelay);
     const behind = (slotS - this.s) * a.dir;
     const limit = a.speedVariance * T.slotCatchUp;
-    const catchUp = Math.min(Math.max((behind * T.slotGain) / a.speed, -limit), limit);
-    return a.speed * (1 + wander + catchUp);
+    const catchUp = this.slotFree
+      ? 0
+      : Math.min(Math.max((behind * T.slotGain) / a.speed, -limit), limit);
+    return a.speed * (1 + wander + catchUp) * (this.boostLeft > 0 ? this.boostFactor : 1);
   }
 
   /**
@@ -330,6 +343,43 @@ export class Truck {
       { x: rng.range(-1, 1) * spin, y: rng.range(-1, 1) * spin, z: rng.range(-1, 1) * spin * 0.3 },
       true,
     );
+  }
+
+  /** Swerve to one side of the lane for a while (flare). `side`: +1 or -1 in path terms. */
+  avoid(side: number, seconds: number, swerve: number): void {
+    if (!this.driving) return;
+    this.panicLeft = seconds;
+    this.panicSide = side;
+    this.panicSwerve = swerve;
+  }
+
+  /** Drive faster for a while (tailwind). */
+  boost(factor: number, seconds: number): void {
+    this.boostFactor = factor;
+    this.boostLeft = seconds;
+  }
+
+  /** Bring a spare truck into play at a pose, already rolling along its path. */
+  spawnAt(pos: Vector3, yaw: number, s: number, laneOffset: number): void {
+    const a = this.assignment;
+    this.assignment = { ...a, laneOffset, startS: s };
+    this.s = s;
+    q1.setFromAxisAngle(UP, yaw);
+    this.body.setTranslation({ x: pos.x, y: pos.y, z: pos.z }, true);
+    this.body.setRotation({ x: q1.x, y: q1.y, z: q1.z, w: q1.w }, true);
+    const vx = Math.sin(yaw) * a.speed;
+    const vz = Math.cos(yaw) * a.speed;
+    this.body.setLinvel({ x: vx, y: 0, z: vz }, true);
+    this.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+    this.setState('alive');
+    this.tippedTime = 0;
+    this.stuckTime = 0;
+    this.readTransform();
+    this.prevPos.copy(this.pos);
+    this.prevRot.copy(this.rot);
+    this.preVel.set(vx, 0, vz);
+    // A called-in truck has no formation slot to chase: it just cruises.
+    this.slotFree = true;
   }
 
   /** This attempt's driver noise, for checking seeds. */

@@ -76,6 +76,8 @@ export const TUNING = {
     blastSpeed: 14,
     /** Upward share added to the blast direction. */
     blastUp: 0.6,
+    /** Hard clamp on the player's own speed, whatever abilities do (m/s). */
+    maxSpeed: 60,
     lethalCapsuleScale: 0.9,
     /** Grace before a lethal overlap counts while sliding off a wreck (M3). */
     lethalGrace: 0.05,
@@ -208,6 +210,24 @@ export const TUNING = {
     particleSpeed: 13,
     particleSize: 0.45,
     particleGravity: 18,
+  },
+
+  abilities: {
+    secondWind: { jumpVelocity: 8 },
+    lunge: { speed: 18, duration: 0.15, cooldown: 4 },
+    hangTime: { duration: 1.8, recharge: 6, damping: 40 },
+    towLine: { range: 28, pullAccel: 55, maxPullSpeed: 30, releaseDistance: 2.5, cooldown: 5, eyeHeight: 0.75 },
+    slipstream: { chargeTime: 2, boost: 6 },
+    kickOff: { playerBoost: 3, truckKick: 4, truckSpin: 1.5 },
+    slowLane: { timeScale: 0.4, duration: 3, refillDelay: 2, refillTime: 3 },
+    spareRig: { cooldown: 7, throwSpeed: 22, pool: 2, nudgeStep: 0.5, nudgeTries: 14, dropHeight: 0.3 },
+    roadFlare: { cooldown: 9, throwSpeed: 22, radius: 16, duration: 3, swerve: 3.4 },
+    magnetBoots: { duration: 4, refillDelay: 3, refillTime: 4 },
+    tailwind: { radius: 25, boost: 1.3, duration: 3, cooldown: 12 },
+    showtime: { timeScale: 0.6, duration: 4, cooldown: 14, multiplier: 2 },
+    /** Thrown markers: gravity and lifetime. */
+    throwGravity: 22,
+    throwLife: 4,
   },
 
   hazards: {
