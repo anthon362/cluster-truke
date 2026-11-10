@@ -24,6 +24,7 @@ function problemsOf(raw: unknown): string[] {
 }
 
 /** A deep copy of a valid level that tests can break on purpose. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- deliberately untyped: tests write invalid data into it
 function draft(): Record<string, any> {
   return JSON.parse(JSON.stringify(TEST_LEVELS.hazards));
 }

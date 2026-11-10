@@ -283,8 +283,12 @@ describe('side cling', () => {
     ).add(truck.pos);
     const v = truck.body.linvel();
     sim.player.placeInAir(pos, new Vector3(v.x, v.y, v.z));
-    run(sim, 60, input({ jumpHeld: true, moveF: 1, sprint: true }));
-    expect(sim.player.grounded).toBe(true);
+    let stoodAt = -1;
+    run(sim, 30, input({ jumpHeld: true, moveF: 1 }), (i) => {
+      if (stoodAt < 0 && sim.player.grounded) stoodAt = i;
+    });
+    expect(stoodAt).toBeGreaterThanOrEqual(0);
+    expect(stoodAt).toBeLessThan(24);
     expect(sim.player.feetY).toBeGreaterThan(T.trailerRoof - 0.05);
   });
 
