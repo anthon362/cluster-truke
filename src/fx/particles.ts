@@ -21,6 +21,8 @@ export class Particles {
   private readonly vel: Vector3[] = [];
   private readonly life = new Float32Array(F.maxParticles);
   private next = 0;
+  /** Share of the full particle count to emit (quality setting). */
+  density = 1;
   private readonly colors = [
     new Color(PALETTE.spark),
     new Color(PALETTE.smoke),
@@ -44,7 +46,8 @@ export class Particles {
   }
 
   burst(origin: Vector3): void {
-    for (let n = 0; n < F.explosionParticles; n++) {
+    const count = Math.max(4, Math.round(F.explosionParticles * this.density));
+    for (let n = 0; n < count; n++) {
       const i = this.next;
       this.next = (this.next + 1) % F.maxParticles;
       this.pos[i].copy(origin);

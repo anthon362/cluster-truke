@@ -480,3 +480,202 @@ button.go {
 .level-tile.locked:hover {
   background: rgba(255, 255, 255, 0.1);
 }
+.menu {
+  background: linear-gradient(180deg, rgba(16, 20, 26, 0.55), rgba(16, 20, 26, 0.86));
+  pointer-events: auto;
+}
+.menu h1 {
+  margin: 0;
+  font-size: 104px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  line-height: 1;
+}
+.tagline {
+  font-size: 19px;
+  font-weight: 600;
+  opacity: 0.85;
+  margin-bottom: 8px;
+}
+.menu-buttons {
+  display: grid;
+  gap: 8px;
+  width: 280px;
+}
+.menu-buttons button {
+  border: 0;
+  padding: 12px 18px;
+  border-radius: 6px;
+  font: 800 20px inherit;
+  font-family: inherit;
+  letter-spacing: 0.04em;
+  color: inherit;
+  background: rgba(255, 255, 255, 0.16);
+  cursor: pointer;
+}
+.menu-buttons button:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+.menu-buttons button.primary {
+  background: #ff7a1a;
+  font-size: 24px;
+  padding: 14px 18px;
+}
+.paused {
+  background: rgba(16, 20, 26, 0.72);
+  pointer-events: auto;
+}
+/* Truck silhouettes: a trailer and a lower cab, like the things you stand on. */
+.trucks {
+  display: flex;
+  gap: 18px;
+  align-items: flex-end;
+  margin-bottom: 6px;
+}
+.trucks i {
+  position: relative;
+  display: block;
+  width: 108px;
+  height: 38px;
+  background: #f4efe4;
+  border-bottom: 5px solid #ff7a1a;
+  border-radius: 2px;
+}
+.trucks i::after {
+  content: '';
+  position: absolute;
+  right: -34px;
+  bottom: -5px;
+  width: 28px;
+  height: 30px;
+  background: #1fa3a3;
+  border-radius: 2px;
+}
+.trucks i:nth-child(2) {
+  transform: translateY(-10px) rotate(-3deg);
+}
+.trucks i:nth-child(4) {
+  transform: translateY(-4px) rotate(2deg);
+}
+.settings,
+.times {
+  background: rgba(16, 20, 26, 0.95);
+  pointer-events: auto;
+  justify-content: flex-start;
+  padding: 4vh 0 30px;
+  overflow-y: auto;
+  gap: 10px;
+}
+.settings h3,
+.times h3 {
+  margin: 0;
+  font-size: 34px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+.settings-body,
+.times-body {
+  width: min(620px, 92vw);
+  display: grid;
+  gap: 6px;
+  text-align: left;
+}
+.settings-body h4,
+.times-body h4 {
+  margin: 12px 0 2px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  opacity: 0.7;
+}
+.setting {
+  display: grid;
+  grid-template-columns: 220px 1fr 64px;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 10px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.07);
+  font-size: 16px;
+}
+.setting input[type='range'] {
+  width: 100%;
+}
+.setting input[type='checkbox'] {
+  width: 20px;
+  height: 20px;
+  justify-self: start;
+}
+.setting select,
+.setting .key {
+  justify-self: start;
+  min-width: 150px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 5px;
+  font: 700 15px inherit;
+  font-family: inherit;
+  color: inherit;
+  background: rgba(255, 255, 255, 0.18);
+  cursor: pointer;
+}
+.setting select option {
+  color: #111;
+}
+.setting .key.waiting {
+  background: #ff7a1a;
+}
+.setting .value {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  opacity: 0.85;
+}
+.time-row {
+  display: grid;
+  grid-template-columns: 56px 1fr 90px 100px;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.07);
+  font-variant-numeric: tabular-nums;
+}
+.time-row span:nth-child(3) {
+  font-weight: 800;
+  text-align: right;
+}
+.time-row span:nth-child(4) {
+  opacity: 0.6;
+  text-align: right;
+}
+.time-row.under-par span:nth-child(3) {
+  color: #3dffb0;
+}
+.speed {
+  position: absolute;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 18px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+  z-index: 2;
+}
+.tutorial {
+  position: absolute;
+  top: 22%;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 80vw;
+  padding: 10px 18px;
+  border-radius: 8px;
+  background: rgba(16, 20, 26, 0.72);
+  font-size: 19px;
+  font-weight: 700;
+  text-align: center;
+  z-index: 2;
+}
+.speed.hidden,
+.tutorial.hidden {
+  display: none;
+}

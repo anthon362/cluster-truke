@@ -11,6 +11,8 @@ export class Hud {
   private readonly timer: HTMLDivElement;
   private readonly levelName: HTMLDivElement;
   private readonly popups: HTMLDivElement;
+  private readonly speed: HTMLDivElement;
+  private readonly hint: HTMLDivElement;
   private readonly bars: { root: HTMLDivElement; name: HTMLElement; fill: HTMLElement }[] = [];
   private last = '';
 
@@ -35,6 +37,12 @@ export class Hud {
         fill: root.querySelector('.fill')!,
       });
     }
+    this.speed = document.createElement('div');
+    this.speed.className = 'speed hidden';
+    parent.appendChild(this.speed);
+    this.hint = document.createElement('div');
+    this.hint.className = 'tutorial hidden';
+    parent.appendChild(this.hint);
     this.popups = document.createElement('div');
     this.popups.className = 'popups';
     parent.appendChild(this.popups);
@@ -62,6 +70,18 @@ export class Hud {
       bar.fill.style.width = `${Math.round(level * 100)}%`;
       bar.root.classList.toggle('ready', level >= 0.999);
     });
+  }
+
+  /** Optional speed readout (a setting). */
+  setSpeed(visible: boolean, metresPerSecond: number): void {
+    this.speed.classList.toggle('hidden', !visible);
+    if (visible) this.speed.textContent = `${Math.round(metresPerSecond * 3.6)} km/h`;
+  }
+
+  /** A line of help for first-time players; empty text hides it. */
+  setHint(text: string): void {
+    this.hint.classList.toggle('hidden', text === '');
+    if (this.hint.textContent !== text) this.hint.textContent = text;
   }
 
   clearPopups(): void {

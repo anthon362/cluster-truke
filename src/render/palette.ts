@@ -14,6 +14,8 @@ export const PALETTE = {
   truckDark: 0x23262b,
   truckGlass: 0x9fe3ff,
   wreck: 0x3a3532,
+  carried: 0xffd166,
+  ghost: 0x7fe8ff,
   brickA: 0xd9a066,
   brickB: 0xc4874c,
   hazard: 0xf2c230,

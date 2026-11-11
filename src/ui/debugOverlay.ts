@@ -21,7 +21,7 @@ export class DebugOverlay {
   update(
     sim: Sim,
     loop: GameLoop,
-    app: { lastRestartMs: number; restarts: number; musicStarts: number },
+    app: { lastRestartMs: number; restarts: number; audioStarts: number },
   ): void {
     if (!this.visible) return;
     const p = sim.player;
@@ -36,7 +36,7 @@ export class DebugOverlay {
       `vertical    ${p.vel.y.toFixed(1)} m/s`,
       `player      ${p.grounded ? 'grounded' : p.clinging ? 'clinging' : 'air'}`,
       `attempt     #${sim.attempts} ${sim.state}${sim.failReason ? ` (${sim.failReason})` : ''}, ${sim.falls} fails`,
-      `restart     ${app.lastRestartMs.toFixed(2)} ms last, ${app.restarts} total, music started ${app.musicStarts}x`,
+      `restart     ${app.lastRestartMs.toFixed(2)} ms last, ${app.restarts} total, audio started ${app.audioStarts}x`,
       `level       ${sim.level.id}`,
       `time        ${sim.time.toFixed(2)} s`,
       `seed        ${sim.seed}${sim.god ? '  GOD' : ''}`,
