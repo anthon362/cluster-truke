@@ -40,30 +40,30 @@ function deck(x, z0, z1, width, top = 0) {
 }
 
 /**
- * An overhead sign across the road at `z`: a beam whose underside is `gap`
- * above the trailer roofs, so a rider has to jump it. `x0..x1` is how much of
- * the road it covers.
+ * An overhead sign at `z`. The lethal part is a beam whose underside is 0.8 m
+ * above the trailer roofs, so a rider has to jump it; `x0..x1` is how much of
+ * the road it covers. It hangs from a gantry that stands clear of the lanes
+ * and passes well above a jumping player.
  */
-function sign(z, top = 0, x0 = -12, x1 = 12, deckHalf = 12.4) {
+function sign(z, top = 0, x0 = -12, x1 = 12, edge = 12.4, centre = 0) {
   const bottom = top + 3.8 + 0.8;
-  const beam = {
-    type: 'box',
-    pos: [(x0 + x1) / 2, bottom + 0.35, z],
-    size: [x1 - x0, 0.7, 0.6],
-    lethal: true,
-    color: SIGN,
-  };
-  const posts = [x0, x1].map((x) => {
-    const px = Math.max(-deckHalf, Math.min(deckHalf, x));
-    return {
-      type: 'box',
-      pos: [px, top + (bottom + 0.7) / 2 - top / 2, z],
-      size: [0.5, bottom + 0.7 - top, 0.5],
-      lethal: true,
-      color: POST,
-    };
-  });
-  return [beam, ...posts];
+  const truss = top + 10.5;
+  const box = (pos, size, color) => ({ type: 'box', pos, size, lethal: true, color });
+  const out = [
+    box([(x0 + x1) / 2, bottom + 0.35, z], [x1 - x0, 0.7, 0.6], SIGN),
+    box([centre, truss, z], [edge * 2 + 0.5, 0.6, 0.6], POST),
+  ];
+  for (const side of [-1, 1]) {
+    out.push(
+      box([centre + side * edge, top + (truss - top) / 2, z], [0.5, truss - top, 0.5], POST),
+    );
+  }
+  // Hangers from the truss down to each end of the beam.
+  for (const x of [x0 + 0.3, x1 - 0.3]) {
+    const from = bottom + 0.7;
+    out.push(box([x, (from + truss) / 2, z], [0.25, truss - from, 0.25], POST));
+  }
+  return out;
 }
 
 const straight = [
@@ -167,10 +167,10 @@ const levels = [];
 // 2-4 Sky Hook: the deck ends in thin air. Carried trucks glide alongside and lift away: change over.
 {
   const hookPts = [
-    [8, 0, -40],
-    [8, 0, 300],
-    [8, 3, 360],
-    [8, 3, 700],
+    [9.3, 0, -40],
+    [9.3, 0, 300],
+    [9.3, 3, 360],
+    [9.3, 3, 700],
   ];
   const hook = makePath(hookPts);
   levels.push([
@@ -179,11 +179,11 @@ const levels = [];
       player: { convoy: 'main', row: 1, lane: 2 },
       paths: [
         { id: 'road', width: 12, lanes: 3, points: straight },
-        { id: 'hook', width: 4, lanes: 1, points: hookPts, visible: false },
+        { id: 'hook', width: 8, lanes: 2, points: hookPts, visible: false },
       ],
       convoys: [
         { id: 'main', path: 'road', rows: 14, lanesUsed: [0, 1, 2], startAt: START },
-        { id: 'carried', path: 'hook', rows: 16, lanesUsed: [0], startAt: START, float: true },
+        { id: 'carried', path: 'hook', rows: 16, lanesUsed: [0, 1], startAt: START, float: true },
       ],
       scenery: [...deck(0, -60, 300, 13.2, 0)],
       goal: { pos: hook.at(GOAL_S).pos, width: 14, height: 12 },
@@ -263,9 +263,9 @@ const levels = [];
         slab(-25, 302, 640, 70, LOW - 1.5, DECK, 1.4),
         ...deck(0, -60, 262, 13, 0),
         { type: 'box', pos: [0, 2.5, 268], size: [13, 5, 1.2], lethal: true, color: '#e5484d' },
-        ...sign(110, 0, -6.4, 6.4, 6.4),
-        ...sign(175, 0, -6.4, 6.4, 6.4),
-        ...sign(380, LOW - 1.5, -44, -14, 60),
+        ...sign(110, 0, -6.2, 6.2, 6.2),
+        ...sign(175, 0, -6.2, 6.2, 6.2),
+        ...sign(390, LOW - 1.5, -42, -18, 13, -30),
       ],
       goal: { pos: low.at(GOAL_S + 4).pos, width: 16, height: 13 },
     }),

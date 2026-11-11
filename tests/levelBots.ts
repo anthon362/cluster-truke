@@ -78,43 +78,120 @@ export const runForward = (): Script => (sim) => {
 };
 
 /** One sideways hop to the next lane at time `at` (+1 = toward +X). */
-export const hopLane = (at: number, side: 1 | -1) => (): Script => (sim, t) => {
-  if (t < at || t > at + 0.6) return null;
-  const first = t < at + TUNING.loop.fixedStep * 1.5;
-  // A low jump (tap) covers about one lane at walking speed.
-  return toward(side, 0, { jumpPressed: first && sim.player.grounded });
-};
+export const hopLane =
+  (at: number, side: 1 | -1, sprint = false) =>
+  (): Script =>
+  (sim, t) => {
+    if (t < at || t > at + 0.6) return null;
+    const first = t < at + TUNING.loop.fixedStep * 1.5;
+    // A low jump (tap) covers about one lane at walking speed, more when sprinting.
+    return toward(side, 0, { sprint, jumpPressed: first && sim.player.grounded });
+  };
+
+/**
+ * Hop sideways onto another convoy running alongside at the same height.
+ * Waits (from `after`) until one of its trailers is right beside the player,
+ * the way a person would look before jumping. With `fullJump` it is a held
+ * jump that pushes off for the first half and steers back for the second, so
+ * it covers about 6.7 m and lands without sliding off the far side.
+ */
+export const hopTo =
+  (convoy: string, after: number, side: 1 | -1, sprint = false, fullJump = false) =>
+  (): Script => {
+    let start = -1;
+    let jumped = false;
+    return (sim, t) => {
+      const p = sim.player;
+      const truck = p.groundTruck ?? p.lastTruck;
+      if (truck?.assignment.convoy === convoy && p.grounded) {
+        // Landed: kill any leftover sideways slide.
+        const slide = (p.vel.x - truck.body.linvel().x) * side;
+        return slide > 1.5 ? toward(-side, 0) : null;
+      }
+      if (start >= 0) {
+        const dt = t - start;
+        if (!fullJump) {
+          if (dt > 0.6) return null;
+          const first = !jumped && p.grounded;
+          jumped = jumped || first;
+          return toward(side, 0, { sprint, jumpPressed: first });
+        }
+        if (dt > 1.2) return null;
+        const first = !jumped && p.grounded;
+        jumped = jumped || first;
+        const pushing = dt < 0.6;
+        return toward(pushing ? side : -side, 0, { sprint: pushing && sprint, jumpPressed: first, jumpHeld: true });
+      }
+      if (t < after || !p.grounded) return null;
+      for (const other of sim.trucks) {
+        if (other.assignment.convoy !== convoy || !other.isSolid) continue;
+        // Trailer centre is 1.4 m behind the truck's middle.
+        const dx = (other.pos.x - p.pos.x) * side;
+        // Where that trailer will be, relative to us, when the hop lands.
+        const air = fullJump ? 0.9 : 0.45;
+        const dz = other.pos.z - 1.4 - p.pos.z + (other.body.linvel().z - p.vel.z) * air;
+        if (Math.abs(dz) < 1.5 && dx > 2 && dx < 10) {
+          start = t;
+          return toward(side, 0, { sprint });
+        }
+      }
+      return null;
+    };
+  };
 
 /**
  * Leave the current convoy for another one that runs lower down and to one
- * side: sprint off the truck sideways (no jump needed), line up with the
- * nearest lane of the target convoy while falling, and grab a side if short.
+ * side: run off the truck sideways (no jump needed), then steer in the air so
+ * the predicted landing spot is on the nearest lane of the target convoy, and
+ * hold jump near the end to grab a side if it comes up short.
  */
-export const dropTo = (convoy: string, after: number, side: 1 | -1) => (): Script => (sim, t) => {
-  const p = sim.player;
-  const on = (p.groundTruck ?? p.lastTruck)?.assignment.convoy;
-  if (p.grounded && on === convoy) return null;
-  if (t < after) return null;
-  if (p.grounded) return toward(side, 0, { sprint: true });
-  // Nearest truck of the target convoy gives the lane to aim for and its roof height.
-  let best = null as null | { x: number; y: number };
-  let bestD = Infinity;
-  for (const truck of sim.trucks) {
-    if (truck.assignment.convoy !== convoy || !truck.isSolid) continue;
-    const d = Math.abs(truck.pos.z - p.pos.z) * 0.3 + Math.abs(truck.pos.x - p.pos.x);
-    if (d < bestD) {
-      bestD = d;
-      best = { x: truck.pos.x, y: truck.pos.y + T.trailerRoof };
+export const dropTo =
+  (convoy: string, after: number, side: 1 | -1, sprint = true) =>
+  (): Script =>
+  (sim, t) => {
+    const p = sim.player;
+    const on = (p.groundTruck ?? p.lastTruck)?.assignment.convoy;
+    if (p.grounded && on === convoy) return null;
+    if (t < after) return null;
+    if (p.grounded) return toward(side, 0, { sprint });
+    // Roof height of the target convoy near here.
+    let roof = -Infinity;
+    for (const truck of sim.trucks) {
+      if (truck.assignment.convoy !== convoy || !truck.isSolid) continue;
+      if (Math.abs(truck.pos.z - p.pos.z) < 40) roof = Math.max(roof, truck.pos.y + T.trailerRoof);
     }
-  }
-  if (!best) return null;
-  const dx = best.x - p.pos.x;
-  const falling = p.feetY < best.y + 2;
-  const heading = (p.lastTruck ?? sim.trucks[0]).body.linvel();
-  if (Math.abs(dx) > 2.5) return toward(Math.sign(dx), 0, { sprint: true, jumpHeld: falling });
-  if (Math.abs(dx) > 1) return toward(Math.sign(dx), 0, { jumpHeld: falling });
-  return { ...NO_INPUT, yaw: Math.atan2(-heading.x, -heading.z), jumpHeld: falling };
-};
+    if (roof === -Infinity) return null;
+    // When and where we come down if nothing changes.
+    const h = Math.max(0, p.feetY - roof);
+    const fall = (p.vel.y + Math.sqrt(p.vel.y * p.vel.y + 2 * P.gravity * h)) / P.gravity;
+    const landX = p.pos.x + p.vel.x * fall;
+    const landZ = p.pos.z + p.vel.z * fall;
+    // Aim for the trailer that will be nearest to that spot.
+    let best = null as null | { x: number; z: number };
+    let bestD = Infinity;
+    for (const truck of sim.trucks) {
+      if (truck.assignment.convoy !== convoy || !truck.isSolid) continue;
+      const v = truck.body.linvel();
+      const x = truck.pos.x + v.x * fall;
+      const z = truck.pos.z + v.z * fall - 1.4;
+      const d = Math.abs(x - landX) + Math.abs(z - landZ) * 0.5;
+      if (d < bestD) {
+        bestD = d;
+        best = { x, z };
+      }
+    }
+    if (!best) return null;
+    const ex = best.x - landX;
+    const ez = best.z - landZ;
+    const grab = p.feetY < roof + 1.5;
+    const heading = (p.lastTruck ?? sim.trucks[0]).body.linvel();
+    if (Math.abs(ex) < 0.5 && Math.abs(ez) < 1.5) {
+      return { ...NO_INPUT, yaw: Math.atan2(-heading.x, -heading.z), jumpHeld: grab };
+    }
+    // Correct sideways first; fore-aft only once that is close.
+    const dz = Math.abs(ex) < 1 ? ez : ez * 0.3;
+    return toward(ex, dz, { sprint: Math.abs(ex) > 3, jumpHeld: grab });
+  };
 
 /** Jump overhead beams that would hit a rider: a full jump timed to be at its top over the beam. */
 export const hopBars = (): Script => {

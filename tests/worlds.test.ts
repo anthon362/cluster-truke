@@ -9,7 +9,7 @@ import {
   dropTo,
   either,
   hopBars,
-  hopLane,
+  hopTo,
   play,
   ride,
   summary,
@@ -32,21 +32,44 @@ interface Case {
 const CASES: Case[] = [
   { id: '2-1', demo: hopBars, demoName: 'riding, jumping the signs', minWins: 4 },
   { id: '2-2', demo: hopBars, demoName: 'riding, jumping the sign', minWins: 4 },
-  { id: '2-3', demo: dropTo('lower', 2, -1), demoName: 'dropping to the lower convoy', minWins: 4 },
-  { id: '2-4', demo: hopLane(3, 1), demoName: 'one hop onto the carried trucks', minWins: 4 },
+  {
+    id: '2-3',
+    demo: dropTo('lower', 2, -1, false),
+    demoName: 'dropping to the lower convoy',
+    minWins: 4,
+  },
+  {
+    id: '2-4',
+    demo: hopTo('carried', 3, 1),
+    demoName: 'one hop onto the carried trucks',
+    minWins: 4,
+  },
   { id: '2-5', demo: hopBars, demoName: 'riding, jumping the signs', minWins: 4 },
-  { id: '2-6', demo: either(dropTo('lower', 9, -1), hopBars), demoName: 'jumping signs, then dropping to the lower convoy', minWins: 3 },
+  {
+    id: '2-6',
+    demo: either(dropTo('lower', 9, -1, false), hopBars),
+    demoName: 'jumping signs, then dropping to the lower convoy',
+    minWins: 3,
+  },
   { id: '3-1', demo: ride, demoName: 'riding one truck', minWins: 4 },
   { id: '3-2', demo: dodgeRotors, demoName: 'riding, changing lane for the rotor', minWins: 4 },
   { id: '3-3', demo: ride, demoName: 'riding one truck', minWins: 3 },
   { id: '3-4', demo: ride, demoName: 'riding one truck', minWins: 4 },
   { id: '3-5', demo: dodgeRotors, demoName: 'riding, changing lane for the rotors', minWins: 3 },
-  { id: '3-6', demo: either(hopLane(17.2, 1), dodgeRotors), demoName: 'dodging the rotor, then hopping to the side convoy', minWins: 3 },
+  {
+    id: '3-6',
+    demo: either(hopTo('side', 18, 1, false, true), dodgeRotors),
+    demoName: 'dodging the rotor, then hopping to the side convoy',
+    minWins: 3,
+  },
 ];
 
 describe('worlds 2 and 3 are completable without abilities', () => {
   it('each has six levels, in order', () => {
-    for (const [world, n] of [['overpass', 2], ['whiteout', 3]] as const) {
+    for (const [world, n] of [
+      ['overpass', 2],
+      ['whiteout', 3],
+    ] as const) {
       const ids = LEVELS.filter((l) => l.world === world).map((l) => l.id);
       expect(ids).toEqual([1, 2, 3, 4, 5, 6].map((i) => `${n}-${i}`));
     }

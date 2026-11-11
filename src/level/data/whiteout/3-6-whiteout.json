@@ -26,10 +26,10 @@
     },
     {
       "type": "box",
-      "pos": [9.5, 8, 210],
-      "size": [1, 16, 1],
+      "pos": [7.4, 3.75, 137.5],
+      "size": [1.4, 7.5, 395],
       "lethal": true,
-      "color": "#e5484d"
+      "color": "#f4f8fb"
     },
     {
       "type": "box",
@@ -43,7 +43,7 @@
     {
       "type": "ice",
       "pos": [0, 0, 150],
-      "size": [14, 70],
+      "size": [13, 70],
       "yaw": 0
     },
     {
@@ -58,7 +58,7 @@
     {
       "type": "breakableWall",
       "pos": [0, 0, 280],
-      "width": 14,
+      "width": 12,
       "height": 5,
       "yaw": 0
     }
@@ -78,10 +78,8 @@
       "width": 8,
       "lanes": 2,
       "points": [
-        [80, 0, -40],
-        [80, 0, 150],
-        [9.6, 0, 340],
-        [9.6, 0, 700]
+        [12.5, 0, -40],
+        [12.5, 0, 700]
       ]
     }
   ],
@@ -89,7 +87,7 @@
     {
       "id": "main",
       "path": "road",
-      "rows": 14,
+      "rows": 6,
       "lanesUsed": [0, 1, 2],
       "startAt": 50
     },
@@ -98,13 +96,12 @@
       "path": "side",
       "rows": 16,
       "lanesUsed": [0, 1],
-      "startAt": 64,
-      "wobble": 0.04,
-      "speedVariance": 0.03
+      "startAt": 50,
+      "wobble": 0.05
     }
   ],
   "goal": {
-    "pos": [1.69, 0, 442.87],
+    "pos": [12.5, 0, 443],
     "width": 14,
     "height": 12
   }

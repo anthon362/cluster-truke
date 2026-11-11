@@ -46,8 +46,8 @@ function boulder(path, s, offset, size = 4) {
 }
 
 /** Tall marker poles beside a rotor so it reads from far away in the fog. */
-function pylons(path, s) {
-  return [-1, 1].map((side) => {
+function pylons(path, s, sides = [-1, 1]) {
+  return sides.map((side) => {
     const p = path.at(s, side * 9.5, 8);
     return { type: 'box', pos: p.pos, size: [1, 16, 1], lethal: true, color: '#e5484d' };
   });
@@ -182,24 +182,17 @@ const levels = [];
   ]);
 }
 
-// 3-6 Whiteout: ice, a wheel, a snow wall, and then the road is closed. A second convoy
-// sweeps in from the right and runs alongside for the last stretch: change over to it.
+// 3-6 Whiteout: ice, a wheel and a snow wall, and then the road is closed. A second
+// convoy runs on the next road over, behind a snow bank. Where the bank ends, change over.
 {
-  const MERGE_Z = 340;
+  const SIDE_X = 12.5;
+  const BANK_END = 335;
   const sidePts = [
-    [80, 0, -40],
-    [80, 0, 150],
-    [9.6, 0, MERGE_Z],
-    [9.6, 0, 700],
+    [SIDE_X, 0, -40],
+    [SIDE_X, 0, 700],
   ];
   const path = makePath(straight);
   const side = makePath(sidePts);
-  // Path distance at which the side road has finished merging.
-  let mergeS = 0;
-  while (side.at(mergeS).pos[2] < MERGE_Z) mergeS += 1;
-  // Start the side convoy so each of its rows reaches the merge exactly beside the same row of the main convoy.
-  const sideStart = Math.round(mergeS - (MERGE_Z - (START - 40)));
-  const goalS = mergeS + (GOAL_S - 40 - MERGE_Z);
   levels.push([
     'whiteout',
     level(6, 'Whiteout', 17, {
@@ -209,24 +202,26 @@ const levels = [];
         { id: 'side', width: 8, lanes: 2, points: sidePts },
       ],
       convoys: [
-        { id: 'main', path: 'road', rows: 14, lanesUsed: [0, 1, 2], startAt: START },
-        {
-          id: 'side',
-          path: 'side',
-          rows: 16,
-          lanesUsed: [0, 1],
-          startAt: sideStart,
-          wobble: 0.04,
-          speedVariance: 0.03,
-        },
+        // A short convoy: it reaches the closed road only after the bank has ended beside its last rows.
+        { id: 'main', path: 'road', rows: 6, lanesUsed: [0, 1, 2], startAt: START },
+        { id: 'side', path: 'side', rows: 16, lanesUsed: [0, 1], startAt: START, wobble: 0.05 },
       ],
       scenery: [
-        ...pylons(path, 250),
+        // Only on the left: the right-hand one would stand in the side road.
+        ...pylons(path, 250, [-1]),
+        // The snow bank between the two roads: too tall to cross.
+        {
+          type: 'box',
+          pos: [7.4, 3.75, (BANK_END - 60) / 2],
+          size: [1.4, 7.5, BANK_END + 60],
+          lethal: true,
+          color: SNOW,
+        },
         // Road closed.
         { type: 'box', pos: [0, 3, 425], size: [13, 6, 3], lethal: true, color: ROCK },
       ],
-      hazards: [ice(path, 190, 70, 14), rotor(path, 250, 22, 70), wall(path, 320, 5)],
-      goal: { pos: side.at(goalS).pos, width: 14, height: 12 },
+      hazards: [ice(path, 190, 70, 13), rotor(path, 250, 22, 70), wall(path, 320, 5, 12)],
+      goal: { pos: side.at(GOAL_S).pos, width: 14, height: 12 },
     }),
   ]);
 }
