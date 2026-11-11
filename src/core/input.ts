@@ -1,21 +1,8 @@
 import { TUNING } from '../config/tuning';
 import type { MoveInput } from '../player/movement';
+import { type Action, DEFAULT_BINDINGS } from './bindings';
 
-/** Actions the game understands. Rebinding UI arrives in M7; the table is ready. */
-export type Action =
-  'forward' | 'back' | 'left' | 'right' | 'sprint' | 'jump' | 'restart' | 'debug' | 'mute';
-
-export const DEFAULT_BINDINGS: Record<Action, string[]> = {
-  forward: ['KeyW', 'ArrowUp'],
-  back: ['KeyS', 'ArrowDown'],
-  left: ['KeyA', 'ArrowLeft'],
-  right: ['KeyD', 'ArrowRight'],
-  sprint: ['ShiftLeft', 'ShiftRight'],
-  jump: ['Space'],
-  restart: ['KeyR'],
-  debug: ['F3'],
-  mute: ['KeyM'],
-};
+export type { Action } from './bindings';
 
 const C = TUNING.camera;
 
