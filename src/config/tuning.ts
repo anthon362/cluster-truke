@@ -126,7 +126,7 @@ export const TUNING = {
     /** Fraction of sideways velocity cancelled per step while driving. */
     lateralGrip: 0.9,
     /** Same on ice (M6). */
-    lateralGripIce: 0.15,
+    lateralGripIce: 0.03,
     lookAhead: 8,
     /** Yaw rate requested per radian of heading error (1/s). */
     steerGain: 3,
