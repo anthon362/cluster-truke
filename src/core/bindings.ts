@@ -49,8 +49,9 @@ export function keyLabel(code: string): string {
 
 /**
  * Bind `code` as the only key for `action`. A key can drive one action, so it
- * is removed from any other action that had it (that action keeps its other
- * keys, or goes back to its default if it would be left with none).
+ * is removed from any other action that had it. If that leaves the other
+ * action with no key at all, the two swap: it takes over the key `action`
+ * used before, so nothing is ever left unbound.
  */
 export function rebind(
   bindings: Record<Action, string[]>,
@@ -59,12 +60,11 @@ export function rebind(
 ): Record<Action, string[]> {
   if (RESERVED_KEYS.includes(code)) return bindings;
   const out = structuredClone(bindings);
+  const previous = out[action].filter((k) => k !== code);
   for (const other of Object.keys(out) as Action[]) {
     if (other === action) continue;
     out[other] = out[other].filter((k) => k !== code);
-    if (out[other].length === 0) {
-      out[other] = DEFAULT_BINDINGS[other].filter((k) => k !== code);
-    }
+    if (out[other].length === 0 && previous.length > 0) out[other] = [previous[0]];
   }
   out[action] = [code];
   return out;
