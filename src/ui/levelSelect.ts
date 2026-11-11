@@ -16,11 +16,14 @@ export class LevelSelect {
     private readonly onPick: (id: string) => void,
     /** Whether a level may be played yet. */
     private readonly unlocked: (id: string) => boolean,
+    onClose: () => void,
   ) {
     this.el = document.createElement('div');
     this.el.className = 'overlay levels hidden';
-    this.el.innerHTML = `<h3>Choose a level</h3><div class="hint bank"></div><div class="level-list"></div>`;
+    this.el.innerHTML = `<h3>Choose a level</h3><div class="hint bank"></div><div class="level-list"></div>
+      <div class="buttons"><button type="button" class="close primary">Back</button></div>`;
     this.list = this.el.querySelector('.level-list')!;
+    this.el.querySelector('.close')!.addEventListener('click', onClose);
     parent.appendChild(this.el);
   }
 
