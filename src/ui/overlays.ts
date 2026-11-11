@@ -2,19 +2,42 @@ import { GAME_TITLE } from '../config/meta';
 import type { Bonus } from '../score/score';
 import { formatTime } from './format';
 
-export type OverlayKind = 'none' | 'start' | 'paused' | 'failed' | 'won' | 'levels' | 'shop';
+export type OverlayKind = 'none' | 'menu' | 'paused' | 'failed' | 'won' | 'other';
 
-const KEYS = `
-  <div class="keys">
-    <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move &nbsp; <kbd>Shift</kbd> sprint &nbsp;
-    <kbd>Space</kbd> jump<br />
-    <kbd>Left mouse</kbd> movement ability &nbsp; <kbd>Right mouse</kbd> utility ability<br />
-    <kbd>R</kbd> restart &nbsp; <kbd>Esc</kbd> pause &nbsp; <kbd>M</kbd> mute &nbsp; <kbd>F3</kbd> debug
-  </div>`;
+export interface OverlayHandlers {
+  /** Main menu Play: continue the campaign. */
+  play(): void;
+  resume(): void;
+  restart(): void;
+  next(): void;
+  raceGhost(): void;
+  toggleGhost(): boolean;
+  levels(): void;
+  shop(): void;
+  times(): void;
+  settings(): void;
+  quit(): void;
+}
 
-/** Start, pause, fail and win screens. Plain HTML over the canvas. */
+function el(className: string, html: string): HTMLDivElement {
+  const d = document.createElement('div');
+  d.className = `overlay ${className} hidden`;
+  d.innerHTML = html;
+  return d;
+}
+
+/** Wire every `data-do="name"` button inside `root` to the handler of that name. */
+function wire(root: HTMLElement, handlers: Record<string, () => void>): void {
+  root.querySelectorAll<HTMLButtonElement>('button[data-do]').forEach((b) => {
+    const run = handlers[b.dataset.do!];
+    if (run) b.addEventListener('click', run);
+  });
+}
+
+/** Main menu, pause, fail and win screens. Plain HTML over the canvas. */
 export class Overlays {
-  private readonly start: HTMLDivElement;
+  private readonly menu: HTMLDivElement;
+  private readonly paused: HTMLDivElement;
   private readonly failed: HTMLDivElement;
   private readonly won: HTMLDivElement;
   private readonly wonTime: HTMLElement;
@@ -22,35 +45,43 @@ export class Overlays {
   private readonly wonBreakdown: HTMLElement;
   private readonly wonEarned: HTMLElement;
   private readonly wonBank: HTMLElement;
-  private readonly startTitle: HTMLElement;
-  private readonly startGo: HTMLElement;
+  private readonly nextButton: HTMLButtonElement;
+  private readonly ghostButton: HTMLButtonElement;
+  private readonly playButton: HTMLButtonElement;
   private kind: OverlayKind = 'none';
 
-  private readonly nextButton: HTMLButtonElement;
+  constructor(parent: HTMLElement, h: OverlayHandlers) {
+    this.menu = el(
+      'menu',
+      `<div class="trucks" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+       <h1></h1>
+       <div class="tagline">Run the convoy. Never touch the ground.</div>
+       <div class="menu-buttons">
+         <button type="button" class="primary" data-do="play">Play</button>
+         <button type="button" data-do="levels">Levels</button>
+         <button type="button" data-do="shop">Abilities</button>
+         <button type="button" data-do="times">Best Times</button>
+         <button type="button" data-do="settings">Settings</button>
+       </div>
+       <div class="hint">Mouse and keyboard, or a gamepad (press A to play)</div>`,
+    );
+    this.menu.querySelector('h1')!.textContent = GAME_TITLE;
+    this.playButton = this.menu.querySelector('[data-do="play"]')!;
 
-  constructor(
-    parent: HTMLElement,
-    handlers: { play(): void; retry(): void; next(): void; levels(): void; shop(): void },
-  ) {
-    this.start = el(
-      'start',
-      `<h1></h1><div class="go"></div>${KEYS}
-       <div class="buttons">
-         <button type="button" class="pick">Levels</button>
-         <button type="button" class="shop-open">Abilities</button>
+    this.paused = el(
+      'paused',
+      `<h2>PAUSED</h2>
+       <div class="menu-buttons">
+         <button type="button" class="primary" data-do="resume">Resume</button>
+         <button type="button" data-do="restart">Restart</button>
+         <button type="button" data-do="ghost"></button>
+         <button type="button" data-do="settings">Settings</button>
+         <button type="button" data-do="shop">Abilities</button>
+         <button type="button" data-do="levels">Levels</button>
+         <button type="button" data-do="quit">Quit to menu</button>
        </div>`,
     );
-    this.start.querySelector('.pick')!.addEventListener('click', (e) => {
-      e.stopPropagation();
-      handlers.levels();
-    });
-    this.start.querySelector('.shop-open')!.addEventListener('click', (e) => {
-      e.stopPropagation();
-      handlers.shop();
-    });
-    this.startTitle = this.start.querySelector('h1')!;
-    this.startGo = this.start.querySelector('.go')!;
-    this.start.addEventListener('click', handlers.play);
+    this.ghostButton = this.paused.querySelector('[data-do="ghost"]')!;
 
     this.failed = el('failed', `<h2>FAILED</h2><div class="hint">press any key</div>`);
 
@@ -63,10 +94,10 @@ export class Overlays {
        <div class="result small"><span class="label">Points</span><span class="earned"></span></div>
        <div class="hint bank"></div>
        <div class="buttons">
-         <button type="button" class="next primary">Next</button>
-         <button type="button" class="retry">Retry</button>
-         <button type="button" class="pick">Levels</button>
-         <button type="button" class="shop-open">Abilities</button>
+         <button type="button" class="primary" data-do="next">Next</button>
+         <button type="button" data-do="restart">Retry</button>
+         <button type="button" data-do="raceGhost">Race Ghost</button>
+         <button type="button" data-do="quit">Menu</button>
        </div>
        <div class="hint"><kbd>Enter</kbd> next &nbsp; <kbd>R</kbd> retry</div>`,
     );
@@ -75,14 +106,32 @@ export class Overlays {
     this.wonBreakdown = this.won.querySelector('.breakdown')!;
     this.wonEarned = this.won.querySelector('.earned')!;
     this.wonBank = this.won.querySelector('.bank')!;
-    this.nextButton = this.won.querySelector('.next')!;
-    this.nextButton.addEventListener('click', handlers.next);
-    this.won.querySelector('.retry')!.addEventListener('click', handlers.retry);
-    this.won.querySelector('.pick')!.addEventListener('click', handlers.levels);
-    this.won.querySelector('.shop-open')!.addEventListener('click', handlers.shop);
+    this.nextButton = this.won.querySelector('[data-do="next"]')!;
 
-    parent.append(this.start, this.failed, this.won);
-    this.show('start');
+    const actions: Record<string, () => void> = {
+      play: h.play,
+      resume: h.resume,
+      restart: h.restart,
+      next: h.next,
+      raceGhost: h.raceGhost,
+      levels: h.levels,
+      shop: h.shop,
+      times: h.times,
+      settings: h.settings,
+      quit: h.quit,
+      ghost: () => this.setGhost(h.toggleGhost()),
+    };
+    for (const root of [this.menu, this.paused, this.won]) wire(root, actions);
+    parent.append(this.menu, this.paused, this.failed, this.won);
+  }
+
+  /** Label on the main menu's first button: "Play" for a new save, else the level it continues at. */
+  setContinue(label: string): void {
+    this.playButton.textContent = label;
+  }
+
+  setGhost(on: boolean): void {
+    this.ghostButton.textContent = `Ghost: ${on ? 'own best' : 'off'}`;
   }
 
   setWinResult(time: number, best: number, newBest: boolean, hasNext: boolean): void {
@@ -112,22 +161,9 @@ export class Overlays {
   show(kind: OverlayKind): void {
     if (kind === this.kind) return;
     this.kind = kind;
-    this.start.classList.toggle('hidden', kind !== 'start' && kind !== 'paused');
+    this.menu.classList.toggle('hidden', kind !== 'menu');
+    this.paused.classList.toggle('hidden', kind !== 'paused');
     this.failed.classList.toggle('hidden', kind !== 'failed');
     this.won.classList.toggle('hidden', kind !== 'won');
-    if (kind === 'start') {
-      this.startTitle.textContent = GAME_TITLE;
-      this.startGo.textContent = 'Click to play';
-    } else if (kind === 'paused') {
-      this.startTitle.textContent = 'PAUSED';
-      this.startGo.textContent = 'Click to resume';
-    }
   }
-}
-
-function el(className: string, html: string): HTMLDivElement {
-  const d = document.createElement('div');
-  d.className = `overlay ${className} hidden`;
-  d.innerHTML = html;
-  return d;
 }
