@@ -1,5 +1,17 @@
 # Changelog
 
+## M6 — Worlds 2 and 3
+
+- World 2 OVERPASS (On Ramp, Step Down, Flyover, Sky Hook, Signs, Interchange) and world 3
+  WHITEOUT (Black Ice, Rotor, Slide, Ice Shelf, Twin Rotors, Whiteout), each with its own palette.
+- New level features: carried (floating) convoys, ice patches, rotors; overhead signs, steps
+  and drops are built from scenery.
+- Levels unlock in order and worlds unlock when the previous one is finished; locked levels
+  are shown as locked in the level list. Next on the win screen continues into the next world.
+- `tests/worlds.test.ts` plays all twelve new levels with scripted no-ability players and
+  writes `worlds-report.txt`; `tests/levelBots.ts` holds the shared scripted players.
+- `scripts/level-kit.mjs` shared by the three level builders.
+
 ## M5 (part 2) — Abilities and shop
 
 - Twelve original abilities in `src/abilities/` (one file each) behind a common base class

@@ -21,7 +21,19 @@ describe('carried (floating) convoys', () => {
     id: 'float',
     ground: 'none',
     killY: -30,
-    paths: [{ id: 'air', width: 6, lanes: 1, points: [[0, 5, 0], [0, 5, 200], [0, 12, 300], [0, 12, 600]] }],
+    paths: [
+      {
+        id: 'air',
+        width: 6,
+        lanes: 1,
+        points: [
+          [0, 5, 0],
+          [0, 5, 200],
+          [0, 12, 300],
+          [0, 12, 600],
+        ],
+      },
+    ],
     convoys: [{ id: 'main', path: 'air', rows: 3, lanesUsed: [0], startAt: 20, float: true }],
     goal: { pos: [0, 12, 580], width: 16, height: 12 },
   });
@@ -129,7 +141,9 @@ describe('world palettes', () => {
     const skies = ['1-1', '2-1', '3-1'].map((id) => findLevel(id)!.palette.sky);
     expect(new Set(skies).size).toBe(3);
     for (const world of ['dockyard', 'overpass', 'whiteout']) {
-      const levels = ['1', '2', '3', '4', '5', '6'].map((n) => findLevel(`${{ dockyard: 1, overpass: 2, whiteout: 3 }[world]}-${n}`)!);
+      const levels = ['1', '2', '3', '4', '5', '6'].map((n) =>
+        findLevel(`${{ dockyard: 1, overpass: 2, whiteout: 3 }[world]}-${n}`)!,
+      );
       expect(new Set(levels.map((l) => l.palette.sky)).size).toBe(1);
       expect(levels.every((l) => l.world === world)).toBe(true);
     }

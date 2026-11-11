@@ -120,7 +120,11 @@ export const hopTo =
         const first = !jumped && p.grounded;
         jumped = jumped || first;
         const pushing = dt < 0.6;
-        return toward(pushing ? side : -side, 0, { sprint: pushing && sprint, jumpPressed: first, jumpHeld: true });
+        return toward(pushing ? side : -side, 0, {
+          sprint: pushing && sprint,
+          jumpPressed: first,
+          jumpHeld: true,
+        });
       }
       if (t < after || !p.grounded) return null;
       for (const other of sim.trucks) {

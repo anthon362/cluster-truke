@@ -178,7 +178,8 @@ const levels = [];
     level(4, 'Sky Hook', 16, {
       player: { convoy: 'main', row: 1, lane: 2 },
       paths: [
-        { id: 'road', width: 12, lanes: 3, points: straight },
+        // Not drawn: the road ribbon would continue out over the void.
+        { id: 'road', width: 12, lanes: 3, points: straight, visible: false },
         { id: 'hook', width: 8, lanes: 2, points: hookPts, visible: false },
       ],
       convoys: [

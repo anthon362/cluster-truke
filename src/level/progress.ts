@@ -25,7 +25,10 @@ export function isUnlocked(
 }
 
 /** The campaign level after this one, or undefined at the end (or for test levels). */
-export function nextCampaignLevel(level: LevelDef, levels: readonly LevelDef[]): LevelDef | undefined {
+export function nextCampaignLevel(
+  level: LevelDef,
+  levels: readonly LevelDef[],
+): LevelDef | undefined {
   const campaign = campaignLevels(levels);
   const i = campaign.findIndex((l) => l.id === level.id);
   return i >= 0 ? campaign[i + 1] : undefined;

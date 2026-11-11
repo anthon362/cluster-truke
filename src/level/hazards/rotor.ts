@@ -36,12 +36,14 @@ export class Rotor implements Hazard {
     this.facing.setFromAxisAngle(UP, (def.yaw ?? 0) * DEG);
     this.axis.copy(FORWARD).applyQuaternion(this.facing);
     // Start orientation: facing, then turned by the phase around its own axis.
-    this.startRot
-      .setFromAxisAngle(this.axis, (def.phase ?? 0) * DEG)
-      .multiply(this.facing);
+    this.startRot.setFromAxisAngle(this.axis, (def.phase ?? 0) * DEG).multiply(this.facing);
 
     this.body = world.createRigidBody(
-      RAPIER.RigidBodyDesc.kinematicVelocityBased().setTranslation(def.pos[0], def.pos[1], def.pos[2]),
+      RAPIER.RigidBodyDesc.kinematicVelocityBased().setTranslation(
+        def.pos[0],
+        def.pos[1],
+        def.pos[2],
+      ),
     );
     const size = new Vector3(H.rotorThickness, def.radius, H.rotorThickness);
     for (let i = 0; i < def.spokes; i++) {

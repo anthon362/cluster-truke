@@ -226,13 +226,18 @@ async function boot(): Promise<void> {
       state = shopReturn;
     },
   );
-  const levelSelect = new LevelSelect(ui, LEVEL_ENTRIES, (id) => {
-    music.start();
-    const level = findLevel(id);
-    if (!level || !unlocked(id)) return;
-    levelSelect.show(false, save, id);
-    loadLevel(level);
-  }, unlocked);
+  const levelSelect = new LevelSelect(
+    ui,
+    LEVEL_ENTRIES,
+    (id) => {
+      music.start();
+      const level = findLevel(id);
+      if (!level || !unlocked(id)) return;
+      levelSelect.show(false, save, id);
+      loadLevel(level);
+    },
+    unlocked,
+  );
   window.addEventListener('keydown', (e) => {
     if (e.code !== 'Enter' || state !== 'won') return;
     const next = nextLevel();
