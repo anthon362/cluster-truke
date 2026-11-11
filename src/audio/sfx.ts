@@ -111,7 +111,15 @@ export class Sfx {
 
   win(): void {
     [0, 4, 7, 12].forEach((semi, i) => {
-      this.sweep('square', 523 * 2 ** (semi / 12), 523 * 2 ** (semi / 12), 0.16, 0.13, 6000, i * 0.08);
+      this.sweep(
+        'square',
+        523 * 2 ** (semi / 12),
+        523 * 2 ** (semi / 12),
+        0.16,
+        0.13,
+        6000,
+        i * 0.08,
+      );
     });
   }
 

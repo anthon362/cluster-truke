@@ -1,5 +1,23 @@
 # Changelog
 
+## M7 — Polish, sound, menus
+
+- Main menu (Play, Levels, Abilities, Best Times, Settings) and a pause menu (Resume, Restart,
+  Ghost, Settings, Abilities, Levels, Quit). Play continues the campaign where you left off.
+- Settings: field of view, camera shake, speed readout, ghost, quality, mouse sensitivity,
+  invert Y, gamepad look speeds and dead zone, three volume sliders, and key rebinding.
+  Everything applies at once and is saved (save format version 3).
+- Gamepad: left stick move, right stick look with a response curve and dead zone, A jump,
+  LB or L3 sprint, RT / LT abilities, Start pause, Y restart.
+- Audio engine with master / music / effects volumes; a different music loop per world;
+  synthesised effects for jump, landing, explosions, horns, bonuses, fail, win, UI clicks,
+  an engine drone and wind that follow speed.
+- Ghost of your own best run, recorded at 30 Hz and stored per level; Race Ghost on the win
+  screen and a toggle in the pause menu.
+- Speed lines, hard-landing shake, a brief slow-down on winning, quality presets, tinted
+  carried trucks, a one-line help text for first-time players on 1-1.
+- Production build split into game, renderer and physics files; relative paths for static hosting.
+
 ## M6 — Worlds 2 and 3
 
 - World 2 OVERPASS (On Ramp, Step Down, Flyover, Sky Hook, Signs, Interchange) and world 3

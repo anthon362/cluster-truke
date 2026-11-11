@@ -42,7 +42,14 @@ describe('settings', () => {
 
   it('clamps out-of-range values and replaces nonsense with defaults', () => {
     const d = defaultSettings();
-    const s = sanitizeSettings({ fov: 999, sensitivity: -4, master: 3, quality: 'ultra', shake: 'yes', bindings: { jump: [] } });
+    const s = sanitizeSettings({
+      fov: 999,
+      sensitivity: -4,
+      master: 3,
+      quality: 'ultra',
+      shake: 'yes',
+      bindings: { jump: [] },
+    });
     expect(s.fov).toBe(TUNING.camera.fovMax);
     expect(s.sensitivity).toBe(TUNING.settings.sensitivityMin);
     expect(s.master).toBe(1);
@@ -54,7 +61,14 @@ describe('settings', () => {
   });
 
   it('a version 2 save (no settings) upgrades with default settings and keeps its progress', () => {
-    const v2 = JSON.stringify({ version: 2, points: 900, owned: ['lunge'], equipped: { movement: 'lunge', utility: null }, bestTimes: { '1-1': 15 }, worldsCleared: [] });
+    const v2 = JSON.stringify({
+      version: 2,
+      points: 900,
+      owned: ['lunge'],
+      equipped: { movement: 'lunge', utility: null },
+      bestTimes: { '1-1': 15 },
+      worldsCleared: [],
+    });
     const save = loadSave(fakeStorage({ [SAVE_KEY]: v2 }));
     expect(save.points).toBe(900);
     expect(save.equipped.movement).toBe('lunge');
@@ -128,7 +142,13 @@ describe('ghost', () => {
     const rec = new GhostRecorder();
     for (let i = 0; i <= 20 * 60; i++) {
       const t = i / 60;
-      rec.record(t, Math.sin(t) * 12, 4.7 + Math.abs(Math.sin(t * 3)) * 2, 22 + t * 31.5, Math.PI + Math.sin(t) * 0.4);
+      rec.record(
+        t,
+        Math.sin(t) * 12,
+        4.7 + Math.abs(Math.sin(t * 3)) * 2,
+        22 + t * 31.5,
+        Math.PI + Math.sin(t) * 0.4,
+      );
     }
     return rec.samples;
   }
@@ -145,7 +165,8 @@ describe('ghost', () => {
     const back = decodeGhost(text);
     expect(back.length).toBe(samples.length);
     let worst = 0;
-    for (let i = 0; i < samples.length; i++) worst = Math.max(worst, Math.abs(back[i] - samples[i]));
+    for (let i = 0; i < samples.length; i++)
+      worst = Math.max(worst, Math.abs(back[i] - samples[i]));
     expect(worst).toBeLessThan(0.011);
   });
 

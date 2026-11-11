@@ -59,7 +59,8 @@ export function sanitizeSettings(raw: unknown): Settings {
     master: clamp(r.master, 0, 1, d.master),
     music: clamp(r.music, 0, 1, d.music),
     sfx: clamp(r.sfx, 0, 1, d.sfx),
-    quality: r.quality === 'low' || r.quality === 'medium' || r.quality === 'high' ? r.quality : d.quality,
+    quality:
+      r.quality === 'low' || r.quality === 'medium' || r.quality === 'high' ? r.quality : d.quality,
     shake: bool(r.shake, d.shake),
     speedReadout: bool(r.speedReadout, d.speedReadout),
     ghost: bool(r.ghost, d.ghost),
@@ -72,7 +73,11 @@ export function sanitizeSettings(raw: unknown): Settings {
   if (b && typeof b === 'object') {
     for (const action of Object.keys(d.bindings) as Action[]) {
       const keys = b[action];
-      if (Array.isArray(keys) && keys.length > 0 && keys.every((k) => typeof k === 'string' && k.length < 40)) {
+      if (
+        Array.isArray(keys) &&
+        keys.length > 0 &&
+        keys.every((k) => typeof k === 'string' && k.length < 40)
+      ) {
         out.bindings[action] = [...new Set(keys as string[])].slice(0, 3);
       }
     }

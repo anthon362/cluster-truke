@@ -1,5 +1,12 @@
 import { TUNING } from '../config/tuning';
-import { ACTION_LABELS, type Action, DEFAULT_BINDINGS, RESERVED_KEYS, keyLabel, rebind } from '../core/bindings';
+import {
+  ACTION_LABELS,
+  type Action,
+  DEFAULT_BINDINGS,
+  RESERVED_KEYS,
+  keyLabel,
+  rebind,
+} from '../core/bindings';
 import type { Input } from '../core/input';
 import { type Quality, type Settings, defaultSettings } from '../core/settings';
 
@@ -66,7 +73,15 @@ export class SettingsScreen {
     };
     const slider = (
       label: string,
-      key: 'fov' | 'sensitivity' | 'master' | 'music' | 'sfx' | 'padSensitivityX' | 'padSensitivityY' | 'padDeadzone',
+      key:
+        | 'fov'
+        | 'sensitivity'
+        | 'master'
+        | 'music'
+        | 'sfx'
+        | 'padSensitivityX'
+        | 'padSensitivityY'
+        | 'padDeadzone',
       min: number,
       max: number,
       step: number,
@@ -120,12 +135,28 @@ export class SettingsScreen {
     row('Quality', quality);
 
     head('Mouse');
-    slider('Sensitivity', 'sensitivity', S.sensitivityMin, S.sensitivityMax, 0.05, (v) => v.toFixed(2));
+    slider('Sensitivity', 'sensitivity', S.sensitivityMin, S.sensitivityMax, 0.05, (v) =>
+      v.toFixed(2),
+    );
     toggle('Invert Y', 'invertY');
 
     head('Gamepad');
-    slider('Look speed, sideways', 'padSensitivityX', S.padSensitivityMin, S.padSensitivityMax, 0.05, (v) => v.toFixed(2));
-    slider('Look speed, up and down', 'padSensitivityY', S.padSensitivityMin, S.padSensitivityMax, 0.05, (v) => v.toFixed(2));
+    slider(
+      'Look speed, sideways',
+      'padSensitivityX',
+      S.padSensitivityMin,
+      S.padSensitivityMax,
+      0.05,
+      (v) => v.toFixed(2),
+    );
+    slider(
+      'Look speed, up and down',
+      'padSensitivityY',
+      S.padSensitivityMin,
+      S.padSensitivityMax,
+      0.05,
+      (v) => v.toFixed(2),
+    );
     slider('Stick dead zone', 'padDeadzone', 0, 0.5, 0.01, pct);
 
     head('Sound');

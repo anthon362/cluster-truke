@@ -35,7 +35,8 @@ export class BestTimes {
       }
       const best = save.bestTimes[level.id];
       const row = document.createElement('div');
-      row.className = 'time-row' + (best !== undefined && best <= level.parTime ? ' under-par' : '');
+      row.className =
+        'time-row' + (best !== undefined && best <= level.parTime ? ' under-par' : '');
       for (const text of [
         level.id,
         level.name,

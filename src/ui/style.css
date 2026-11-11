@@ -239,8 +239,9 @@ button.go {
   border: 0;
   padding: 10px 22px;
   border-radius: 6px;
-  font: 700 19px inherit;
   font-family: inherit;
+  font-size: 19px;
+  font-weight: 700;
   color: inherit;
   background: rgba(255, 255, 255, 0.18);
   cursor: pointer;
@@ -450,8 +451,9 @@ button.go {
   border: 0;
   padding: 9px 12px;
   border-radius: 6px;
-  font: 700 15px inherit;
   font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
   color: inherit;
   background: #ff7a1a;
   cursor: pointer;
@@ -506,8 +508,9 @@ button.go {
   border: 0;
   padding: 12px 18px;
   border-radius: 6px;
-  font: 800 20px inherit;
   font-family: inherit;
+  font-size: 20px;
+  font-weight: 800;
   letter-spacing: 0.04em;
   color: inherit;
   background: rgba(255, 255, 255, 0.16);
@@ -613,8 +616,9 @@ button.go {
   padding: 6px 10px;
   border: 0;
   border-radius: 5px;
-  font: 700 15px inherit;
   font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
   color: inherit;
   background: rgba(255, 255, 255, 0.18);
   cursor: pointer;
@@ -677,5 +681,18 @@ button.go {
 }
 .speed.hidden,
 .tutorial.hidden {
+  display: none;
+}
+
+/* Menus sit above the HUD, and the HUD is only shown during an attempt. */
+.overlay {
+  z-index: 5;
+}
+#ui:not(.in-game) .timer,
+#ui:not(.in-game) .level-name,
+#ui:not(.in-game) .ability-bar,
+#ui:not(.in-game) .popups,
+#ui:not(.in-game) .crosshair,
+#ui:not(.in-game) .speed {
   display: none;
 }

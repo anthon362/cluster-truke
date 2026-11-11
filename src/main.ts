@@ -39,15 +39,7 @@ import { Shop } from './ui/shop';
  * levels / shop / settings / times: sub-screens that return to where they were opened from
  */
 type AppState =
-  | 'menu'
-  | 'playing'
-  | 'paused'
-  | 'failed'
-  | 'won'
-  | 'levels'
-  | 'shop'
-  | 'settings'
-  | 'times';
+  'menu' | 'playing' | 'paused' | 'failed' | 'won' | 'levels' | 'shop' | 'settings' | 'times';
 
 /** Everything that belongs to one loaded level and is replaced when switching. */
 interface Loaded {
@@ -135,8 +127,18 @@ async function boot(): Promise<void> {
   const sfx = new Sfx(audio);
   const hud = new Hud(ui);
   const recorder = new GhostRecorder();
-  const ghostGeo = new CapsuleGeometry(TUNING.player.radius, TUNING.player.height - TUNING.player.radius * 2, 4, 10);
-  const ghostMat = new MeshBasicMaterial({ color: PALETTE.ghost, transparent: true, opacity: 0.38, depthWrite: false });
+  const ghostGeo = new CapsuleGeometry(
+    TUNING.player.radius,
+    TUNING.player.height - TUNING.player.radius * 2,
+    4,
+    10,
+  );
+  const ghostMat = new MeshBasicMaterial({
+    color: PALETTE.ghost,
+    transparent: true,
+    opacity: 0.38,
+    depthWrite: false,
+  });
 
   const attempted = new Set<string>();
   const build = (level: LevelDef): Loaded => {
@@ -159,7 +161,7 @@ async function boot(): Promise<void> {
     hud.setLevel(level.id, level.name);
     music.setWorld(level.world);
     const particles = new Particles(scene.scene);
-    particles.density = settings.quality === 'low' ? 0.4 : 1;
+    particles.density = settings.quality === 'low' ? TUNING.quality.lowParticles : 1;
     return {
       sim,
       scene,
@@ -197,10 +199,12 @@ async function boot(): Promise<void> {
     audio.setVolumes(settings.master, settings.music, settings.sfx);
     // Quality: resolution, speed lines and particle count. Nothing else is expensive.
     const cap = settings.quality === 'low' ? 1 : settings.quality === 'medium' ? 1.5 : 2;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, cap));
+    // Low also renders below native resolution, which is the biggest saving on weak graphics.
+    const scale = settings.quality === 'low' ? TUNING.quality.lowRenderScale : 1;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, cap) * scale);
     renderer.setSize(window.innerWidth, window.innerHeight, false);
     speedLines.enabled = settings.quality !== 'low';
-    game.particles.density = settings.quality === 'low' ? 0.4 : 1;
+    game.particles.density = settings.quality === 'low' ? TUNING.quality.lowParticles : 1;
   };
 
   /** Face the way the truck under the player is heading. */
@@ -506,12 +510,15 @@ async function boot(): Promise<void> {
           ? 'Stay on the trucks: the ground ends the run. Run and jump forward to the green gate.  WASD move · Shift sprint · Space jump'
           : '',
       );
+      ui.classList.toggle('in-game', state === 'playing' || state === 'failed' || state === 'won');
       ui.classList.toggle('letterbox', sim.cinematic && active);
       ui.classList.toggle('slowmo', !sim.cinematic && sim.timeScale < 1 && active);
 
       // Sound that follows the action.
       const under = p.groundTruck ?? p.lastTruck;
-      const truckSpeed = under?.isSolid ? Math.hypot(under.body.linvel().x, under.body.linvel().z) : 0;
+      const truckSpeed = under?.isSolid
+        ? Math.hypot(under.body.linvel().x, under.body.linvel().z)
+        : 0;
       sfx.ambience(truckSpeed, worldSpeed, -p.vel.y, active);
       if (active) {
         nextHorn -= frame;

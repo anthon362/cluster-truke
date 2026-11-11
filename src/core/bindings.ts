@@ -1,14 +1,6 @@
 /** Actions the game understands, and their default keys (KeyboardEvent.code values). */
 export type Action =
-  | 'forward'
-  | 'back'
-  | 'left'
-  | 'right'
-  | 'sprint'
-  | 'jump'
-  | 'restart'
-  | 'debug'
-  | 'mute';
+  'forward' | 'back' | 'left' | 'right' | 'sprint' | 'jump' | 'restart' | 'debug' | 'mute';
 
 export const ACTION_LABELS: Record<Action, string> = {
   forward: 'Move forward',

@@ -297,6 +297,13 @@ export const TUNING = {
     maxStoredChars: 60000,
   },
 
+  quality: {
+    /** Render resolution on the low preset, as a share of native. */
+    lowRenderScale: 0.75,
+    /** Share of explosion particles on the low preset. */
+    lowParticles: 0.4,
+  },
+
   juice: {
     /** After a win the world runs at this speed for this long (real seconds). */
     winSlowScale: 0.5,

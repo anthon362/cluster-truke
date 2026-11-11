@@ -1,4 +1,10 @@
-import { BufferAttribute, BufferGeometry, LineBasicMaterial, LineSegments, PerspectiveCamera } from 'three';
+import {
+  BufferAttribute,
+  BufferGeometry,
+  LineBasicMaterial,
+  LineSegments,
+  PerspectiveCamera,
+} from 'three';
 import { TUNING } from '../config/tuning';
 
 const J = TUNING.juice;
@@ -21,11 +27,20 @@ export class SpeedLines {
       const r = 2.2 + ((i * 7) % 5) * 0.35;
       const z = -3 - ((i * 5) % 7) * 0.6;
       const len = 1.2 + ((i * 3) % 4) * 0.5;
-      pos.set([Math.cos(a) * r, Math.sin(a) * r, z, Math.cos(a) * r, Math.sin(a) * r, z - len], i * 6);
+      pos.set(
+        [Math.cos(a) * r, Math.sin(a) * r, z, Math.cos(a) * r, Math.sin(a) * r, z - len],
+        i * 6,
+      );
     }
     const geo = new BufferGeometry();
     geo.setAttribute('position', new BufferAttribute(pos, 3));
-    this.material = new LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, fog: false, depthTest: false });
+    this.material = new LineBasicMaterial({
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0,
+      fog: false,
+      depthTest: false,
+    });
     this.lines = new LineSegments(geo, this.material);
     this.lines.frustumCulled = false;
     this.lines.renderOrder = 10;

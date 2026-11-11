@@ -112,7 +112,14 @@ export class Music {
     }
   }
 
-  private tone(out: AudioNode, semi: number, type: OscillatorType, level: number, dur: number, cutoff: number): void {
+  private tone(
+    out: AudioNode,
+    semi: number,
+    type: OscillatorType,
+    level: number,
+    dur: number,
+    cutoff: number,
+  ): void {
     const ctx = this.engine.ctx!;
     const t = this.nextTime;
     const osc = ctx.createOscillator();
