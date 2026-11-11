@@ -10,16 +10,20 @@ npm install
 npm run dev
 ```
 
-Open the printed localhost URL and click to play.
+Open the printed localhost URL and press Play. Keys can be changed under Settings.
 
-| Key     | Action                                          |
-| ------- | ----------------------------------------------- |
-| W A S D | Move                                            |
-| Shift   | Sprint                                          |
-| Space   | Jump (hold for full height, tap for a low jump) |
-| R       | Restart                                         |
-| Esc     | Pause (releases the mouse)                      |
-| F3      | Debug overlay                                   |
+| Input       | Action                                                                                                |
+| ----------- | ----------------------------------------------------------------------------------------------------- |
+| W A S D     | Move                                                                                                  |
+| Shift       | Sprint                                                                                                |
+| Space       | Jump (hold for full height, tap for a low jump). Against a truck side: hold to climb, tap to kick off |
+| Left mouse  | Movement ability                                                                                      |
+| Right mouse | Utility ability                                                                                       |
+| R           | Restart (after failing, any key restarts)                                                             |
+| Esc         | Pause (releases the mouse)                                                                            |
+| M           | Mute music                                                                                            |
+| F3          | Debug overlay                                                                                         |
+| Gamepad     | Left stick move, right stick look, A jump, LB or L3 sprint, RT / LT abilities, Start pause, Y restart |
 
 URL parameters: `?seed=123` fixed seed, `?god=1` no falling-off reset, `?debug=1` overlay open,
 `?level=<id>` (test levels: `convoy`, `block`, `hazards`, `single`), `?unlock=1` (all levels open), `?abilities=all` (every
