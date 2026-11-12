@@ -92,15 +92,17 @@ export const hopLane =
 /**
  * Hop sideways onto another convoy running alongside at the same height.
  * Waits (from `after`) until one of its trailers is right beside the player,
- * the way a person would look before jumping. With `fullJump` it is a held
- * jump that pushes off for the first half and steers back for the second, so
- * it covers about 6.7 m and lands without sliding off the far side.
+ * the way a person would look before jumping. If the player is not in the
+ * lane next to it, it first hops one lane closer. With `fullJump` it takes a
+ * short run-up, holds the jump, pushes off for the first half and steers back
+ * for the second, so it covers about 7 m and lands without sliding off.
  */
 export const hopTo =
   (convoy: string, after: number, side: 1 | -1, sprint = false, fullJump = false) =>
   (): Script => {
-    let start = -1;
-    let jumped = false;
+    /** What is being done right now, and when it started. */
+    let move: { kind: 'lane' | 'cross'; start: number; jumped: boolean } | null = null;
+    const RUN_UP = 0.14;
     return (sim, t) => {
       const p = sim.player;
       const truck = p.groundTruck ?? p.lastTruck;
@@ -109,35 +111,51 @@ export const hopTo =
         const slide = (p.vel.x - truck.body.linvel().x) * side;
         return slide > 1.5 ? toward(-side, 0) : null;
       }
-      if (start >= 0) {
-        const dt = t - start;
-        if (!fullJump) {
-          if (dt > 0.6) return null;
-          const first = !jumped && p.grounded;
-          jumped = jumped || first;
-          return toward(side, 0, { sprint, jumpPressed: first });
+      if (move) {
+        const dt = t - move.start;
+        if (move.kind === 'lane' || !fullJump) {
+          // A tapped jump: about one lane at a walk, more when sprinting.
+          if (dt > 0.6) {
+            move = null;
+            return null;
+          }
+          const first = !move.jumped && p.grounded;
+          move.jumped = move.jumped || first;
+          return toward(side, 0, { sprint: move.kind === 'cross' && sprint, jumpPressed: first });
         }
-        if (dt > 1.2) return null;
-        const first = !jumped && p.grounded;
-        jumped = jumped || first;
-        const pushing = dt < 0.6;
+        if (dt > RUN_UP + 1.2) {
+          move = null;
+          return null;
+        }
+        if (dt < RUN_UP) return toward(side, 0, { sprint });
+        const first = !move.jumped && (p.grounded || p.timeSinceGrounded < P.coyoteTime * 0.6);
+        move.jumped = move.jumped || first;
+        const pushing = dt < RUN_UP + 0.6;
         return toward(pushing ? side : -side, 0, {
           sprint: pushing && sprint,
           jumpPressed: first,
           jumpHeld: true,
         });
       }
-      if (t < after || !p.grounded) return null;
+      if (t < after || !p.grounded || !truck) return null;
+      // Nearest trailer of the target convoy, sideways distance and where it will be when a hop lands.
+      const air = fullJump ? 0.9 + RUN_UP : 0.45;
       for (const other of sim.trucks) {
         if (other.assignment.convoy !== convoy || !other.isSolid) continue;
-        // Trailer centre is 1.4 m behind the truck's middle.
         const dx = (other.pos.x - p.pos.x) * side;
-        // Where that trailer will be, relative to us, when the hop lands.
-        const air = fullJump ? 0.9 : 0.45;
+        // Trailer centre is 1.4 m behind the truck's middle.
         const dz = other.pos.z - 1.4 - p.pos.z + (other.body.linvel().z - p.vel.z) * air;
-        if (Math.abs(dz) < 1.5 && dx > 2 && dx < 10) {
-          start = t;
+        if (Math.abs(dz) > 1.5 || dx < 2) continue;
+        const reach = fullJump ? 8.6 : sprint ? 7.2 : 5;
+        if (dx <= reach) {
+          move = { kind: 'cross', start: t, jumped: false };
           return toward(side, 0, { sprint });
+        }
+        // Too far: move one lane closer first, if our own convoy has a truck there.
+        const a = truck.assignment;
+        if (sim.pool.find(a.convoy, a.row, a.lane + side)) {
+          move = { kind: 'lane', start: t, jumped: false };
+          return toward(side, 0);
         }
       }
       return null;

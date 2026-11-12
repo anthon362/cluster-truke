@@ -142,7 +142,7 @@ levels.push([
   }),
 ]);
 
-// 4-6 Night Shift: a tripwire, a sweeping column and a shutter, and then the track is closed.
+// 4-6 Night Shift: a tripwire, a column sweeping the two left lanes and a shutter, and then the track is closed.
 // A second convoy runs on the next track behind a fence; where the fence ends, change over.
 {
   const SIDE_X = 12.5;
@@ -186,7 +186,7 @@ levels.push([
           length: 12,
           vertical: true,
           thickness: 0.6,
-          sweep: { to: [5, 6, 225], period: 7 },
+          sweep: { to: [0.6, 6, 225], period: 6 },
         },
         { ...shutter(300, riderAt(300)), length: 12 },
       ],
