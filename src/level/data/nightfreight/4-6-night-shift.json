@@ -1,0 +1,134 @@
+{
+  "id": "4-6",
+  "name": "Night Shift",
+  "world": "nightfreight",
+  "parTime": 17,
+  "killY": -5,
+  "palette": {
+    "sky": "#0b1020",
+    "ground": "#111a2c",
+    "fog": "#0b1020",
+    "fogFar": 380,
+    "road": "#262c3a"
+  },
+  "player": {
+    "convoy": "main",
+    "row": 1,
+    "lane": 2
+  },
+  "paths": [
+    {
+      "id": "road",
+      "width": 14,
+      "lanes": 3,
+      "points": [
+        [0, 0, -40],
+        [0, 0, 640]
+      ]
+    },
+    {
+      "id": "side",
+      "width": 8,
+      "lanes": 2,
+      "points": [
+        [12.5, 0, -40],
+        [12.5, 0, 700]
+      ]
+    }
+  ],
+  "convoys": [
+    {
+      "id": "main",
+      "path": "road",
+      "rows": 6,
+      "lanesUsed": [0, 1, 2],
+      "startAt": 50
+    },
+    {
+      "id": "side",
+      "path": "side",
+      "rows": 16,
+      "lanesUsed": [0, 1],
+      "startAt": 50,
+      "wobble": 0.05
+    }
+  ],
+  "scenery": [
+    {
+      "type": "box",
+      "pos": [-6.3, 3.5, 150],
+      "size": [0.6, 7, 0.6],
+      "lethal": true,
+      "color": "#3a4358"
+    },
+    {
+      "type": "box",
+      "pos": [-6.3, 7.3, 150],
+      "size": [0.9, 0.6, 0.9],
+      "lethal": true,
+      "color": "#ffd166"
+    },
+    {
+      "type": "box",
+      "pos": [6.3, 3.5, 150],
+      "size": [0.6, 7, 0.6],
+      "lethal": true,
+      "color": "#3a4358"
+    },
+    {
+      "type": "box",
+      "pos": [6.3, 7.3, 150],
+      "size": [0.9, 0.6, 0.9],
+      "lethal": true,
+      "color": "#ffd166"
+    },
+    {
+      "type": "box",
+      "pos": [7.4, 3.75, 137.5],
+      "size": [0.8, 7.5, 395],
+      "lethal": true,
+      "color": "#3a4358"
+    },
+    {
+      "type": "box",
+      "pos": [0, 3, 425],
+      "size": [13, 6, 3],
+      "lethal": true,
+      "color": "#e5484d"
+    }
+  ],
+  "hazards": [
+    {
+      "type": "beam",
+      "pos": [0, 4.3, 150],
+      "length": 12
+    },
+    {
+      "type": "beam",
+      "pos": [-5, 6, 225],
+      "length": 12,
+      "vertical": true,
+      "thickness": 0.6,
+      "sweep": {
+        "to": [5, 6, 225],
+        "period": 7
+      }
+    },
+    {
+      "type": "beam",
+      "pos": [0, 5, 300],
+      "length": 12,
+      "thickness": 3,
+      "blink": {
+        "on": 1.6,
+        "off": 2.4,
+        "phase": 3.41
+      }
+    }
+  ],
+  "goal": {
+    "pos": [12.5, 0, 443],
+    "width": 14,
+    "height": 12
+  }
+}

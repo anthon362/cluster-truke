@@ -5,7 +5,8 @@
  */
 import { TUNING } from '../src/config/tuning';
 import { Sim } from '../src/core/sim';
-import type { LevelDef, RotorDef } from '../src/level/schema';
+import { type BeamState, beamHalfExtents, beamStateAt } from '../src/level/hazards/beam';
+import type { BeamDef, LevelDef, RotorDef } from '../src/level/schema';
 import { NO_INPUT, type MoveInput } from '../src/player/movement';
 import { bot } from './helpers';
 
@@ -279,5 +280,126 @@ export const dodgeRotors = (): Script => {
       }
     });
     return null;
+  };
+};
+
+const beamState: BeamState = { x: 0, y: 0, z: 0, yaw: 0, on: true, warning: false };
+
+/**
+ * Would someone standing with their feet at (x, feet, z) be inside a lit beam
+ * at time `at`? Uses the same beam maths as the game.
+ */
+export function inBeam(def: BeamDef, x: number, feet: number, z: number, at: number): boolean {
+  const s = beamStateAt(def, at, beamState);
+  if (!s.on) return false;
+  const half = beamHalfExtents(def);
+  const dx = x - s.x;
+  const dz = z - s.z;
+  const lx = dx * Math.cos(s.yaw) - dz * Math.sin(s.yaw);
+  const lz = dx * Math.sin(s.yaw) + dz * Math.cos(s.yaw);
+  const margin = P.radius + 0.1;
+  return (
+    Math.abs(lx) <= half.x + margin &&
+    Math.abs(lz) <= half.z + margin &&
+    feet + P.height + 0.05 >= s.y - half.y &&
+    feet - 0.05 <= s.y + half.y
+  );
+}
+
+const beamsOf = (sim: Sim): BeamDef[] =>
+  sim.level.hazards.filter((h): h is BeamDef => h.type === 'beam');
+
+/** Height a full jump adds at its top. */
+const JUMP_RISE = (P.jumpVelocity * P.jumpVelocity) / (2 * P.gravity);
+
+/**
+ * Jump over beams: if staying on the roof would put the rider in a beam about
+ * half a second from now, but being at the top of a jump would not, jump now.
+ */
+export const hopBeams = (): Script => {
+  let holdUntil = -1;
+  return (sim, t) => {
+    const p = sim.player;
+    if (t < holdUntil) return { ...NO_INPUT, yaw: Math.PI, jumpHeld: true };
+    if (!p.grounded) return null;
+    const beams = beamsOf(sim);
+    // The top of a jump is 0.45 s after take-off.
+    for (const lead of [0.38, 0.45, 0.52]) {
+      const x = p.pos.x + p.vel.x * lead;
+      const z = p.pos.z + p.vel.z * lead;
+      const hit = beams.some((b) => inBeam(b, x, p.feetY, z, t + lead));
+      if (!hit) continue;
+      const clear = !beams.some((b) => inBeam(b, x, p.feetY + JUMP_RISE - 0.5, z, t + lead));
+      if (clear) {
+        holdUntil = t + 0.75;
+        return { ...NO_INPUT, yaw: Math.PI, jumpPressed: true, jumpHeld: true };
+      }
+    }
+    return null;
+  };
+};
+
+/**
+ * Beams that cannot be jumped (standing columns): look a couple of seconds
+ * ahead, and if this lane will be in one when we get there, hop to a
+ * neighbouring lane that will not.
+ */
+export const dodgeBeams = (): Script => {
+  let hop: { until: number; side: 1 | -1; started: boolean } | null = null;
+  let quietUntil = 0;
+  /** Will a rider at sideways position x run into a beam they cannot jump, between `from` and `to` seconds ahead? */
+  const blocked = (sim: Sim, x: number, t: number, from: number, to: number): boolean => {
+    const p = sim.player;
+    for (let lead = from; lead <= to; lead += 0.1) {
+      const z = p.pos.z + p.vel.z * lead;
+      for (const b of beamsOf(sim)) {
+        if (
+          inBeam(b, x, p.feetY, z, t + lead) &&
+          inBeam(b, x, p.feetY + JUMP_RISE - 0.5, z, t + lead)
+        ) {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+  return (sim, t) => {
+    const p = sim.player;
+    if (hop) {
+      if (t > hop.until) hop = null;
+      else {
+        const first = !hop.started && p.grounded;
+        hop.started = hop.started || first;
+        return toward(hop.side, 0, { jumpPressed: first });
+      }
+    }
+    if (!p.grounded || t < quietUntil || p.vel.z < 1 || !p.groundTruck) return null;
+    if (!blocked(sim, p.pos.x, t, 0.5, 1.6)) return null;
+    const here = p.groundTruck.assignment;
+    for (const side of [1, -1] as const) {
+      const hasTruck = !!sim.pool.find(here.convoy, here.row, here.lane + side);
+      if (hasTruck && !blocked(sim, p.pos.x + side * T.laneSpacing, t, 0.4, 2.0)) {
+        hop = { until: t + 0.6, side, started: false };
+        quietUntil = t + 1.2;
+        return toward(side, 0);
+      }
+    }
+    return null;
+  };
+};
+
+/** Walk forward off the trailer onto the truck's cab, which is lower, and stay there. */
+export const toCab = (): Script => {
+  let step = 0;
+  return (sim) => {
+    const p = sim.player;
+    const truck = p.groundTruck ?? p.lastTruck;
+    if (!truck) return null;
+    const onCab = p.grounded && p.feetY < truck.pos.y + (T.trailerRoof + T.cabRoof) / 2;
+    if (onCab) return null;
+    // Short taps: slow enough to drop onto the cab instead of overshooting it.
+    step++;
+    const fwd = truck.body.linvel();
+    return { ...NO_INPUT, yaw: Math.atan2(-fwd.x, -fwd.z), moveF: step % 6 < 2 ? 1 : 0 };
   };
 };
