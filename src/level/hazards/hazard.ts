@@ -2,6 +2,7 @@ import type { Quaternion, Vector3 } from 'three';
 import type { Rng } from '../../core/rng';
 import type { PhysicsWorld } from '../../physics/world';
 import type { PlayerController } from '../../player/controller';
+import type { Path } from '../../trucks/path';
 import type { Truck } from '../../trucks/truck';
 
 /** What a hazard may touch. */
@@ -12,6 +13,10 @@ export interface HazardContext {
   rng(): Rng;
   /** Seconds since the attempt started (keeps running after it ends). */
   time(): number;
+  /** A path of the level by id. */
+  path(id: string): Path | undefined;
+  /** Destroy a truck outright (it explodes). */
+  wreck(truck: Truck): void;
   /**
    * Mark a collider as a pusher: trucks hit by it are shoved around instead of
    * exploding from the impact.

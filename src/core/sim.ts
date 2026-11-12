@@ -117,6 +117,10 @@ export class Sim {
       player: this.player,
       rng: () => this.rng,
       time: () => this.clock,
+      path: (id: string) => this.pool.paths.get(id),
+      wreck: (truck: Truck) => {
+        if (truck.state === 'alive') this.explode(truck);
+      },
       registerPusher: (handle: number) => void this.pushers.add(handle),
     };
     for (const h of this.level.hazards) this.hazards.push(createHazard(h, ctx));

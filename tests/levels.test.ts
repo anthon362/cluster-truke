@@ -97,7 +97,7 @@ describe('schema errors are readable', () => {
     const p = problemsOf(d);
     expect(p.some((x) => x.startsWith('convoys[0].sped: unknown field'))).toBe(true);
     expect(p).toContain(
-      'hazards[0].type: unknown hazard "laserWall" (known: breakableWall, spinner, ice, rotor, beam)',
+      'hazards[0].type: unknown hazard "laserWall" (known: breakableWall, spinner, ice, rotor, beam, pendulum, plate, boulder)',
     );
   });
 

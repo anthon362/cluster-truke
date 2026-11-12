@@ -268,6 +268,10 @@ export const TUNING = {
     /** Rotor (vertical spoked wheel) spoke cross-section and hub size (m). */
     rotorThickness: 0.7,
     rotorHub: 1.6,
+    /** Blast plate: how long it glows before it can fire again, and the forward share of its kick. */
+    plateRearm: 0.8,
+    plateForward: 0.15,
+    plateThickness: 0.12,
     /** Light beams: default thickness, and how long before switching on a beam flashes a warning (s). */
     beamThickness: 0.35,
     beamWarning: 0.8,
