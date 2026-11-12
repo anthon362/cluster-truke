@@ -1,4 +1,4 @@
-import RAPIER from '@dimforge/rapier3d-compat';
+import * as RAPIER from '@dimforge/rapier3d';
 import { TUNING } from '../config/tuning';
 
 /** Collision group bits. */
@@ -23,11 +23,13 @@ export function groups(memberships: number, filter: number = ALL): number {
   return ((memberships & ALL) << 16) | (filter & ALL);
 }
 
-let initialised: Promise<void> | null = null;
-
+/**
+ * The physics engine's WebAssembly is loaded as a separate file when this
+ * module is imported, so there is nothing left to initialise by the time code
+ * runs. The function is kept so callers have one place to wait if that changes.
+ */
 export function initPhysics(): Promise<void> {
-  initialised ??= RAPIER.init();
-  return initialised;
+  return Promise.resolve();
 }
 
 export class PhysicsWorld {

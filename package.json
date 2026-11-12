@@ -12,7 +12,7 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "@dimforge/rapier3d-compat": "^0.21.0",
+    "@dimforge/rapier3d": "^0.21.0",
     "three": "^0.187.0"
   },
   "devDependencies": {
@@ -23,6 +23,7 @@
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.72.2",
     "vite": "^8.3.7",
+    "vite-plugin-wasm": "^3.6.0",
     "vitest": "^5.1.0"
   }
 }

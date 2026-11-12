@@ -1,5 +1,14 @@
 # Changelog
 
+## Smaller download: physics WebAssembly as its own file
+
+- Switched from `@dimforge/rapier3d-compat` (WebAssembly embedded in the JavaScript as text)
+  to `@dimforge/rapier3d` (same engine and version, WebAssembly as a separate file), with
+  `vite-plugin-wasm` as a build-time plugin.
+- Download size: 5.03 MB to 4.06 MB, and about 1.85 MB to 1.40 MB gzipped. Load to menu on a
+  local server: 342-439 ms before, 218-266 ms after.
+- No gameplay change: all 153 tests pass unchanged.
+
 ## M7 — Polish, sound, menus
 
 - Main menu (Play, Levels, Abilities, Best Times, Settings) and a pause menu (Resume, Restart,

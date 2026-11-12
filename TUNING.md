@@ -282,6 +282,14 @@ dip, strafe roll and the 0.15 s of 0.5 x time on a win are as written.
 - **Rebinding swaps keys** if the other action would be left with none.
 - **The first-level help line** shows only on 1-1 and only until 1-1 has been finished once.
 
+## Tech stack note: physics package
+
+The design document names `@dimforge/rapier3d-compat`. The game now uses `@dimforge/rapier3d`,
+the same engine at the same version, because the "compat" package embeds its WebAssembly in
+the JavaScript as text, which made the download about a quarter larger. This needed one
+build-time plugin (`vite-plugin-wasm`); nothing is fetched from any server at run time and the
+build is still a plain static site. No gameplay values changed.
+
 ## What to adjust if it feels wrong
 
 | Feels like                                    | Change                                                               |
