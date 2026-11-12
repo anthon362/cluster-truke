@@ -161,14 +161,7 @@ export interface BoulderDef {
 }
 
 export type HazardDef =
-  | BreakableWallDef
-  | SpinnerDef
-  | IceDef
-  | RotorDef
-  | BeamDef
-  | PendulumDef
-  | PlateDef
-  | BoulderDef;
+  BreakableWallDef | SpinnerDef | IceDef | RotorDef | BeamDef | PendulumDef | PlateDef | BoulderDef;
 export const HAZARD_TYPES = [
   'breakableWall',
   'spinner',
@@ -589,7 +582,10 @@ export function validateLevel(raw: unknown, source = 'level'): LevelDef {
       c.unknownKeys(ho, ['type', 'path', 'startAt', 'speed', 'radius'], at);
       const path = c.str(ho, 'path', at);
       if (path && !lanesByPath.has(path)) {
-        c.fail(`${at}.path`, `no path called "${path}" (paths: ${[...lanesByPath.keys()].join(', ') || 'none'})`);
+        c.fail(
+          `${at}.path`,
+          `no path called "${path}" (paths: ${[...lanesByPath.keys()].join(', ') || 'none'})`,
+        );
       }
       c.num(ho, 'startAt', at);
       c.num(ho, 'speed', at, { min: 1, max: 60 });

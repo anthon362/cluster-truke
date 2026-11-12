@@ -77,7 +77,10 @@ export class Plate implements Hazard {
       this.thrown.add(t);
       // Straight up, with a little extra forward speed so the hop carries.
       t.shove(
-        new Vector3(0, this.def.power, 0).addScaledVector(this.forward, this.def.power * H.plateForward),
+        new Vector3(0, this.def.power, 0).addScaledVector(
+          this.forward,
+          this.def.power * H.plateForward,
+        ),
         0,
       );
       this.glow = H.plateRearm;

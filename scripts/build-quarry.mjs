@@ -1,5 +1,5 @@
 // Builds the QUARRY (world 5) level files. Run: node scripts/build-quarry.mjs
-import { GOAL_S, START, goalAt, makePath, writeLevels } from './level-kit.mjs';
+import { GOAL_S, PLAYER_S, START, goalAt, makePath, writeLevels } from './level-kit.mjs';
 
 const PALETTE = { sky: '#e6d2ae', ground: '#a8875c', fog: '#dcc8a2', fogFar: 420, road: '#6e5d49' };
 const ROCK = '#7d6a55';
@@ -11,7 +11,11 @@ const straight = [
 ]; // path distance s = z + 40
 const path = makePath(straight);
 
-function level(n, name, parTime, body) {
+/**
+ * `rows` is how long the convoy is. Thirteen metres a row from z = 10: nothing
+ * that acts on trucks may sit where the convoy starts.
+ */
+function level(n, name, parTime, rows, body) {
   return {
     id: `5-${n}`,
     name,
@@ -22,7 +26,7 @@ function level(n, name, parTime, body) {
     player: { convoy: 'main', row: 1, lane: 1 },
     paths: [{ id: 'road', width: 14, lanes: 3, points: straight }],
     convoys: [
-      { id: 'main', path: 'road', rows: 20, lanesUsed: [0, 1, 2], startAt: START, wobble: 0.06 },
+      { id: 'main', path: 'road', rows, lanesUsed: [0, 1, 2], startAt: START, wobble: 0.06 },
     ],
     scenery: [],
     hazards: [],
@@ -54,12 +58,28 @@ function kerbJump(z, height = 1.2) {
   };
 }
 
-/** A wrecking weight hung from a crane arm over the road, swinging across the lanes at roof height. */
-function swing(z, period, phase = 0) {
+/**
+ * A wrecking weight hung from a crane arm over the road, swinging across the
+ * lanes at roof height. Its phase is set so that it sweeps through the lane
+ * the player starts in just as a rider who never moved gets there: standing
+ * still is the one thing that does not work.
+ */
+function swing(z, period) {
   const PIVOT = 18;
+  const CRUISE = 18;
+  const arrival = (z + 40 - PLAYER_S) / CRUISE;
+  const phase = (1 - ((arrival / period) % 1)) % 1;
   return {
     hazards: [
-      { type: 'pendulum', pos: [0, PIVOT, z], length: 12.5, swing: 28, period, phase, size: 2.4 },
+      {
+        type: 'pendulum',
+        pos: [0, PIVOT, z],
+        length: 12.5,
+        swing: 28,
+        period,
+        phase: Math.round(phase * 1000) / 1000,
+        size: 2.4,
+      },
     ],
     scenery: [
       // The crane: a mast beside the road and an arm out over it.
@@ -82,7 +102,7 @@ function swing(z, period, phase = 0) {
 }
 
 /** A boulder that starts behind the convoy and rolls after it. */
-const boulder = (speed, behind = 55) => ({
+const boulder = (speed, behind = 60) => ({
   type: 'boulder',
   path: 'road',
   startAt: START - behind,
@@ -119,7 +139,7 @@ const levels = [];
 // 5-1 Blast Plate: plates in the road throw every truck into the air. Hold on.
 levels.push([
   'blast-plate',
-  level(1, 'Blast Plate', 16, {
+  level(1, 'Blast Plate', 16, 12, {
     hazards: [plate(220, 9), plate(340, 10)],
     scenery: rocks([90, 170, 280, 400]),
   }),
@@ -128,7 +148,7 @@ levels.push([
 // 5-2 Kerb Jump: a plate, then a rock kerb the thrown trucks sail over.
 levels.push([
   'kerb-jump',
-  level(2, 'Kerb Jump', 16, {
+  level(2, 'Kerb Jump', 16, 8, {
     ...combine(kerbJump(200), kerbJump(330), { scenery: rocks([100, 260, 410]) }),
   }),
 ]);
@@ -136,16 +156,16 @@ levels.push([
 // 5-3 Swing: wrecking weights swing across the lanes at roof height. Be in a lane it is not in.
 levels.push([
   'swing',
-  level(3, 'Swing', 16, {
-    ...combine(swing(220, 5.2), swing(345, 4.4, 0.3), { scenery: rocks([120, 290, 420]) }),
+  level(3, 'Swing', 16, 20, {
+    ...combine(swing(220, 5.2), swing(345, 4.4), { scenery: rocks([120, 290, 420]) }),
   }),
 ]);
 
 // 5-4 Rockfall: a boulder rolls after the convoy and crushes what it reaches. Keep moving forward.
 levels.push([
   'rockfall',
-  level(4, 'Rockfall', 16, {
-    hazards: [boulder(22.5)],
+  level(4, 'Rockfall', 16, 20, {
+    hazards: [boulder(24)],
     scenery: rocks([60, 150, 240, 330, 420]),
   }),
 ]);
@@ -153,7 +173,7 @@ levels.push([
 // 5-5 Quarry Run: a kerb jump, a wrecking weight, another kerb jump.
 levels.push([
   'quarry-run',
-  level(5, 'Quarry Run', 17, {
+  level(5, 'Quarry Run', 17, 8, {
     ...combine(kerbJump(180), swing(275, 5), kerbJump(360), { scenery: rocks([110, 230, 420]) }),
   }),
 ]);
@@ -161,9 +181,9 @@ levels.push([
 // 5-6 Deep Cut: the boulder again, with kerb jumps on the way.
 levels.push([
   'deep-cut',
-  level(6, 'Deep Cut', 17, {
+  level(6, 'Deep Cut', 17, 10, {
     ...combine(kerbJump(210), kerbJump(345), {
-      hazards: [boulder(22)],
+      hazards: [boulder(23, 50)],
       scenery: rocks([80, 280, 430]),
     }),
   }),

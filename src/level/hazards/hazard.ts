@@ -49,4 +49,15 @@ export interface Hazard {
   afterStep(dt: number): void;
   reset(): void;
   dispose(): void;
+  /**
+   * For things that chase the player (a boulder, a slide): what it is called
+   * and how many metres it is from the player right now. The player often
+   * cannot see it, so the HUD shows this.
+   */
+  chase?(): Chase | null;
+}
+
+export interface Chase {
+  label: string;
+  gap: number;
 }

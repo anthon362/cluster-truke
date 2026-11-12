@@ -3,7 +3,7 @@ import { GROUP, RAPIER, groups } from '../../physics/world';
 import { PALETTE } from '../../render/palette';
 import type { Path } from '../../trucks/path';
 import type { BoulderDef } from '../schema';
-import type { Hazard, HazardContext, HazardPart } from './hazard';
+import type { Chase, Hazard, HazardContext, HazardPart } from './hazard';
 
 const tmp = new Vector3();
 const axis = new Vector3();
@@ -84,6 +84,11 @@ export class Boulder implements Hazard {
     axis.set(dir.z, 0, -dir.x);
     spin.setFromAxisAngle(axis, (this.def.speed * dt) / this.def.radius);
     this.rock.rot.premultiply(spin);
+  }
+
+  chase(): Chase {
+    const gap = this.ctx.player.pos.distanceTo(this.centre) - this.def.radius;
+    return { label: 'BOULDER', gap: Math.max(0, gap) };
   }
 
   dispose(): void {

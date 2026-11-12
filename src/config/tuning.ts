@@ -331,6 +331,11 @@ export const TUNING = {
   ui: {
     /** Fresh key presses are ignored this long after failing, so a late jump press does not skip the overlay. */
     failInputDelay: 0.15,
+    /** A chasing hazard is shown on the HUD inside this distance (m), and in red inside the danger distance. */
+    chaseWarnRange: 80,
+    chaseDangerRange: 22,
+    /** Camera shake (0 to 1) when the chaser is touching distance; it fades to none at the danger distance. */
+    chaseShake: 0.5,
   },
 
   music: {

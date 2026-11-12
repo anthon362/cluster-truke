@@ -3,6 +3,7 @@ import { TUNING } from '../config/tuning';
 import { AbilityManager } from '../abilities/manager';
 import type { AbilityId } from '../config/abilities';
 import { type Hazard, createHazard } from '../level/hazards';
+import type { Chase } from '../level/hazards/hazard';
 import { TEST_LEVELS } from '../level/levels';
 import { Goal } from '../level/goal';
 import type { LevelDef } from '../level/schema';
@@ -181,6 +182,16 @@ export class Sim {
   }
 
   /** Free the physics world when switching level. */
+  /** The nearest thing chasing the player, if this level has one. */
+  chase(): Chase | null {
+    let nearest: Chase | null = null;
+    for (const h of this.hazards) {
+      const c = h.chase?.();
+      if (c && (!nearest || c.gap < nearest.gap)) nearest = c;
+    }
+    return nearest;
+  }
+
   dispose(): void {
     this.physics.dispose();
   }

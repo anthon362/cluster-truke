@@ -503,6 +503,12 @@ async function boot(): Promise<void> {
       hud.setTime(sim.time);
       hud.setAbilities(sim.abilities.movement, sim.abilities.utility);
       hud.setSpeed(settings.speedReadout && active, worldSpeed);
+      const chase = active ? sim.chase() : null;
+      hud.setChase(chase);
+      if (chase && chase.gap < TUNING.ui.chaseDangerRange) {
+        // The ground shakes harder the closer it is.
+        rig.addShake((1 - chase.gap / TUNING.ui.chaseDangerRange) * TUNING.ui.chaseShake);
+      }
       // First-time help: only on the very first level, only until it has been finished once.
       const newPlayer = sim.level.id === '1-1' && save.bestTimes['1-1'] === undefined;
       hud.setHint(

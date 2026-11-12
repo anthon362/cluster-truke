@@ -31,7 +31,7 @@
     {
       "id": "main",
       "path": "road",
-      "rows": 20,
+      "rows": 8,
       "lanesUsed": [0, 1, 2],
       "startAt": 50,
       "wobble": 0.06
@@ -104,7 +104,7 @@
       "length": 12.5,
       "swing": 28,
       "period": 5,
-      "phase": 0,
+      "phase": 0.2,
       "size": 2.4
     },
     {

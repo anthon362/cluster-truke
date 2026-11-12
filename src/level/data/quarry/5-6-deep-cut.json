@@ -31,7 +31,7 @@
     {
       "id": "main",
       "path": "road",
-      "rows": 20,
+      "rows": 10,
       "lanesUsed": [0, 1, 2],
       "startAt": 50,
       "wobble": 0.06
@@ -93,8 +93,8 @@
     {
       "type": "boulder",
       "path": "road",
-      "startAt": -5,
-      "speed": 22,
+      "startAt": 0,
+      "speed": 23,
       "radius": 4.5
     }
   ],

@@ -98,7 +98,7 @@
       "length": 12.5,
       "swing": 28,
       "period": 5.2,
-      "phase": 0,
+      "phase": 0.895,
       "size": 2.4
     },
     {
@@ -107,7 +107,7 @@
       "length": 12.5,
       "swing": 28,
       "period": 4.4,
-      "phase": 0.3,
+      "phase": 0.934,
       "size": 2.4
     }
   ],

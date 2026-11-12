@@ -3,10 +3,12 @@
  * They are deliberately simple: each one does what a careful human would do
  * for one kind of obstacle.
  */
+import { Vector3 } from 'three';
 import { TUNING } from '../src/config/tuning';
 import { Sim } from '../src/core/sim';
 import { type BeamState, beamHalfExtents, beamStateAt } from '../src/level/hazards/beam';
-import type { BeamDef, LevelDef, RotorDef } from '../src/level/schema';
+import { pendulumAt } from '../src/level/hazards/pendulum';
+import type { BeamDef, LevelDef, PendulumDef, RotorDef } from '../src/level/schema';
 import { NO_INPUT, type MoveInput } from '../src/player/movement';
 import { bot } from './helpers';
 
@@ -324,6 +326,29 @@ export function inBeam(def: BeamDef, x: number, feet: number, z: number, at: num
   );
 }
 
+const weightPos = new Vector3();
+
+/** Would someone standing with their feet at (x, feet, z) be hit by a swinging weight at time `at`? */
+export function inPendulum(
+  def: PendulumDef,
+  x: number,
+  feet: number,
+  z: number,
+  at: number,
+): boolean {
+  const c = pendulumAt(def, at, weightPos);
+  const half = def.size / 2 + P.radius + 0.25;
+  return (
+    Math.abs(x - c.x) <= half &&
+    Math.abs(z - c.z) <= half &&
+    feet + P.height + 0.1 >= c.y - def.size / 2 &&
+    feet - 0.1 <= c.y + def.size / 2
+  );
+}
+
+const pendulumsOf = (sim: Sim): PendulumDef[] =>
+  sim.level.hazards.filter((h): h is PendulumDef => h.type === 'pendulum');
+
 const beamsOf = (sim: Sim): BeamDef[] =>
   sim.level.hazards.filter((h): h is BeamDef => h.type === 'beam');
 
@@ -358,7 +383,7 @@ export const hopBeams = (): Script => {
 };
 
 /**
- * Beams that cannot be jumped (standing columns): look a couple of seconds
+ * Things that cannot be jumped (standing columns of light, swinging weights): look a couple of seconds
  * ahead, and if this lane will be in one when we get there, hop to a
  * neighbouring lane that will not.
  */
@@ -377,6 +402,10 @@ export const dodgeBeams = (): Script => {
         ) {
           return true;
         }
+      }
+      // A swinging weight is too big to jump.
+      for (const w of pendulumsOf(sim)) {
+        if (inPendulum(w, x, p.feetY, z, t + lead)) return true;
       }
     }
     return false;

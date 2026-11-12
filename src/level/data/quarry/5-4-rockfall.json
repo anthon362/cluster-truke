@@ -83,8 +83,8 @@
     {
       "type": "boulder",
       "path": "road",
-      "startAt": -5,
-      "speed": 22.5,
+      "startAt": -10,
+      "speed": 24,
       "radius": 4.5
     }
   ],

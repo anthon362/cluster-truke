@@ -1,4 +1,6 @@
 import type { Ability } from '../abilities/ability';
+import { TUNING } from '../config/tuning';
+import type { Chase } from '../level/hazards/hazard';
 import type { Bonus } from '../score/score';
 import { formatTime } from './format';
 
@@ -13,6 +15,9 @@ export class Hud {
   private readonly popups: HTMLDivElement;
   private readonly speed: HTMLDivElement;
   private readonly hint: HTMLDivElement;
+  private readonly chase: HTMLDivElement;
+  private readonly chaseText: HTMLSpanElement;
+  private readonly chaseFill: HTMLDivElement;
   private readonly bars: { root: HTMLDivElement; name: HTMLElement; fill: HTMLElement }[] = [];
   private last = '';
 
@@ -43,6 +48,16 @@ export class Hud {
     this.hint = document.createElement('div');
     this.hint.className = 'tutorial hidden';
     parent.appendChild(this.hint);
+    this.chase = document.createElement('div');
+    this.chase.className = 'chase hidden';
+    this.chaseText = document.createElement('span');
+    const track = document.createElement('div');
+    track.className = 'chase-track';
+    this.chaseFill = document.createElement('div');
+    this.chaseFill.className = 'chase-fill';
+    track.appendChild(this.chaseFill);
+    this.chase.append(this.chaseText, track);
+    parent.appendChild(this.chase);
     this.popups = document.createElement('div');
     this.popups.className = 'popups';
     parent.appendChild(this.popups);
@@ -82,6 +97,17 @@ export class Hud {
   setHint(text: string): void {
     this.hint.classList.toggle('hidden', text === '');
     if (this.hint.textContent !== text) this.hint.textContent = text;
+  }
+
+  /** How close the thing chasing the player is; null hides the gauge. */
+  setChase(chase: Chase | null): void {
+    const U = TUNING.ui;
+    const show = !!chase && chase.gap < U.chaseWarnRange;
+    this.chase.classList.toggle('hidden', !show);
+    if (!show || !chase) return;
+    this.chase.classList.toggle('danger', chase.gap < U.chaseDangerRange);
+    this.chaseText.textContent = `${chase.label} ${Math.round(chase.gap)} m`;
+    this.chaseFill.style.width = `${Math.round((1 - chase.gap / U.chaseWarnRange) * 100)}%`;
   }
 
   clearPopups(): void {

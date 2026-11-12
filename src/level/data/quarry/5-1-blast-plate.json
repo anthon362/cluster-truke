@@ -31,7 +31,7 @@
     {
       "id": "main",
       "path": "road",
-      "rows": 20,
+      "rows": 12,
       "lanesUsed": [0, 1, 2],
       "startAt": 50,
       "wobble": 0.06

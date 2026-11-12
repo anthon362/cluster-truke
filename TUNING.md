@@ -316,6 +316,40 @@ finale THE AVALANCHE (a slide chases you through three stages, under 90 s, on tr
 - Blinking walls in 4-4 and 4-6 are timed so that a rider who does nothing arrives while they
   are off. A player who runs ahead arrives at a different time and has to read the flashes.
 
+## M8 (part 2: world 5, QUARRY)
+
+**Values changed from the design document:** none.
+
+**Values the document did not give (added):** `hazards.plateRearm` 0.8 s, `hazards.plateForward`
+0.15 (share of the kick that goes forward), `hazards.plateThickness` 0.12 m. Per-level values
+live in the level files: plate `power`, weight `length` / `swing` / `period`, boulder `speed`.
+
+**Measured before building the levels:**
+
+- A blast plate across all three lanes is stable at power 6 to 10 (0 explosions, 60 of 60
+  trucks drive on, a rider stays on). Power 12 is not. The levels use 9 and 10.
+- A convoy thrown at power 10 clears a rock kerb up to 1.2 m high placed 8.9 m past the plate.
+  A 2.5 m wall is too high. The levels use 1.2 m.
+
+**Notes:**
+
+- `pendulum`: a wrecking weight on a cable. It swings across the lanes at roof height: it
+  passes over trucks and kills a rider. Each one is timed so it sweeps through the starting
+  lane exactly when a rider who never moved arrives, so standing still does not work, but one
+  lane change does.
+- `plate`: throws every truck that drives over it, once each. Riders are carried along.
+- `boulder`: rolls along the road behind the convoy, faster than the trucks, wrecking each one
+  it reaches. The only way through is to keep moving up the rows. A rider who stays put dies
+  after about 11 s in 5-4; running up the convoy finishes in about 13 s.
+- The boulder comes from behind, where the player is not looking, so the HUD shows a gauge
+  ("BOULDER 34 m") inside `ui.chaseWarnRange` (80 m). It turns red and the camera starts to
+  shake inside `ui.chaseDangerRange` (22 m, shake up to `ui.chaseShake` 0.5). Added values.
+- Convoys in this world are shorter (8 to 12 rows) on levels with plates and kerbs. A convoy
+  must not start on top of something that acts on trucks; the first version did, and the lead
+  rows blew up on the kerb at the start.
+- 5-4 and 5-6 are the first levels where riding one truck to the goal is not enough. They
+  still need no abilities: the demonstration only runs forward and jumps between rows.
+
 ## What to adjust if it feels wrong
 
 | Feels like                                    | Change                                                               |
@@ -345,3 +379,6 @@ finale THE AVALANCHE (a slide chases you through three stages, under 90 s, on tr
 | An ability is too strong / weak               | `abilities.<name>.*`                                                 |
 | Prices                                        | `src/config/abilities.ts`                                            |
 | Ice too slippery / not slippery enough        | `truck.lateralGripIce`                                               |
+| Blast plates throw trucks too high / too low  | `power` on the plate in the level file (stable range 6 to 10)        |
+| Wrecking weights too fast / too slow          | `period` on the pendulum in the level file                           |
+| Boulder catches up too fast / too slowly      | `speed` and `startAt` on the boulder in the level file               |

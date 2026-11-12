@@ -14,6 +14,7 @@ import {
   hopTo,
   play,
   ride,
+  runForward,
   summary,
   toCab,
 } from './levelBots';
@@ -30,6 +31,8 @@ interface Case {
   demoName: string;
   /** Minimum wins out of the six seeds; chaos is allowed to cost some. */
   minWins: number;
+  /** The demonstration runs up the convoy, so it is not held to the riding-time window. */
+  fast?: boolean;
 }
 
 const CASES: Case[] = [
@@ -76,14 +79,38 @@ const CASES: Case[] = [
     demoName: 'jumping and dodging beams, then hopping to the side convoy',
     minWins: 3,
   },
+  { id: '5-1', demo: ride, demoName: 'riding one truck over the plates', minWins: 5 },
+  { id: '5-2', demo: ride, demoName: 'riding one truck over the kerbs', minWins: 5 },
+  { id: '5-3', demo: dodgeBeams, demoName: 'riding, changing lane for the weights', minWins: 4 },
+  {
+    id: '5-4',
+    demo: runForward,
+    demoName: 'running up the convoy ahead of the boulder',
+    minWins: 3,
+    fast: true,
+  },
+  {
+    id: '5-5',
+    demo: dodgeBeams,
+    demoName: 'riding over the kerbs, changing lane for the weight',
+    minWins: 4,
+  },
+  {
+    id: '5-6',
+    demo: runForward,
+    demoName: 'running up the convoy ahead of the boulder',
+    minWins: 3,
+    fast: true,
+  },
 ];
 
-describe('worlds 2 to 4 are completable without abilities', () => {
+describe('worlds 2 to 5 are completable without abilities', () => {
   it('each has six levels, in order', () => {
     for (const [world, n] of [
       ['overpass', 2],
       ['whiteout', 3],
       ['nightfreight', 4],
+      ['quarry', 5],
     ] as const) {
       const ids = LEVELS.filter((l) => l.world === world).map((l) => l.id);
       expect(ids).toEqual([1, 2, 3, 4, 5, 6].map((i) => `${n}-${i}`));
@@ -100,7 +127,8 @@ describe('worlds 2 to 4 are completable without abilities', () => {
       const wins = results.filter((r) => r.won);
       expect(wins.length, line).toBeGreaterThanOrEqual(c.minWins);
       const best = Math.min(...wins.map((r) => r.time));
-      expect(best, line).toBeGreaterThan(level.parTime);
+      // Riding should take longer than par; a run up the convoy only has to finish.
+      if (!c.fast) expect(best, line).toBeGreaterThan(level.parTime);
       expect(best, line).toBeLessThan(level.parTime * 2);
     }, 180000);
   }
@@ -114,7 +142,7 @@ describe('worlds 2 to 4 are completable without abilities', () => {
 describe('unlock order', () => {
   it('opens levels one at a time, and the next world after the last level of a world', () => {
     const campaign = campaignLevels(LEVELS);
-    expect(campaign.length).toBe(24);
+    expect(campaign.length).toBe(30);
     const times: Record<string, number> = {};
     expect(isUnlocked(findLevel('1-1')!, LEVELS, times)).toBe(true);
     expect(isUnlocked(findLevel('1-2')!, LEVELS, times)).toBe(false);
@@ -138,6 +166,7 @@ describe('unlock order', () => {
     expect(nextCampaignLevel(findLevel('1-6')!, LEVELS)?.id).toBe('2-1');
     expect(nextCampaignLevel(findLevel('2-6')!, LEVELS)?.id).toBe('3-1');
     expect(nextCampaignLevel(findLevel('3-6')!, LEVELS)?.id).toBe('4-1');
-    expect(nextCampaignLevel(findLevel('4-6')!, LEVELS)).toBeUndefined();
+    expect(nextCampaignLevel(findLevel('4-6')!, LEVELS)?.id).toBe('5-1');
+    expect(nextCampaignLevel(findLevel('5-6')!, LEVELS)).toBeUndefined();
   });
 });

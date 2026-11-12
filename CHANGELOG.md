@@ -1,5 +1,18 @@
 # Changelog
 
+## M8 (part 2) — World 5: QUARRY
+
+- New hazards: `pendulum` (a swinging wrecking weight, lethal to the player), `plate` (a blast
+  plate that throws every truck that crosses it) and `boulder` (rolls after the convoy and
+  wrecks what it reaches).
+- Six quarry levels: Blast Plate, Kerb Jump, Swing, Rockfall, Quarry Run, Deep Cut, with their
+  own palette and music loop. Rockfall and Deep Cut are the first levels that cannot be
+  finished by standing still.
+- A chase gauge on the HUD shows how far behind the boulder is, with camera shake when it is
+  close.
+- Scripted players dodge the weights with the same maths as the game; every level is completed
+  without abilities.
+
 ## M8 (part 1) — World 4: NIGHT FREIGHT
 
 - New hazard `beam`: light beams that are fixed, sweeping, spinning or blinking, lethal to
