@@ -290,6 +290,32 @@ the JavaScript as text, which made the download about a quarter larger. This nee
 build-time plugin (`vite-plugin-wasm`); nothing is fetched from any server at run time and the
 build is still a plain static site. No gameplay values changed.
 
+## M8 (part 1: world 4, NIGHT FREIGHT)
+
+M8 is being built one world at a time. The six remaining worlds and the finale are original
+(decided by me, as asked): 4 NIGHT FREIGHT (light beams), 5 QUARRY (wrecking weights, blast
+plates, a boulder chase), 6 STORMFRONT (wind, tilted roads), 7 FOUNDRY (boost belts, presses,
+rising melt), 8 SKYLINE (a magnet crane, see-saws, a moving goal), 9 THE SUMMIT with the
+finale THE AVALANCHE (a slide chases you through three stages, under 90 s, on trucks throughout).
+
+**Values changed from the design document:** none.
+
+**Values the document did not give (added):** `hazards.beamThickness` 0.35 m,
+`hazards.beamWarning` 0.8 s (a switched-off beam flashes this long before it returns),
+`hazards.beamWarningHz` 7.
+
+**Notes on beams:**
+
+- One hazard type, `beam`, covers every kind: lying across the road or standing upright,
+  fixed, sliding back and forth (`sweep`), turning (`spin`) and switching on and off (`blink`).
+- A beam only affects the player; trucks pass through light.
+- Heights used in world 4: a low beam is centred 4.3 m up and must be jumped; a high beam is
+  centred 5.25 m up, which hits someone standing on a trailer but passes over someone on a cab.
+  This is the first world that uses the lower cab.
+- The "visible countdown" for timed barriers is a warning flash instead of numbers.
+- Blinking walls in 4-4 and 4-6 are timed so that a rider who does nothing arrives while they
+  are off. A player who runs ahead arrives at a different time and has to read the flashes.
+
 ## What to adjust if it feels wrong
 
 | Feels like                                    | Change                                                               |

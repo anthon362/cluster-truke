@@ -43,6 +43,14 @@ export const TRACKS: Record<string, Track> = {
     arpWave: 'sawtooth',
     hats: [1, 1, 2, 1, 1, 1, 2, 1, 1, 1, 2, 1, 1, 1, 2, 2],
   },
+  nightfreight: {
+    bpm: 156,
+    key: -5,
+    bass: [0, 0, 12, 0, R, 0, 12, 0, -2, -2, 10, -2, R, -2, 10, 3],
+    arp: [R, 24, R, 27, R, 24, R, 31, R, 22, R, 26, R, 22, R, 29],
+    arpWave: 'square',
+    hats: [1, 0, 2, 0, 1, 0, 2, 1, 1, 0, 2, 0, 1, 0, 2, 1],
+  },
   whiteout: {
     bpm: 142,
     key: -3,

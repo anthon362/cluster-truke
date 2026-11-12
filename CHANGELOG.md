@@ -1,5 +1,14 @@
 # Changelog
 
+## M8 (part 1) — World 4: NIGHT FREIGHT
+
+- New hazard `beam`: light beams that are fixed, sweeping, spinning or blinking, lethal to
+  the player only, drawn as glowing bars.
+- Six night levels: Tripwire, High Beams, Sweep, Shutter, Turnstile, Night Shift, with their
+  own palette and music loop.
+- Scripted players for beams (jump, change lane, ride on the cab) that share the game's beam
+  timing; every level is completed without abilities.
+
 ## Smaller download: physics WebAssembly as its own file
 
 - Switched from `@dimforge/rapier3d-compat` (WebAssembly embedded in the JavaScript as text)
