@@ -116,6 +116,7 @@ export class Sim {
       trucks: this.pool.trucks,
       player: this.player,
       rng: () => this.rng,
+      time: () => this.clock,
       registerPusher: (handle: number) => void this.pushers.add(handle),
     };
     for (const h of this.level.hazards) this.hazards.push(createHazard(h, ctx));

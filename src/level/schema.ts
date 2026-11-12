@@ -105,8 +105,26 @@ export interface RotorDef {
   yaw?: number;
 }
 
-export type HazardDef = BreakableWallDef | SpinnerDef | IceDef | RotorDef;
-export const HAZARD_TYPES = ['breakableWall', 'spinner', 'ice', 'rotor'] as const;
+export interface BeamDef {
+  type: 'beam';
+  /** Centre of the beam. */
+  pos: Vec3;
+  length: number;
+  /** A vertical beam is a standing column; otherwise it lies across the road. */
+  vertical?: boolean;
+  /** Degrees around Y (0 = lying along X, across a road that runs along Z). */
+  yaw?: number;
+  thickness?: number;
+  /** Slides back and forth between `pos` and `to`, one full trip there and back per `period` seconds. */
+  sweep?: { to: Vec3; period: number; phase?: number };
+  /** Turns around its centre, degrees per second. */
+  spin?: number;
+  /** Switches on for `on` seconds, then off for `off` seconds, repeating. */
+  blink?: { on: number; off: number; phase?: number };
+}
+
+export type HazardDef = BreakableWallDef | SpinnerDef | IceDef | RotorDef | BeamDef;
+export const HAZARD_TYPES = ['breakableWall', 'spinner', 'ice', 'rotor', 'beam'] as const;
 
 export interface GoalDef {
   /** Centre of the gate's base. */
@@ -461,6 +479,36 @@ export function validateLevel(raw: unknown, source = 'level'): LevelDef {
         c.fail(`${at}.size`, `expected [width, length] larger than 0, got ${describe(size)}`);
       }
       c.num(ho, 'yaw', at, { optional: true });
+    } else if (ho.type === 'beam') {
+      c.unknownKeys(
+        ho,
+        ['type', 'pos', 'length', 'vertical', 'yaw', 'thickness', 'sweep', 'spin', 'blink'],
+        at,
+      );
+      c.vec3(ho, 'pos', at);
+      c.num(ho, 'length', at, { min: 0.5, max: 80 });
+      c.bool(ho, 'vertical', at, true);
+      c.num(ho, 'yaw', at, { optional: true });
+      c.num(ho, 'thickness', at, { min: 0.1, max: 3, optional: true });
+      c.num(ho, 'spin', at, { min: -360, max: 360, optional: true });
+      if (ho.sweep !== undefined) {
+        const sw = c.obj(ho.sweep, `${at}.sweep`);
+        if (sw) {
+          c.unknownKeys(sw, ['to', 'period', 'phase'], `${at}.sweep`);
+          c.vec3(sw, 'to', `${at}.sweep`);
+          c.num(sw, 'period', `${at}.sweep`, { min: 0.5 });
+          c.num(sw, 'phase', `${at}.sweep`, { optional: true });
+        }
+      }
+      if (ho.blink !== undefined) {
+        const bl = c.obj(ho.blink, `${at}.blink`);
+        if (bl) {
+          c.unknownKeys(bl, ['on', 'off', 'phase'], `${at}.blink`);
+          c.num(bl, 'on', `${at}.blink`, { min: 0.1 });
+          c.num(bl, 'off', `${at}.blink`, { min: 0.1 });
+          c.num(bl, 'phase', `${at}.blink`, { optional: true });
+        }
+      }
     } else if (ho.type === 'rotor') {
       c.unknownKeys(ho, ['type', 'pos', 'radius', 'spokes', 'speed', 'phase', 'yaw'], at);
       c.vec3(ho, 'pos', at);

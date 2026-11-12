@@ -268,6 +268,10 @@ export const TUNING = {
     /** Rotor (vertical spoked wheel) spoke cross-section and hub size (m). */
     rotorThickness: 0.7,
     rotorHub: 1.6,
+    /** Light beams: default thickness, and how long before switching on a beam flashes a warning (s). */
+    beamThickness: 0.35,
+    beamWarning: 0.8,
+    beamWarningHz: 7,
   },
 
   goal: {

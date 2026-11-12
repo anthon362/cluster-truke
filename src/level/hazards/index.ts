@@ -1,4 +1,5 @@
 import type { HazardDef } from '../schema';
+import { Beam } from './beam';
 import { BreakableWall } from './breakableWall';
 import type { Hazard, HazardContext } from './hazard';
 import { Ice } from './ice';
@@ -15,6 +16,8 @@ export function createHazard(def: HazardDef, ctx: HazardContext): Hazard {
       return new Ice(def, ctx);
     case 'rotor':
       return new Rotor(def, ctx);
+    case 'beam':
+      return new Beam(def, ctx);
   }
 }
 

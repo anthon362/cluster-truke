@@ -76,7 +76,7 @@ export class LevelScene {
 
     // Hazards: one box mesh per part, sharing geometry and material where possible.
     const geos = new Map<string, BoxGeometry>();
-    const hazardMats = new Map<number, MeshLambertMaterial>();
+    const hazardMats = new Map<string, MeshLambertMaterial | MeshBasicMaterial>();
     for (const hazard of hazards) {
       for (const part of hazard.parts) {
         const gk = `${part.size.x},${part.size.y},${part.size.z}`;
@@ -85,10 +85,13 @@ export class LevelScene {
           geo = new BoxGeometry(part.size.x, part.size.y, part.size.z);
           geos.set(gk, geo);
         }
-        let mat = hazardMats.get(part.color);
+        const mk = `${part.color}${part.glow ? 'g' : ''}`;
+        let mat = hazardMats.get(mk);
         if (!mat) {
-          mat = new MeshLambertMaterial({ color: part.color, flatShading: true });
-          hazardMats.set(part.color, mat);
+          mat = part.glow
+            ? new MeshBasicMaterial({ color: part.color, fog: false })
+            : new MeshLambertMaterial({ color: part.color, flatShading: true });
+          hazardMats.set(mk, mat);
         }
         const mesh = new Mesh(geo, mat);
         s.add(mesh);

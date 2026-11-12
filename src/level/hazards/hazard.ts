@@ -10,6 +10,8 @@ export interface HazardContext {
   trucks: readonly Truck[];
   player: PlayerController;
   rng(): Rng;
+  /** Seconds since the attempt started (keeps running after it ends). */
+  time(): number;
   /**
    * Mark a collider as a pusher: trucks hit by it are shoved around instead of
    * exploding from the impact.
@@ -21,6 +23,8 @@ export interface HazardContext {
 export interface HazardPart {
   size: Vector3;
   color: number;
+  /** Drawn unlit and unfogged, so it reads as a light source. */
+  glow?: boolean;
   visible: boolean;
   prevPos: Vector3;
   prevRot: Quaternion;
