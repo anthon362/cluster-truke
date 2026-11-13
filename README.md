@@ -32,6 +32,26 @@ ability unlocked for the session, nothing saved), `?equip=towLine,slowLane`.
 Levels are JSON files in `src/level/data/`. A file with mistakes is listed in the level
 select screen together with what is wrong in it.
 
+## Level editor
+
+**Level Editor** on the main menu opens a map of a level seen from above.
+
+- **Add** puts a new thing in the middle of the view: scenery boxes, every hazard, road points,
+  extra roads and convoys. **Open a copy of…** starts from any level of the game.
+- Drag a thing to move it, drag empty space to pan, use the wheel to zoom. Delete removes the
+  selected thing, Ctrl+Z undoes.
+- The panel on the right shows every setting of the selected thing (or of the level when
+  nothing is selected). Optional settings appear as `+ name` buttons.
+- **Problems** lists what the game's own level check says, as you edit. **Play** is enabled
+  when there are none; quitting the level comes back to the editor. Levels from the editor earn
+  no points and save no times.
+- **Export file** downloads the level as JSON, **Import file** opens one. The format is exactly
+  that of the files in `src/level/data/`: put an exported file in a world's folder and give it
+  an id like `3-7` to make it part of the campaign.
+- The draft is kept in the browser between visits.
+
+The player looks up the map, so their left is on the map's right.
+
 ## Other commands
 
 ```bash

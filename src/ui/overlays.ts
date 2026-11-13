@@ -16,6 +16,7 @@ export interface OverlayHandlers {
   shop(): void;
   times(): void;
   settings(): void;
+  editor(): void;
   quit(): void;
 }
 
@@ -63,6 +64,7 @@ export class Overlays {
          <button type="button" data-do="shop">Abilities</button>
          <button type="button" data-do="times">Best Times</button>
          <button type="button" data-do="settings">Settings</button>
+         <button type="button" data-do="editor">Level Editor</button>
        </div>
        <div class="hint">Mouse and keyboard, or a gamepad (press A to play)</div>`,
     );
@@ -121,6 +123,7 @@ export class Overlays {
       shop: h.shop,
       times: h.times,
       settings: h.settings,
+      editor: h.editor,
       quit: h.quit,
       ghost: () => this.setGhost(h.toggleGhost()),
     };

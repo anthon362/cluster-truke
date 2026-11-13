@@ -170,6 +170,8 @@ export const OPTIONAL: Record<string, Record<string, unknown>> = {
   melt: { delay: 0 },
   slide: { stages: [[200, 23]] },
   goal: { yaw: 0, speed: 8, travel: 300 },
+  level: { ground: 'none' },
+  palette: { road: '#5b6070' },
   convoys: {
     speed: 18,
     wobble: 0.06,
@@ -394,6 +396,46 @@ export function addPoint(d: Draft, path: number, step = 120): Ref | undefined {
     Math.round(b[2] + ((b[2] - a[2]) / len) * step),
   ]);
   return { list: 'point', path, index: pts.length - 1 };
+}
+
+const freeId = (list: Item[], base: string): string => {
+  for (let n = 2; ; n++) {
+    const id = `${base}${n}`;
+    if (!list.some((o) => o.id === id)) return id;
+  }
+};
+
+/** Add a second road beside the first one: a copy of it moved 14 m to the side. */
+export function addRoad(d: Draft): Ref {
+  const first = d.paths[0];
+  const points = (first.points as number[][]).map((p) => [p[0] + 14, p[1], p[2]]);
+  d.paths.push({ id: freeId(d.paths, 'road'), width: 8, lanes: 2, points });
+  return { list: 'paths', index: d.paths.length - 1 };
+}
+
+/** Add a convoy on the given road (by default the last one added). */
+export function addConvoy(d: Draft, path = d.paths.length - 1): Ref {
+  const road = d.paths[path];
+  const lanes = Array.from({ length: num(road, 'lanes', 1) }, (_, i) => i);
+  d.convoys.push({
+    id: freeId(d.convoys, 'convoy'),
+    path: road.id,
+    rows: 8,
+    lanesUsed: lanes,
+    startAt: 50,
+  });
+  return { list: 'convoys', index: d.convoys.length - 1 };
+}
+
+/** Where the player starts, for drawing: [x, z], or undefined if their convoy or truck does not exist. */
+export function playerStart(d: Draft): [number, number] | undefined {
+  const c = d.convoys.find((o) => o.id === d.player.convoy);
+  const path = c && pathFor(d, c.path);
+  if (!c || !path) return undefined;
+  const s =
+    num(c, 'startAt') + num(d.player, 'row') * num(c, 'rowSpacing', 13) * (c.reverse ? -1 : 1);
+  path.pointAt(s, path.laneOffset(num(d.player, 'lane')), p3);
+  return [p3.x, p3.z];
 }
 
 /** Where each truck of each convoy starts, for drawing: [x, z, yaw in degrees]. */

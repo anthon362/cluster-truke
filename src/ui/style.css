@@ -729,3 +729,170 @@ button.go {
 #ui:not(.in-game) .speed {
   display: none;
 }
+
+/* Level editor: a tool, so it is laid out like one rather than like a menu. */
+.editor {
+  background: #161a20;
+  pointer-events: auto;
+  justify-content: flex-start;
+  align-items: stretch;
+  gap: 0;
+  text-align: left;
+  font-size: 13px;
+}
+.editor button,
+.editor select,
+.editor input,
+.editor textarea {
+  font-family: inherit;
+  font-size: 13px;
+  color: inherit;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+.editor button {
+  cursor: pointer;
+}
+.editor button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+.editor button.primary {
+  background: #ff7a1a;
+  border-color: #ff7a1a;
+  font-weight: 800;
+}
+.editor button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.editor option {
+  color: #111;
+}
+.editor h4 {
+  margin: 10px 0 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.ed-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+}
+.ed-bar b {
+  font-size: 15px;
+  margin-right: 8px;
+}
+.ed-space {
+  flex: 1;
+}
+.ed-body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 200px 1fr 300px;
+}
+.ed-left,
+.ed-right {
+  overflow-y: auto;
+  padding: 2px 12px 12px;
+}
+.ed-add,
+.ed-more {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.ed-things {
+  display: grid;
+  gap: 2px;
+}
+.ed-things button {
+  text-align: left;
+  border-color: transparent;
+  background: transparent;
+}
+.ed-things button.current {
+  background: rgba(255, 122, 26, 0.35);
+}
+.ed-map {
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  touch-action: none;
+}
+.ed-row {
+  display: grid;
+  grid-template-columns: 92px 1fr auto;
+  align-items: center;
+  gap: 6px;
+  margin: 3px 0;
+}
+.ed-row input[type='number'],
+.ed-row input[type='text'],
+.ed-row select,
+.ed-row textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+.ed-row input[type='color'] {
+  padding: 0;
+  height: 26px;
+  width: 48px;
+}
+.ed-row input[type='checkbox'] {
+  justify-self: start;
+}
+.ed-vec {
+  display: flex;
+  gap: 3px;
+  min-width: 0;
+}
+.ed-vec input {
+  flex: 1;
+  padding: 4px;
+}
+.editor fieldset {
+  margin: 8px 0;
+  padding: 4px 8px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 4px;
+}
+.editor legend {
+  padding: 0 4px;
+  opacity: 0.7;
+}
+.editor .ed-drop {
+  padding: 1px 6px;
+}
+.editor .ed-delete {
+  margin-top: 10px;
+  border-color: #e5484d;
+}
+.editor textarea.bad {
+  border-color: #e5484d;
+}
+.ed-more {
+  margin-top: 6px;
+}
+.ed-problems {
+  margin: 0;
+  white-space: pre-wrap;
+  font-family: inherit;
+  color: #3dffb0;
+}
+.ed-problems.bad {
+  color: #ff8a7a;
+}
+.ed-help {
+  padding: 6px 12px;
+  opacity: 0.6;
+  background: rgba(255, 255, 255, 0.05);
+}
