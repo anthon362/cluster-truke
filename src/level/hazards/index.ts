@@ -10,6 +10,7 @@ import { Pendulum } from './pendulum';
 import { Plate } from './plate';
 import { Press } from './press';
 import { Rotor } from './rotor';
+import { Slide } from './slide';
 import { Spinner } from './spinner';
 import { Strike } from './strike';
 import { Wind } from './wind';
@@ -38,6 +39,8 @@ export function createHazard(def: HazardDef, ctx: HazardContext): Hazard {
       return new Press(def, ctx);
     case 'melt':
       return new Melt(def, ctx);
+    case 'slide':
+      return new Slide(def, ctx);
     case 'wind':
       return new Wind(def, ctx);
     case 'strike':

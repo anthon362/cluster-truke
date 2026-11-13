@@ -213,6 +213,18 @@ export interface MeltDef {
   delay?: number;
 }
 
+export interface SlideDef {
+  type: 'slide';
+  /** Path it comes down, where on it its front starts, and its speed (m/s). */
+  path: string;
+  startAt: number;
+  speed: number;
+  /** [distance along the path, speed from there on], in order: it changes pace as it goes. */
+  stages?: readonly (readonly [number, number])[];
+  /** Width across the road (m). */
+  width: number;
+}
+
 export type HazardDef =
   | BreakableWallDef
   | SpinnerDef
@@ -226,7 +238,8 @@ export type HazardDef =
   | StrikeDef
   | BeltDef
   | PressDef
-  | MeltDef;
+  | MeltDef
+  | SlideDef;
 export const HAZARD_TYPES = [
   'breakableWall',
   'spinner',
@@ -241,6 +254,7 @@ export const HAZARD_TYPES = [
   'belt',
   'press',
   'melt',
+  'slide',
 ] as const;
 
 export interface GoalDef {
@@ -713,6 +727,36 @@ export function validateLevel(raw: unknown, source = 'level'): LevelDef {
           c.fail(`${at}.down`, `must leave 2.5 s of the period (${period}) for moving and waiting`);
         }
         c.num(ho, 'phase', at, { optional: true });
+      }
+    } else if (ho.type === 'slide') {
+      c.unknownKeys(ho, ['type', 'path', 'startAt', 'speed', 'stages', 'width'], at);
+      const path = c.str(ho, 'path', at);
+      if (path && !lanesByPath.has(path)) {
+        c.fail(
+          `${at}.path`,
+          `no path called "${path}" (paths: ${[...lanesByPath.keys()].join(', ') || 'none'})`,
+        );
+      }
+      c.num(ho, 'startAt', at);
+      c.num(ho, 'speed', at, { min: 1, max: 60 });
+      c.num(ho, 'width', at, { min: 4, max: 200 });
+      if (ho.stages !== undefined) {
+        let last = -Infinity;
+        c.arr(ho.stages, `${at}.stages`).forEach((st, k) => {
+          const ok =
+            Array.isArray(st) &&
+            st.length === 2 &&
+            st.every((n) => typeof n === 'number' && Number.isFinite(n)) &&
+            st[1] >= 1 &&
+            st[1] <= 60;
+          if (!ok) {
+            c.fail(`${at}.stages[${k}]`, `expected [distance, speed 1 to 60], got ${describe(st)}`);
+          } else if (st[0] <= last) {
+            c.fail(`${at}.stages[${k}]`, 'distances must increase');
+          } else {
+            last = st[0];
+          }
+        });
       }
     } else if (ho.type === 'melt') {
       c.unknownKeys(ho, ['type', 'rise', 'delay'], at);

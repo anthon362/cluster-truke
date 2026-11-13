@@ -30,6 +30,8 @@ export const PALETTE = {
   press: 0x3b3f47,
   pressLamp: 0xff3b30,
   melt: 0xff5a1f,
+  slide: 0xf2f6fa,
+  slideShade: 0xcfdbe6,
   wind: 0xf4fbff,
   strikeMark: 0xfff27a,
   strikeBolt: 0xffffff,

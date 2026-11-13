@@ -323,6 +323,15 @@ export const TUNING = {
     meltSize: 1400,
     meltDepth: 4,
     meltCountdown: 20,
+    /**
+     * Avalanche: the wall's height and depth (m), how far ahead of its front it buries trucks,
+     * and the snow blocks tumbling in front of it (how many, how far they roll out).
+     */
+    slideHeight: 16,
+    slideDepth: 14,
+    slideReach: 3,
+    slideChunks: 14,
+    slideChunkReach: 9,
     /** Lightning: lethal radius (m), column height, how long the bolt stays (s), mark width and flicker. */
     strikeRadius: 1.5,
     strikeHeight: 70,
