@@ -33,8 +33,11 @@ export class LevelScene {
   private readonly ground: Mesh;
   private readonly roadColor: Color;
   private readonly hazardMeshes: { part: HazardPart; mesh: Mesh }[] = [];
+  private readonly goal: Goal;
+  private goalGroup: Mesh | null = null;
 
   constructor(level: LevelDef, paths: Iterable<Path>, goal: Goal, hazards: readonly Hazard[]) {
+    this.goal = goal;
     const s = this.scene;
     const pal = level.palette;
     this.roadColor = new Color(pal.road ?? PALETTE.road);
@@ -117,6 +120,7 @@ export class LevelScene {
       this.ground.position.x = view.x;
       this.ground.position.z = view.z;
     }
+    this.goalGroup?.position.lerpVectors(this.goal.prevCentre, this.goal.centre, alpha);
     for (const { part, mesh } of this.hazardMeshes) {
       mesh.visible = part.visible;
       if (!part.visible) continue;
@@ -156,6 +160,7 @@ export class LevelScene {
     group.position.copy(goal.centre);
     group.rotation.y = yaw;
     this.scene.add(group);
+    this.goalGroup = group;
   }
 
   private addRoad(path: Path): void {

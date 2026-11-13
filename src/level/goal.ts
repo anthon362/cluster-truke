@@ -9,6 +9,11 @@ import type { GoalDef } from './schema';
  */
 export class Goal {
   readonly centre = new Vector3();
+  /** Where the gate was one step ago (a moving gate; drawing and the crossing test use it). */
+  readonly prevCentre = new Vector3();
+  private readonly start = new Vector3();
+  private readonly speed: number;
+  private readonly travel: number;
   /** Horizontal unit vector the gate faces. */
   readonly normal = new Vector3();
   readonly halfWidth: number;
@@ -16,6 +21,10 @@ export class Goal {
 
   constructor(def: GoalDef, paths: Iterable<Path>) {
     this.centre.set(def.pos[0], def.pos[1], def.pos[2]);
+    this.start.copy(this.centre);
+    this.prevCentre.copy(this.centre);
+    this.speed = def.speed ?? 0;
+    this.travel = def.travel ?? Infinity;
     this.halfWidth = def.width / 2;
     this.height = def.height;
     if (def.yaw !== undefined) {
@@ -39,10 +48,19 @@ export class Goal {
     }
   }
 
-  /** Did a point moving from `a` to `b` pass through the gate? */
+  /** Put a moving gate where it is `time` seconds into the attempt. Call once per step. */
+  moveTo(time: number): void {
+    this.prevCentre.copy(this.centre);
+    if (this.speed === 0) return;
+    const d = Math.min(this.speed * time, this.travel);
+    this.centre.copy(this.start).addScaledVector(this.normal, d);
+    if (time === 0) this.prevCentre.copy(this.centre);
+  }
+
+  /** Did a point moving from `a` to `b` pass through the gate (which may itself have moved this step)? */
   crossed(a: Vector3, b: Vector3): boolean {
     const n = this.normal;
-    const da = (a.x - this.centre.x) * n.x + (a.z - this.centre.z) * n.z;
+    const da = (a.x - this.prevCentre.x) * n.x + (a.z - this.prevCentre.z) * n.z;
     const db = (b.x - this.centre.x) * n.x + (b.z - this.centre.z) * n.z;
     if (da === db || da * db > 0) return false;
     const t = da / (da - db);

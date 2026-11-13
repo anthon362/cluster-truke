@@ -75,6 +75,14 @@ export const TRACKS: Record<string, Track> = {
     arpWave: 'square',
     hats: [2, 0, 0, 1, 2, 0, 1, 0, 2, 0, 0, 1, 2, 0, 1, 1],
   },
+  skyline: {
+    bpm: 158,
+    key: 4,
+    bass: [0, R, 7, R, 0, R, 7, 0, -3, R, 4, R, -3, R, 4, -3],
+    arp: [24, 28, 31, 36, 31, 28, 24, 28, 21, 24, 28, 33, 28, 24, 21, 24],
+    arpWave: 'triangle',
+    hats: [0, 1, 0, 1, 0, 1, 2, 1, 0, 1, 0, 1, 0, 1, 2, 2],
+  },
   whiteout: {
     bpm: 142,
     key: -3,

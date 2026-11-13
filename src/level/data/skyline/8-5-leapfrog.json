@@ -1,0 +1,142 @@
+{
+  "id": "8-5",
+  "name": "Leapfrog",
+  "world": "skyline",
+  "parTime": 17,
+  "killY": -45,
+  "ground": "none",
+  "palette": {
+    "sky": "#f3b27a",
+    "ground": "#3b3f52",
+    "fog": "#eeb98c",
+    "fogFar": 520,
+    "road": "#5b6070"
+  },
+  "player": {
+    "convoy": "main",
+    "row": 1,
+    "lane": 1
+  },
+  "paths": [
+    {
+      "id": "road",
+      "width": 14,
+      "lanes": 3,
+      "points": [
+        [0, 0, -40],
+        [0, 0, 640]
+      ],
+      "visible": false
+    }
+  ],
+  "convoys": [
+    {
+      "id": "main",
+      "path": "road",
+      "rows": 8,
+      "lanesUsed": [0, 1, 2],
+      "startAt": 50,
+      "wobble": 0.05
+    }
+  ],
+  "scenery": [
+    {
+      "type": "box",
+      "pos": [0, -23, 55],
+      "size": [20, 46, 230],
+      "lethal": true,
+      "color": "#90887c"
+    },
+    {
+      "type": "box",
+      "pos": [0, -23, 261],
+      "size": [20, 46, 168],
+      "lethal": true,
+      "color": "#7c8496"
+    },
+    {
+      "type": "box",
+      "pos": [0, -23, 526.5],
+      "size": [20, 46, 347],
+      "lethal": true,
+      "color": "#8a7f8f"
+    },
+    {
+      "type": "box",
+      "pos": [-9, 9.5, 262],
+      "size": [1.4, 19, 1.4],
+      "lethal": true,
+      "color": "#e0a526"
+    },
+    {
+      "type": "box",
+      "pos": [-4, 18.6, 262],
+      "size": [11.4, 1.2, 1.2],
+      "lethal": true,
+      "color": "#e0a526"
+    },
+    {
+      "type": "box",
+      "pos": [-34, -28.5, 50],
+      "size": [22, 33, 30],
+      "lethal": true,
+      "color": "#565c70"
+    },
+    {
+      "type": "box",
+      "pos": [40, -19.5, 140],
+      "size": [22, 51, 44],
+      "lethal": true,
+      "color": "#6a6278"
+    },
+    {
+      "type": "box",
+      "pos": [-46, -10.5, 250],
+      "size": [22, 69, 30],
+      "lethal": true,
+      "color": "#4f6470"
+    },
+    {
+      "type": "box",
+      "pos": [34, -24, 360],
+      "size": [22, 42, 44],
+      "lethal": true,
+      "color": "#565c70"
+    },
+    {
+      "type": "box",
+      "pos": [-40, -15, 440],
+      "size": [22, 60, 30],
+      "lethal": true,
+      "color": "#6a6278"
+    }
+  ],
+  "hazards": [
+    {
+      "type": "plate",
+      "pos": [0, 0, 167],
+      "size": [14, 4],
+      "power": 10
+    },
+    {
+      "type": "plate",
+      "pos": [0, 0, 342],
+      "size": [14, 4],
+      "power": 10
+    },
+    {
+      "type": "pendulum",
+      "pos": [0, 18, 262],
+      "length": 12.5,
+      "swing": 28,
+      "period": 5,
+      "phase": 0.344,
+      "size": 2.4
+    }
+  ],
+  "goal": {
+    "pos": [0, 0, 443],
+    "width": 16,
+    "height": 12
+  }
+}

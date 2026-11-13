@@ -1,0 +1,106 @@
+{
+  "id": "8-1",
+  "name": "Rooftops",
+  "world": "skyline",
+  "parTime": 16,
+  "killY": -45,
+  "ground": "none",
+  "palette": {
+    "sky": "#f3b27a",
+    "ground": "#3b3f52",
+    "fog": "#eeb98c",
+    "fogFar": 520,
+    "road": "#5b6070"
+  },
+  "player": {
+    "convoy": "main",
+    "row": 1,
+    "lane": 1
+  },
+  "paths": [
+    {
+      "id": "road",
+      "width": 14,
+      "lanes": 3,
+      "points": [
+        [0, 0, -40],
+        [0, 0, 640]
+      ],
+      "visible": false
+    }
+  ],
+  "convoys": [
+    {
+      "id": "main",
+      "path": "road",
+      "rows": 8,
+      "lanesUsed": [0, 1, 2],
+      "startAt": 50,
+      "wobble": 0.05
+    }
+  ],
+  "scenery": [
+    {
+      "type": "box",
+      "pos": [0, -23, 70],
+      "size": [20, 46, 260],
+      "lethal": true,
+      "color": "#7c8496"
+    },
+    {
+      "type": "box",
+      "pos": [0, -23, 453],
+      "size": [20, 46, 494],
+      "lethal": true,
+      "color": "#8a7f8f"
+    },
+    {
+      "type": "box",
+      "pos": [-34, -28.5, 60],
+      "size": [22, 33, 30],
+      "lethal": true,
+      "color": "#565c70"
+    },
+    {
+      "type": "box",
+      "pos": [40, -19.5, 150],
+      "size": [22, 51, 44],
+      "lethal": true,
+      "color": "#6a6278"
+    },
+    {
+      "type": "box",
+      "pos": [-46, -10.5, 260],
+      "size": [22, 69, 30],
+      "lethal": true,
+      "color": "#4f6470"
+    },
+    {
+      "type": "box",
+      "pos": [34, -24, 350],
+      "size": [22, 42, 44],
+      "lethal": true,
+      "color": "#565c70"
+    },
+    {
+      "type": "box",
+      "pos": [-40, -15, 430],
+      "size": [22, 60, 30],
+      "lethal": true,
+      "color": "#6a6278"
+    }
+  ],
+  "hazards": [
+    {
+      "type": "plate",
+      "pos": [0, 0, 197],
+      "size": [14, 4],
+      "power": 10
+    }
+  ],
+  "goal": {
+    "pos": [0, 0, 443],
+    "width": 16,
+    "height": 12
+  }
+}

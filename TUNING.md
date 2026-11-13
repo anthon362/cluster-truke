@@ -422,6 +422,32 @@ the level files: belt `factor` and `seconds`, press `period` and `down`, melt `r
 - Crushed and sunk trucks are destroyed without a blast wave and count as explosions in the
   statistics.
 
+## M8 (part 5: world 8, SKYLINE)
+
+**Values changed from the design document:** none. **Values added:** none in `tuning.ts`; the
+goal in a level file can now have `speed` (m/s, at most 16 so the trucks always catch it) and
+`travel` (m).
+
+**Changed from my own plan:** world 8 was announced as "a magnet crane, see-saws, a moving
+goal". The crane is the line of carried trucks that already exists (world 2 used it once), the
+moving goal is in, and see-saws are out: a tilting platform under driving trucks is the same
+problem as the banked roads of world 6. Rooftop gaps crossed with blast plates take their place.
+
+**Measured:**
+
+- A blast plate (power 9 or 10) 3 m before the edge throws the whole convoy across a gap
+  between two roofs of up to 10 m with no losses (24 of 24 trucks, a rider stays on). 5 m
+  before the edge with power 9 fails at 10 m. The levels use power 10, 3 m, gaps of 6 to 9 m.
+- 8-3: riding catches the gate after 22.9 s; running up the convoy reaches it in 9.5 s.
+
+**Notes:**
+
+- The world has no ground: the roofs are scenery, the street is 45 m down, and falling is the
+  "fell" ending. Roads are not drawn, since the ribbon would hang over the gaps.
+- A moving gate travels along the direction it faces. The crossing test compares the player's
+  movement with the gate's movement in the same step, so a gate cannot slip past unnoticed.
+- 8-4 and 8-6 end on the crane line: the roofs run out and the gate is on the carried trucks.
+
 ## What to adjust if it feels wrong
 
 | Feels like                                    | Change                                                                |
@@ -459,3 +485,5 @@ the level files: belt `factor` and `seconds`, press `period` and `down`, melt `r
 | Belts give too little / too much              | `factor` and `seconds` on the belt in the level file                  |
 | Presses too fast / too slow                   | `period` and `down` on the press in the level file                    |
 | Melt leaves too little time                   | `rise` on the melt in the level file (deadline = 1.2 / rise seconds)  |
+| Trucks fall short of / overshoot a roof gap   | `power` on the plate before it (and its distance from the edge)       |
+| The moving gate is too hard to catch          | `speed` on the goal in the level file                                 |

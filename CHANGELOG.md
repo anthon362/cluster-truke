@@ -1,5 +1,13 @@
 # Changelog
 
+## M8 (part 5) — World 8: SKYLINE
+
+- Six rooftop levels: Rooftops, Long Jump, Runaway Gate, Crane Line, Leapfrog, Last Roof, with
+  their own palette and music loop. Blast plates throw the convoy across the gaps between
+  buildings; a line of crane-carried trucks takes over where the roofs end.
+- The goal can move: a gate with `speed` travels away along the road.
+- Every level is completed without abilities.
+
 ## M8 (part 4) — World 7: FOUNDRY
 
 - New hazards: `belt` (a boost belt: trucks speed up and keep the ground gained), `press`

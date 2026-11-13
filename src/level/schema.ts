@@ -250,6 +250,10 @@ export interface GoalDef {
   height: number;
   /** Direction the gate faces, degrees around Y (0 = +Z). Default: along the nearest path. */
   yaw?: number;
+  /** A moving gate: it travels away along the direction it faces at this speed (m/s)... */
+  speed?: number;
+  /** ...and stops after this many metres (default: never). */
+  travel?: number;
 }
 
 export interface LevelDef {
@@ -740,7 +744,9 @@ export function validateLevel(raw: unknown, source = 'level'): LevelDef {
   // Goal.
   const g = c.obj(o.goal, 'goal');
   if (g) {
-    c.unknownKeys(g, ['pos', 'width', 'height', 'yaw'], 'goal');
+    c.unknownKeys(g, ['pos', 'width', 'height', 'yaw', 'speed', 'travel'], 'goal');
+    c.num(g, 'speed', 'goal', { optional: true, min: 0.5, max: 16 });
+    c.num(g, 'travel', 'goal', { optional: true, min: 1 });
     c.vec3(g, 'pos', 'goal');
     c.num(g, 'width', 'goal', { min: 2 });
     c.num(g, 'height', 'goal', { min: 2 });

@@ -144,6 +144,7 @@ export class Sim {
     this.rng = new Rng(this.fixedSeed ?? Rng.randomSeed());
     this.time = 0;
     this.clock = 0;
+    this.goal.moveTo(0);
     this.stepCount = 0;
     this.state = 'playing';
     this.failReason = null;
@@ -225,6 +226,7 @@ export class Sim {
     this.trackStyle();
 
     // Goal first: reaching it wins even if the same step would have killed.
+    this.goal.moveTo(this.time);
     if (this.goal.crossed(this.player.prevPos, this.player.pos)) {
       this.state = 'won';
       this.emit(this.score.finished(this.time, this.firstTry));

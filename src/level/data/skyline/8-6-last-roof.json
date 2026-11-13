@@ -1,0 +1,127 @@
+{
+  "id": "8-6",
+  "name": "Last Roof",
+  "world": "skyline",
+  "parTime": 18,
+  "killY": -45,
+  "ground": "none",
+  "palette": {
+    "sky": "#f3b27a",
+    "ground": "#3b3f52",
+    "fog": "#eeb98c",
+    "fogFar": 520,
+    "road": "#5b6070"
+  },
+  "player": {
+    "convoy": "main",
+    "row": 1,
+    "lane": 2
+  },
+  "paths": [
+    {
+      "id": "road",
+      "width": 12,
+      "lanes": 3,
+      "points": [
+        [0, 0, -40],
+        [0, 0, 640]
+      ],
+      "visible": false
+    },
+    {
+      "id": "hook",
+      "width": 8,
+      "lanes": 2,
+      "points": [
+        [9.3, 0, -40],
+        [9.3, 0, 330],
+        [9.3, 3, 390],
+        [9.3, 3, 760]
+      ],
+      "visible": false
+    }
+  ],
+  "convoys": [
+    {
+      "id": "main",
+      "path": "road",
+      "rows": 8,
+      "lanesUsed": [0, 1, 2],
+      "startAt": 50
+    },
+    {
+      "id": "carried",
+      "path": "hook",
+      "rows": 18,
+      "lanesUsed": [0, 1],
+      "startAt": 50,
+      "float": true
+    }
+  ],
+  "scenery": [
+    {
+      "type": "box",
+      "pos": [0, -23, 55],
+      "size": [13.2, 46, 230],
+      "lethal": true,
+      "color": "#6f8791"
+    },
+    {
+      "type": "box",
+      "pos": [0, -23, 253.5],
+      "size": [13.2, 46, 153],
+      "lethal": true,
+      "color": "#90887c"
+    },
+    {
+      "type": "box",
+      "pos": [-34, -28.5, 60],
+      "size": [22, 33, 30],
+      "lethal": true,
+      "color": "#565c70"
+    },
+    {
+      "type": "box",
+      "pos": [40, -19.5, 180],
+      "size": [22, 51, 44],
+      "lethal": true,
+      "color": "#6a6278"
+    },
+    {
+      "type": "box",
+      "pos": [-46, -10.5, 300],
+      "size": [22, 69, 30],
+      "lethal": true,
+      "color": "#4f6470"
+    },
+    {
+      "type": "box",
+      "pos": [34, -24, 420],
+      "size": [22, 42, 44],
+      "lethal": true,
+      "color": "#565c70"
+    },
+    {
+      "type": "box",
+      "pos": [-40, -15, 540],
+      "size": [22, 60, 30],
+      "lethal": true,
+      "color": "#6a6278"
+    }
+  ],
+  "hazards": [
+    {
+      "type": "plate",
+      "pos": [0, 0, 167],
+      "size": [14, 4],
+      "power": 10
+    }
+  ],
+  "goal": {
+    "pos": [9.3, 2.35, 372.92],
+    "width": 14,
+    "height": 12,
+    "speed": 5,
+    "travel": 200
+  }
+}

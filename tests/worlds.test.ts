@@ -167,9 +167,25 @@ const CASES: Case[] = [
     minWins: 3,
     fast: true,
   },
+  { id: '8-1', demo: ride, demoName: 'riding one truck across the gap', minWins: 5 },
+  { id: '8-2', demo: ride, demoName: 'riding one truck across both gaps', minWins: 5 },
+  { id: '8-3', demo: ride, demoName: 'riding until the convoy catches the gate', minWins: 5 },
+  {
+    id: '8-4',
+    demo: hopTo('carried', 3, 1),
+    demoName: 'one hop onto the carried trucks',
+    minWins: 4,
+  },
+  { id: '8-5', demo: dodgeBeams, demoName: 'riding, changing lane for the weight', minWins: 4 },
+  {
+    id: '8-6',
+    demo: hopTo('carried', 11, 1),
+    demoName: 'across the gap, then one hop onto the carried trucks',
+    minWins: 4,
+  },
 ];
 
-describe('worlds 2 to 7 are completable without abilities', () => {
+describe('worlds 2 to 8 are completable without abilities', () => {
   it('each has six levels, in order', () => {
     for (const [world, n] of [
       ['overpass', 2],
@@ -178,6 +194,7 @@ describe('worlds 2 to 7 are completable without abilities', () => {
       ['quarry', 5],
       ['stormfront', 6],
       ['foundry', 7],
+      ['skyline', 8],
     ] as const) {
       const ids = LEVELS.filter((l) => l.world === world).map((l) => l.id);
       expect(ids).toEqual([1, 2, 3, 4, 5, 6].map((i) => `${n}-${i}`));
@@ -209,7 +226,7 @@ describe('worlds 2 to 7 are completable without abilities', () => {
 describe('unlock order', () => {
   it('opens levels one at a time, and the next world after the last level of a world', () => {
     const campaign = campaignLevels(LEVELS);
-    expect(campaign.length).toBe(42);
+    expect(campaign.length).toBe(48);
     const times: Record<string, number> = {};
     expect(isUnlocked(findLevel('1-1')!, LEVELS, times)).toBe(true);
     expect(isUnlocked(findLevel('1-2')!, LEVELS, times)).toBe(false);
@@ -236,6 +253,7 @@ describe('unlock order', () => {
     expect(nextCampaignLevel(findLevel('4-6')!, LEVELS)?.id).toBe('5-1');
     expect(nextCampaignLevel(findLevel('5-6')!, LEVELS)?.id).toBe('6-1');
     expect(nextCampaignLevel(findLevel('6-6')!, LEVELS)?.id).toBe('7-1');
-    expect(nextCampaignLevel(findLevel('7-6')!, LEVELS)).toBeUndefined();
+    expect(nextCampaignLevel(findLevel('7-6')!, LEVELS)?.id).toBe('8-1');
+    expect(nextCampaignLevel(findLevel('8-6')!, LEVELS)).toBeUndefined();
   });
 });

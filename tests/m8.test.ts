@@ -524,3 +524,44 @@ describe('melt', () => {
     expect(sim.time).toBeLessThan(deadline + 1.2);
   });
 });
+
+describe('moving goal', () => {
+  const moving = (speed: number, travel?: number): LevelDef => ({
+    ...TEST_LEVELS.single,
+    id: 'moving-goal',
+    goal: { pos: [0, 0, 100], width: 16, height: 12, speed, ...(travel ? { travel } : {}) },
+  });
+
+  it('validates, and rejects a gate faster than the trucks could ever catch', () => {
+    expect(() => validateLevel(JSON.parse(JSON.stringify(moving(8))))).not.toThrow();
+    expect(() => validateLevel(JSON.parse(JSON.stringify(moving(30))))).toThrow(/speed/);
+  });
+
+  it('travels away along the road and is caught later than a gate that stands still', () => {
+    const still = new Sim({
+      seed: 1,
+      level: { ...moving(8), goal: { pos: [0, 0, 100], width: 16, height: 12 } },
+    });
+    run(still, 12 * HZ, input());
+    expect(still.state).toBe('won');
+    // The rider starts at z = -1.4 at 18 m/s: 101.4 / 18 = 5.6 s.
+    expect(still.time).toBeCloseTo(101.4 / 18, 0);
+
+    const sim = new Sim({ seed: 1, level: moving(8) });
+    run(sim, 2 * HZ, input());
+    expect(sim.goal.centre.z).toBeCloseTo(116, 0);
+    run(sim, 12 * HZ, input());
+    expect(sim.state).toBe('won');
+    // Closing at 18 - 8 = 10 m/s: 101.4 / 10 = 10.1 s.
+    expect(sim.time).toBeCloseTo(101.4 / 10, 0);
+  });
+
+  it('stops after its travel distance and goes back to the start on restart', () => {
+    const sim = new Sim({ seed: 1, level: moving(8, 20) });
+    run(sim, 4 * HZ, input());
+    expect(sim.goal.centre.z).toBeCloseTo(120);
+    sim.reset();
+    expect(sim.goal.centre.z).toBeCloseTo(100);
+    expect(sim.goal.prevCentre.z).toBeCloseTo(100);
+  });
+});
