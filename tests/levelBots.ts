@@ -8,8 +8,10 @@ import { TUNING } from '../src/config/tuning';
 import { Sim } from '../src/core/sim';
 import { type BeamState, beamHalfExtents, beamStateAt } from '../src/level/hazards/beam';
 import { pendulumAt } from '../src/level/hazards/pendulum';
+import { Strike } from '../src/level/hazards/strike';
 import type { BeamDef, LevelDef, PendulumDef, RotorDef } from '../src/level/schema';
 import { NO_INPUT, type MoveInput } from '../src/player/movement';
+import type { Truck } from '../src/trucks/truck';
 import { bot } from './helpers';
 
 const HZ = 1 / TUNING.loop.fixedStep;
@@ -71,6 +73,31 @@ export function either(...makers: (() => Script)[]): () => Script {
 }
 
 export const ride = (): Script => () => null;
+
+/**
+ * Wrap a script so that, in the air, it steers back toward the sideways
+ * position it took off from. This is what a player does in a crosswind.
+ */
+export function holdLine(maker: () => Script): () => Script {
+  return () => {
+    const inner = maker();
+    let x0 = 0;
+    return (sim, t) => {
+      const p = sim.player;
+      const out = inner(sim, t);
+      if (p.grounded) {
+        x0 = p.pos.x;
+        return out;
+      }
+      // The inner script is steering somewhere on purpose (a lane change): leave it alone.
+      if (out && (out.moveS !== 0 || out.moveF !== 0)) return out;
+      const truckVx = (p.lastTruck ?? p.groundTruck)?.body.linvel().x ?? 0;
+      // Looking down +Z (yaw = pi), "right" is -X.
+      const steer = Math.max(-1, Math.min(1, 1.2 * (p.pos.x - x0) + 0.35 * (p.vel.x - truckVx)));
+      return { ...(out ?? { ...NO_INPUT, yaw: Math.PI }), moveS: steer };
+    };
+  };
+}
 
 /** Run the convoy forward; once on the lead row there is nothing to hop to, so ride. */
 export const runForward = (): Script => (sim) => {
@@ -388,7 +415,7 @@ export const hopBeams = (): Script => {
  * neighbouring lane that will not.
  */
 export const dodgeBeams = (): Script => {
-  let hop: { until: number; side: 1 | -1; started: boolean } | null = null;
+  let hop: { until: number; to: Truck; started: boolean; forward?: boolean } | null = null;
   let quietUntil = 0;
   /** Will a rider at sideways position x run into a beam they cannot jump, between `from` and `to` seconds ahead? */
   const blocked = (sim: Sim, x: number, t: number, from: number, to: number): boolean => {
@@ -403,6 +430,14 @@ export const dodgeBeams = (): Script => {
           return true;
         }
       }
+      // A truck marked by lightning: anywhere on or near it is about to be hit.
+      for (const h of sim.hazards) {
+        if (!(h instanceof Strike) || !h.target) continue;
+        const target = h.target.pos;
+        if (Math.abs(x - target.x) < T.laneSpacing / 2 && Math.abs(p.pos.z - target.z) < 9) {
+          return true;
+        }
+      }
       // A swinging weight is too big to jump.
       for (const w of pendulumsOf(sim)) {
         if (inPendulum(w, x, p.feetY, z, t + lead)) return true;
@@ -413,27 +448,48 @@ export const dodgeBeams = (): Script => {
   return (sim, t) => {
     const p = sim.player;
     if (hop) {
-      if (t > hop.until) hop = null;
+      const err = p.pos.x - hop.to.pos.x;
+      const landed = hop.started && p.groundTruck === hop.to && Math.abs(err) < 0.6;
+      if (t > hop.until || landed || !hop.to.isSolid) hop = null;
       else {
+        if (hop.forward) {
+          // The next row: run and jump, as when moving up the convoy.
+          hop.started = hop.started || !p.grounded;
+          return bot(sim, 1);
+        }
         const first = !hop.started && p.grounded;
         hop.started = hop.started || first;
-        return toward(hop.side, 0, { jumpPressed: first });
+        // Looking down +Z (yaw = pi), "right" is -X: steer onto the middle of the truck aimed for.
+        const closing = p.vel.x - hop.to.body.linvel().x;
+        const steer = Math.max(-1, Math.min(1, 1.4 * err + 0.35 * closing));
+        return { ...NO_INPUT, yaw: Math.PI, moveS: steer, jumpPressed: first, jumpHeld: true };
       }
     }
     if (!p.grounded || t < quietUntil || p.vel.z < 1 || !p.groundTruck) return null;
     if (!blocked(sim, p.pos.x, t, 0.5, 1.6)) return null;
     const here = p.groundTruck.assignment;
     for (const side of [1, -1] as const) {
-      const hasTruck = !!sim.pool.find(here.convoy, here.row, here.lane + side);
-      if (hasTruck && !blocked(sim, p.pos.x + side * T.laneSpacing, t, 0.4, 2.0)) {
-        hop = { until: t + 0.6, side, started: false };
-        quietUntil = t + 1.2;
-        return toward(side, 0);
+      const to = sim.pool.find(here.convoy, here.row, here.lane + side);
+      if (to?.driving && !blocked(sim, to.pos.x, t, 0.4, 2.0)) {
+        hop = { until: t + 1.2, to, started: false };
+        quietUntil = t + 1.3;
+        return null;
       }
+    }
+    // No lane to move to (it is gone, or no better): go forward to the next row instead.
+    const ahead = sim.pool.find(here.convoy, here.row + 1, here.lane);
+    if (ahead?.driving && struck(sim, p.groundTruck)) {
+      hop = { until: t + 3, to: ahead, started: false, forward: true };
+      quietUntil = t + 3;
     }
     return null;
   };
 };
+
+/** Is this truck the one lightning has marked? */
+function struck(sim: Sim, truck: Truck): boolean {
+  return sim.hazards.some((h) => h instanceof Strike && h.target === truck);
+}
 
 /** Walk forward off the trailer onto the truck's cab, which is lower, and stay there. */
 export const toCab = (): Script => {

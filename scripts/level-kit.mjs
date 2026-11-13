@@ -1,7 +1,7 @@
 // Shared helpers for the level authoring scripts. Level JSON files are the
 // source of truth for the game; these only save typing by placing things along
 // a path ("40 m further on, in the right-hand lane") instead of by raw coordinates.
-import { writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { CatmullRomCurve3, Vector3 } from 'three';
 
 export const LANE = 3.4; // keep in sync with TUNING.truck.laneSpacing
@@ -113,6 +113,7 @@ export const GOAL_S = PLAYER_S + 420;
 
 /** Write each [slug, level] pair to src/level/data/<folder>/<id>-<slug>.json. */
 export function writeLevels(folder, levels) {
+  mkdirSync(`src/level/data/${folder}`, { recursive: true });
   for (const [slug, data] of levels) {
     const file = `src/level/data/${folder}/${data.id}-${slug}.json`;
     writeFileSync(file, JSON.stringify(data, null, 2) + '\n');

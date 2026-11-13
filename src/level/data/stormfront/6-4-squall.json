@@ -1,0 +1,165 @@
+{
+  "id": "6-4",
+  "name": "Squall",
+  "world": "stormfront",
+  "parTime": 17,
+  "killY": -5,
+  "palette": {
+    "sky": "#4d5d69",
+    "ground": "#2c363c",
+    "fog": "#56666f",
+    "fogFar": 360,
+    "road": "#39434a"
+  },
+  "player": {
+    "convoy": "main",
+    "row": 1,
+    "lane": 1
+  },
+  "paths": [
+    {
+      "id": "road",
+      "width": 14,
+      "lanes": 3,
+      "points": [
+        [0, 0, -40],
+        [0, 0, 640]
+      ]
+    }
+  ],
+  "convoys": [
+    {
+      "id": "main",
+      "path": "road",
+      "rows": 20,
+      "lanesUsed": [0, 1, 2],
+      "startAt": 50,
+      "wobble": 0.06
+    }
+  ],
+  "scenery": [
+    {
+      "type": "box",
+      "pos": [-10, 4, 110],
+      "size": [0.4, 8, 0.4],
+      "lethal": true,
+      "color": "#6b5a48"
+    },
+    {
+      "type": "box",
+      "pos": [-8.6, 7.6, 110],
+      "size": [2.4, 0.7, 0.7],
+      "lethal": true,
+      "color": "#ff7a1a"
+    },
+    {
+      "type": "box",
+      "pos": [10, 4, 275],
+      "size": [0.4, 8, 0.4],
+      "lethal": true,
+      "color": "#6b5a48"
+    },
+    {
+      "type": "box",
+      "pos": [8.6, 7.6, 275],
+      "size": [2.4, 0.7, 0.7],
+      "lethal": true,
+      "color": "#ff7a1a"
+    },
+    {
+      "type": "box",
+      "pos": [-8.5, 3.5, 180],
+      "size": [0.6, 7, 0.6],
+      "lethal": true,
+      "color": "#6b5a48"
+    },
+    {
+      "type": "box",
+      "pos": [8.5, 3.5, 180],
+      "size": [0.6, 7, 0.6],
+      "lethal": true,
+      "color": "#6b5a48"
+    },
+    {
+      "type": "box",
+      "pos": [-8.5, 3.5, 240],
+      "size": [0.6, 7, 0.6],
+      "lethal": true,
+      "color": "#6b5a48"
+    },
+    {
+      "type": "box",
+      "pos": [8.5, 3.5, 240],
+      "size": [0.6, 7, 0.6],
+      "lethal": true,
+      "color": "#6b5a48"
+    },
+    {
+      "type": "box",
+      "pos": [-8.5, 3.5, 320],
+      "size": [0.6, 7, 0.6],
+      "lethal": true,
+      "color": "#6b5a48"
+    },
+    {
+      "type": "box",
+      "pos": [8.5, 3.5, 320],
+      "size": [0.6, 7, 0.6],
+      "lethal": true,
+      "color": "#6b5a48"
+    },
+    {
+      "type": "box",
+      "pos": [-8.5, 3.5, 390],
+      "size": [0.6, 7, 0.6],
+      "lethal": true,
+      "color": "#6b5a48"
+    },
+    {
+      "type": "box",
+      "pos": [8.5, 3.5, 390],
+      "size": [0.6, 7, 0.6],
+      "lethal": true,
+      "color": "#6b5a48"
+    }
+  ],
+  "hazards": [
+    {
+      "type": "wind",
+      "pos": [0, 0, 182.5],
+      "size": [60, 145],
+      "force": 7
+    },
+    {
+      "type": "wind",
+      "pos": [0, 0, 347.5],
+      "size": [60, 145],
+      "force": -7
+    },
+    {
+      "type": "beam",
+      "pos": [0, 4.3, 180],
+      "length": 16
+    },
+    {
+      "type": "beam",
+      "pos": [0, 4.3, 240],
+      "length": 16
+    },
+    {
+      "type": "beam",
+      "pos": [0, 4.3, 320],
+      "length": 16
+    },
+    {
+      "type": "beam",
+      "pos": [0, 4.3, 390],
+      "length": 16
+    }
+  ],
+  "goal": {
+    "pos": [0, 0, 443],
+    "width": 16,
+    "height": 12
+  }
+}

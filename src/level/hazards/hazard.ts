@@ -15,8 +15,8 @@ export interface HazardContext {
   time(): number;
   /** A path of the level by id. */
   path(id: string): Path | undefined;
-  /** Destroy a truck outright (it explodes). */
-  wreck(truck: Truck): void;
+  /** Destroy a truck outright (it explodes). `quiet`: without a blast wave that throws what is nearby. */
+  wreck(truck: Truck, quiet?: boolean): void;
   /**
    * Mark a collider as a pusher: trucks hit by it are shoved around instead of
    * exploding from the impact.
@@ -59,5 +59,9 @@ export interface Hazard {
 
 export interface Chase {
   label: string;
+  /** Metres to the player; the nearest one is shown. */
   gap: number;
+  /** For warnings that are not a distance (lightning): the text to show and how full the bar is, 0 to 1. */
+  text?: string;
+  fill?: number;
 }

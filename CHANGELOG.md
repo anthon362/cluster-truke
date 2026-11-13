@@ -1,5 +1,15 @@
 # Changelog
 
+## M8 (part 3) — World 6: STORMFRONT
+
+- New hazards: `wind` (a crosswind, steady or in gusts, that carries jumps sideways) and
+  `strike` (lightning that marks the truck you are on, then destroys it).
+- Six storm levels: Crosswind, Gusts, Lightning, Squall, Thunderhead, Eye of the Storm, with
+  their own palette and music loop.
+- The HUD warning bar now also counts down to a lightning strike.
+- Scripted players steer into the wind and leave marked trucks; every level is completed
+  without abilities.
+
 ## M8 (part 2) — World 5: QUARRY
 
 - New hazards: `pendulum` (a swinging wrecking weight, lethal to the player), `plate` (a blast

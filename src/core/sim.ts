@@ -119,8 +119,8 @@ export class Sim {
       rng: () => this.rng,
       time: () => this.clock,
       path: (id: string) => this.pool.paths.get(id),
-      wreck: (truck: Truck) => {
-        if (truck.state === 'alive') this.explode(truck);
+      wreck: (truck: Truck, quiet = false) => {
+        if (truck.state === 'alive') this.explode(truck, quiet);
       },
       registerPusher: (handle: number) => void this.pushers.add(handle),
     };
@@ -302,12 +302,15 @@ export class Sim {
     return hit;
   }
 
-  private explode(truck: Truck): void {
+  /** `quiet`: the truck is destroyed without a blast wave (nothing nearby is thrown). */
+  private explode(truck: Truck, quiet = false): void {
     const com = truck.body.worldCom();
     const origin = new Vector3(com.x, com.y, com.z);
     truck.explode(this.rng);
-    for (const other of this.trucks) if (other !== truck) other.blast(origin, this.rng);
-    this.player.blast(origin);
+    if (!quiet) {
+      for (const other of this.trucks) if (other !== truck) other.blast(origin, this.rng);
+      this.player.blast(origin);
+    }
     this.explosions++;
     this.events.push({ type: 'explosion', pos: origin });
   }

@@ -6,6 +6,8 @@ import { type BeamState, beamStateAt } from '../src/level/hazards/beam';
 import { boulderDistanceAt } from '../src/level/hazards/boulder';
 import { pendulumAt } from '../src/level/hazards/pendulum';
 import { Plate } from '../src/level/hazards/plate';
+import { Strike } from '../src/level/hazards/strike';
+import { type WindState, inWind, windStateAt } from '../src/level/hazards/wind';
 import { TEST_LEVELS } from '../src/level/levels';
 import type {
   BeamDef,
@@ -14,6 +16,8 @@ import type {
   LevelDef,
   PendulumDef,
   PlateDef,
+  StrikeDef,
+  WindDef,
 } from '../src/level/schema';
 import { validateLevel } from '../src/level/schema';
 import { input, run } from './helpers';
@@ -301,5 +305,102 @@ describe('chase gauge', () => {
     // It closes at 26 - 18 = 8 m/s.
     expect(sim.chase()!.gap).toBeCloseTo(first.gap - 8, 0);
     expect(new Sim({ seed: 1, level: withHazards([]) }).chase()).toBeNull();
+  });
+});
+
+describe('wind', () => {
+  const steady: WindDef = { type: 'wind', pos: [0, 0, 150], size: [60, 200], force: 6 };
+  const state = (): WindState => ({ on: false, warning: false });
+
+  it('blows all the time without gusts, and on and off with them, warning first', () => {
+    expect(windStateAt(steady, 3, state()).on).toBe(true);
+    const gusty: WindDef = { ...steady, gust: { on: 2, off: 3 } };
+    expect(windStateAt(gusty, 1, state()).on).toBe(true);
+    expect(windStateAt(gusty, 2.5, state())).toEqual({ on: false, warning: false });
+    expect(windStateAt(gusty, 4.5, state())).toEqual({ on: false, warning: true });
+    expect(windStateAt(gusty, 5.5, state()).on).toBe(true);
+  });
+
+  it('only reaches inside its zone', () => {
+    expect(inWind(steady, 0, 4, 150)).toBe(true);
+    expect(inWind(steady, 0, 4, 20)).toBe(false);
+    expect(inWind(steady, 40, 4, 150)).toBe(false);
+  });
+
+  it('validates, and rejects wind with no force', () => {
+    expect(() => validateLevel(JSON.parse(JSON.stringify(withHazards([steady]))))).not.toThrow();
+    const bad = JSON.parse(JSON.stringify(withHazards([steady])));
+    bad.hazards[0].force = 0;
+    expect(() => validateLevel(bad)).toThrow(/force/);
+  });
+
+  it('leaves a rider and the truck alone but carries a jump sideways', () => {
+    const drift = (hazards: HazardDef[]): number => {
+      const sim = new Sim({ seed: 1, level: withHazards(hazards) });
+      run(sim, 5 * HZ, input());
+      expect(sim.player.grounded).toBe(true);
+      expect(Math.abs(sim.player.pos.x)).toBeLessThan(0.3);
+      const x = sim.player.pos.x;
+      run(sim, 1, input({ jumpPressed: true, jumpHeld: true }));
+      run(sim, 40, input({ jumpHeld: true }));
+      return sim.player.pos.x - x;
+    };
+    expect(Math.abs(drift([]))).toBeLessThan(0.1);
+    const blown = drift([steady]);
+    expect(blown).toBeGreaterThan(1);
+    expect(drift([{ ...steady, force: -6 }])).toBeCloseTo(-blown, 1);
+    // Twice the wind, twice the drift.
+    expect(drift([{ ...steady, force: 12 }])).toBeCloseTo(blown * 2, 0);
+  });
+
+  it('does nothing between gusts', () => {
+    const sim = new Sim({
+      seed: 1,
+      level: withHazards([{ ...steady, gust: { on: 1, off: 30, phase: 0.5 } }]),
+    });
+    run(sim, 5 * HZ, input());
+    const x = sim.player.pos.x;
+    run(sim, 1, input({ jumpPressed: true, jumpHeld: true }));
+    run(sim, 40, input({ jumpHeld: true }));
+    expect(Math.abs(sim.player.pos.x - x)).toBeLessThan(0.1);
+  });
+});
+
+describe('lightning', () => {
+  const def: StrikeDef = { type: 'strike', period: 4, warning: 1.5 };
+
+  it('validates, and rejects a warning longer than the period', () => {
+    expect(() => validateLevel(JSON.parse(JSON.stringify(withHazards([def]))))).not.toThrow();
+    const bad = JSON.parse(JSON.stringify(withHazards([def])));
+    bad.hazards[0].warning = 5;
+    expect(() => validateLevel(bad)).toThrow(/warning/);
+  });
+
+  it('marks the truck the player is on, then destroys it and kills a rider who stayed', () => {
+    const sim = new Sim({ seed: 1, level: withHazards([def]) });
+    const strike = sim.hazards[0] as Strike;
+    run(sim, 2 * HZ, input());
+    expect(strike.target).toBeNull();
+    run(sim, HZ, input());
+    expect(strike.target).toBe(sim.trucks[0]);
+    expect(strike.strikeIn).toBeCloseTo(1, 1);
+    expect(sim.state).toBe('playing');
+    run(sim, 1.5 * HZ, input());
+    expect(strike.strikes).toBe(1);
+    expect(sim.trucks[0].state).not.toBe('alive');
+    expect(sim.state).toBe('failed');
+    expect(sim.time).toBeGreaterThan(3.9);
+    expect(sim.time).toBeLessThan(4.6);
+  });
+
+  it('starts over on restart', () => {
+    const sim = new Sim({ seed: 1, level: withHazards([def]) });
+    run(sim, 5 * HZ, input());
+    sim.reset();
+    const strike = sim.hazards[0] as Strike;
+    expect(strike.strikes).toBe(0);
+    expect(strike.target).toBeNull();
+    run(sim, 2 * HZ, input());
+    expect(sim.state).toBe('playing');
   });
 });

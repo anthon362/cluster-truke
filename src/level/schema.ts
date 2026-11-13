@@ -179,11 +179,6 @@ export interface StrikeDef {
   warning: number;
   /** Where in the cycle it starts, 0 to 1. */
   phase?: number;
-  /** Targets are picked among trucks this far ahead of and behind the player (m). */
-  ahead: number;
-  behind: number;
-  /** Chance (0 to 1) that it picks the truck the player is standing on. */
-  aim: number;
   radius?: number;
 }
 
@@ -651,18 +646,11 @@ export function validateLevel(raw: unknown, source = 'level'): LevelDef {
         }
       }
     } else if (ho.type === 'strike') {
-      c.unknownKeys(
-        ho,
-        ['type', 'period', 'warning', 'phase', 'ahead', 'behind', 'aim', 'radius'],
-        at,
-      );
+      c.unknownKeys(ho, ['type', 'period', 'warning', 'phase', 'radius'], at);
       const period = c.num(ho, 'period', at, { min: 1 });
       const warning = c.num(ho, 'warning', at, { min: 0.3 });
       if (warning >= period) c.fail(`${at}.warning`, `must be shorter than the period (${period})`);
       c.num(ho, 'phase', at, { optional: true, min: 0, max: 1 });
-      c.num(ho, 'ahead', at, { min: 0, max: 200 });
-      c.num(ho, 'behind', at, { min: 0, max: 200 });
-      c.num(ho, 'aim', at, { min: 0, max: 1 });
       c.num(ho, 'radius', at, { optional: true, min: 0.5, max: 10 });
     } else if (ho.type === 'rotor') {
       c.unknownKeys(ho, ['type', 'pos', 'radius', 'spokes', 'speed', 'phase', 'yaw'], at);

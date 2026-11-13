@@ -505,7 +505,7 @@ async function boot(): Promise<void> {
       hud.setSpeed(settings.speedReadout && active, worldSpeed);
       const chase = active ? sim.chase() : null;
       hud.setChase(chase);
-      if (chase && chase.gap < TUNING.ui.chaseDangerRange) {
+      if (chase && chase.fill === undefined && chase.gap < TUNING.ui.chaseDangerRange) {
         // The ground shakes harder the closer it is.
         rig.addShake((1 - chase.gap / TUNING.ui.chaseDangerRange) * TUNING.ui.chaseShake);
       }

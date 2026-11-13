@@ -102,12 +102,14 @@ export class Hud {
   /** How close the thing chasing the player is; null hides the gauge. */
   setChase(chase: Chase | null): void {
     const U = TUNING.ui;
-    const show = !!chase && chase.gap < U.chaseWarnRange;
+    const timed = chase?.fill !== undefined;
+    const show = !!chase && (timed || chase.gap < U.chaseWarnRange);
     this.chase.classList.toggle('hidden', !show);
     if (!show || !chase) return;
-    this.chase.classList.toggle('danger', chase.gap < U.chaseDangerRange);
-    this.chaseText.textContent = `${chase.label} ${Math.round(chase.gap)} m`;
-    this.chaseFill.style.width = `${Math.round((1 - chase.gap / U.chaseWarnRange) * 100)}%`;
+    const fill = chase.fill ?? 1 - chase.gap / U.chaseWarnRange;
+    this.chase.classList.toggle('danger', timed ? fill > 0.5 : chase.gap < U.chaseDangerRange);
+    this.chaseText.textContent = chase.text ?? `${chase.label} ${Math.round(chase.gap)} m`;
+    this.chaseFill.style.width = `${Math.round(fill * 100)}%`;
   }
 
   clearPopups(): void {

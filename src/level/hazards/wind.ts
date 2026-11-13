@@ -95,26 +95,33 @@ export class Wind implements Hazard {
 
   dispose(): void {}
 
-  /** Streaks fly across the zone in the wind's direction, each on its own line. */
+  /** Streaks fly across the road near the player in the wind's direction, each on its own line. */
   private draw(t: number): void {
     const def = this.def;
     const s = windStateAt(def, t, this.state);
     const show = s.on || s.warning;
-    const w = def.size[0];
+    const w = Math.min(def.size[0], H.windStreakSide * 2);
+    const zMin = def.pos[2] - def.size[1] / 2;
+    const zMax = def.pos[2] + def.size[1] / 2;
+    // Lines are fixed in the world (spaced along the road), and only those near the player are used.
+    const spacing = H.windStreakSpan / this.parts.length;
+    const first = Math.floor((this.ctx.player.pos.z - H.windStreakSpan * 0.35) / spacing);
     for (let i = 0; i < this.parts.length; i++) {
-      const part = this.parts[i];
-      part.prevPos.copy(part.pos);
+      const n = first + i;
+      const slot = ((n % this.parts.length) + this.parts.length) % this.parts.length;
+      const target = this.parts[slot];
       // Golden-ratio scatter: evenly spread without looking like a grid.
-      const a = (i * 0.618034) % 1;
-      const b = (i * 0.381966 + 0.27) % 1;
-      const c = (i * 0.754878 + 0.61) % 1;
-      const travel = (((t * H.windStreakSpeed * (0.7 + 0.6 * c)) / w + a) % 1) * this.dir;
-      const x = def.pos[0] + (((travel + 1) % 1) - 0.5) * w;
-      part.pos.set(x, def.pos[1] + 1 + c * H.windStreakTop, def.pos[2] + (b - 0.5) * def.size[1]);
-      // A streak that wrapped around jumps across the zone: do not draw the jump.
-      if (Math.abs(part.pos.x - part.prevPos.x) > w / 2) part.prevPos.copy(part.pos);
+      const a = (((n * 0.618034) % 1) + 1) % 1;
+      const c = (((n * 0.754878 + 0.61) % 1) + 1) % 1;
+      const travel = ((t * H.windStreakSpeed * (0.7 + 0.6 * c)) / w + a) % 1;
+      const across = (this.dir > 0 ? travel : 1 - travel) - 0.5;
+      const z = n * spacing;
+      target.prevPos.copy(target.pos);
+      target.pos.set(def.pos[0] + across * w, def.pos[1] + 2.5 + c * H.windStreakTop, z);
+      // A streak that wrapped around or moved to a new line jumps: do not draw the jump.
+      if (target.pos.distanceToSquared(target.prevPos) > 9) target.prevPos.copy(target.pos);
       // Before a gust only a few show, as a warning.
-      part.visible = show && (s.on || i % 3 === 0);
+      target.visible = show && z >= zMin && z <= zMax && (s.on || slot % 3 === 0);
     }
   }
 }

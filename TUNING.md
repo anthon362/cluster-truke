@@ -350,35 +350,73 @@ live in the level files: plate `power`, weight `length` / `swing` / `period`, bo
 - 5-4 and 5-6 are the first levels where riding one truck to the goal is not enough. They
   still need no abilities: the demonstration only runs forward and jumps between rows.
 
+## M8 (part 3: world 6, STORMFRONT)
+
+**Values changed from the design document:** none.
+
+**Changed from my own plan:** world 6 was announced as "wind, tilted roads". Tilted roads are
+out and lightning is in. A banked road needs trucks to drive over a tilted edge, which the
+truck physics turns into explosions; lightning gives the world a second idea that works with
+the trucks instead of against them.
+
+**Values the document did not give (added):** `hazards.windGroundShare` 0.3,
+`hazards.windTruckShare` 0.04, `hazards.windHeight` 40 m, `hazards.windWarning` 0.9 s, the
+`hazards.windStreak*` drawing values, `hazards.strikeRadius` 1.5 m, `hazards.strikeHeight` 70 m,
+`hazards.strikeBoltTime` 0.2 s, `hazards.strikeMark*` and `hazards.strikeFlickerHz`. Per-level
+values live in the level files: wind `force` and `gust`, lightning `period` and `warning`.
+
+**Measured:**
+
+- Wind does not move someone standing on a roof (their grip cancels it) and does not move the
+  trucks enough to matter. It only matters in the air: one full jump drifts 2.6 m at force 6
+  and 4.3 m at force 10 (a lane is 3.4 m). The levels use 6 to 9.
+- A scripted player who jumps the power lines without steering wins 2 of 6 runs of 6-1; one
+  that steers back toward where it took off wins 6 of 6.
+
+**Notes:**
+
+- `wind`: a zone with a sideways push, steady or in gusts. White streaks show where and which
+  way; a few appear 0.9 s before a gust. MAGNET BOOTS ignore it while standing.
+- `strike`: lightning. It always picks the truck the player is on (or last stood on), frames it
+  with four flickering columns for the warning time, then destroys it. A bar on the HUD counts
+  down. The first version picked random trucks near the player and threw the player with the
+  blast; trucks hit ahead left wrecks the player's truck then drove into, and nobody survived.
+  Now the hit has no blast wave and the wreck is always behind the player.
+- The power lines are the `beam` hazard from world 4 at jumping height.
+- The scripted lane change now steers onto the middle of the truck it is aiming for and, when
+  the lane beside is gone, runs forward to the next row instead.
+
 ## What to adjust if it feels wrong
 
-| Feels like                                    | Change                                                               |
-| --------------------------------------------- | -------------------------------------------------------------------- |
-| Running is too slow / too fast                | `player.sprintSpeed`, `player.walkSpeed`                             |
-| Starts and stops feel sluggish / twitchy      | `player.groundAccel`, `player.groundDecel`                           |
-| Jump too floaty / too heavy                   | `player.gravity` (and `jumpVelocity` to keep the height)             |
-| Jump too short to reach the next truck        | `player.jumpVelocity`                                                |
-| Tapping jump is not low enough                | `player.jumpCutMultiplier`                                           |
-| Jumps at edges get eaten                      | `player.coyoteTime`, `player.jumpBuffer`                             |
-| Too little / too much steering in the air     | `player.airAccel`                                                    |
-| Strafing too weak                             | `player.strafeMultiplier`                                            |
-| Mouse too fast / slow                         | `camera.sensitivityDefault`                                          |
-| View too narrow / fish-eyed                   | `camera.fovDefault`, `camera.sprintFovKick`                          |
-| Truck too slow / fast                         | `truck.cruiseSpeed`                                                  |
-| Convoy too tidy / too chaotic                 | `truck.wobbleAmplitude`, `truck.speedVariance`, `truck.leadRowCalm`  |
-| Rows too far apart to jump                    | `truck.rowSpacing`, `truck.slotGain`                                 |
-| Trucks explode too easily / not enough        | `truck.explodeDeltaV`                                                |
-| Explosions throw things too hard / too little | `truck.blastSpeed`, `player.blastSpeed`                              |
-| Climbing a truck side too slow / too easy     | `player.clingAccel`, `player.clingMaxRise`, `player.clingCatchAccel` |
-| Side kick-off too weak                        | `player.clingTapUp`, `player.clingTapAway`                           |
-| Camera shake too strong                       | `camera.shakeMaxAngle`                                               |
-| Wall bricks fly too wildly / too little       | `hazards.wallFling`, `hazards.wallScatter`                           |
-| Bricks shove you too hard                     | `hazards.debrisKnock`                                                |
-| Pile-ups spread too far back                  | `truck.brakeAccel`, `truck.panicDistance`                            |
-| Points come too fast / too slowly             | `score.*` (each bonus has its own value)                             |
-| An ability is too strong / weak               | `abilities.<name>.*`                                                 |
-| Prices                                        | `src/config/abilities.ts`                                            |
-| Ice too slippery / not slippery enough        | `truck.lateralGripIce`                                               |
-| Blast plates throw trucks too high / too low  | `power` on the plate in the level file (stable range 6 to 10)        |
-| Wrecking weights too fast / too slow          | `period` on the pendulum in the level file                           |
-| Boulder catches up too fast / too slowly      | `speed` and `startAt` on the boulder in the level file               |
+| Feels like                                    | Change                                                                |
+| --------------------------------------------- | --------------------------------------------------------------------- |
+| Running is too slow / too fast                | `player.sprintSpeed`, `player.walkSpeed`                              |
+| Starts and stops feel sluggish / twitchy      | `player.groundAccel`, `player.groundDecel`                            |
+| Jump too floaty / too heavy                   | `player.gravity` (and `jumpVelocity` to keep the height)              |
+| Jump too short to reach the next truck        | `player.jumpVelocity`                                                 |
+| Tapping jump is not low enough                | `player.jumpCutMultiplier`                                            |
+| Jumps at edges get eaten                      | `player.coyoteTime`, `player.jumpBuffer`                              |
+| Too little / too much steering in the air     | `player.airAccel`                                                     |
+| Strafing too weak                             | `player.strafeMultiplier`                                             |
+| Mouse too fast / slow                         | `camera.sensitivityDefault`                                           |
+| View too narrow / fish-eyed                   | `camera.fovDefault`, `camera.sprintFovKick`                           |
+| Truck too slow / fast                         | `truck.cruiseSpeed`                                                   |
+| Convoy too tidy / too chaotic                 | `truck.wobbleAmplitude`, `truck.speedVariance`, `truck.leadRowCalm`   |
+| Rows too far apart to jump                    | `truck.rowSpacing`, `truck.slotGain`                                  |
+| Trucks explode too easily / not enough        | `truck.explodeDeltaV`                                                 |
+| Explosions throw things too hard / too little | `truck.blastSpeed`, `player.blastSpeed`                               |
+| Climbing a truck side too slow / too easy     | `player.clingAccel`, `player.clingMaxRise`, `player.clingCatchAccel`  |
+| Side kick-off too weak                        | `player.clingTapUp`, `player.clingTapAway`                            |
+| Camera shake too strong                       | `camera.shakeMaxAngle`                                                |
+| Wall bricks fly too wildly / too little       | `hazards.wallFling`, `hazards.wallScatter`                            |
+| Bricks shove you too hard                     | `hazards.debrisKnock`                                                 |
+| Pile-ups spread too far back                  | `truck.brakeAccel`, `truck.panicDistance`                             |
+| Points come too fast / too slowly             | `score.*` (each bonus has its own value)                              |
+| An ability is too strong / weak               | `abilities.<name>.*`                                                  |
+| Prices                                        | `src/config/abilities.ts`                                             |
+| Ice too slippery / not slippery enough        | `truck.lateralGripIce`                                                |
+| Blast plates throw trucks too high / too low  | `power` on the plate in the level file (stable range 6 to 10)         |
+| Wrecking weights too fast / too slow          | `period` on the pendulum in the level file                            |
+| Boulder catches up too fast / too slowly      | `speed` and `startAt` on the boulder in the level file                |
+| Wind too strong / too weak                    | `force` on the wind in the level file (a jump drifts 0.43 m per unit) |
+| Lightning leaves too little time              | `warning` and `period` on the strike in the level file                |

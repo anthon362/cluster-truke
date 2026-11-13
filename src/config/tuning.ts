@@ -285,19 +285,23 @@ export const TUNING = {
     windHeight: 40,
     windWarning: 0.9,
     /** Wind streaks: how many per zone, their size (m), speed (m/s) and how high they fly (m). */
-    windStreaks: 18,
-    windStreakLength: 4,
-    windStreakThickness: 0.07,
-    windStreakSpeed: 34,
-    windStreakTop: 9,
+    windStreaks: 30,
+    windStreakLength: 6,
+    windStreakThickness: 0.13,
+    windStreakSpeed: 38,
+    windStreakTop: 8,
+    /** Streaks are drawn within this many metres ahead of and behind the player, and this far to each side. */
+    windStreakSpan: 110,
+    windStreakSide: 22,
     /** Lightning: lethal radius (m), column height, how long the bolt stays (s), mark width and flicker. */
-    strikeRadius: 2,
+    strikeRadius: 1.5,
     strikeHeight: 70,
     strikeBoltTime: 0.2,
-    strikeMarkWidth: 0.35,
+    strikeMarkWidth: 0.22,
+    /** The four warning columns stand this far out from the marked truck's centre (m). */
+    strikeMarkSide: 1.7,
+    strikeMarkAlong: 5.6,
     strikeFlickerHz: 5,
-    /** Lightning only picks trucks this close to the player sideways (m). */
-    strikeAcross: 12,
   },
 
   goal: {
