@@ -1,7 +1,7 @@
 {
   "name": "righop",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,7 +9,9 @@
     "preview": "vite preview",
     "test": "vitest run",
     "lint": "eslint src tests",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "check": "prettier --check . && tsc --noEmit && eslint . && vitest run",
+    "package": "node scripts/package.mjs"
   },
   "dependencies": {
     "@dimforge/rapier3d": "^0.21.0",

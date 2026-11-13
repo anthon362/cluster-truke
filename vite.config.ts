@@ -1,9 +1,16 @@
 import { defineConfig } from 'vitest/config';
+import { readFileSync } from 'node:fs';
 import wasm from 'vite-plugin-wasm';
+
+const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as {
+  version: string;
+};
 
 export default defineConfig({
   // Relative paths so the built site works from any folder (static hosting, game portals).
   base: './',
+  // The version shown on the menu is the one in package.json.
+  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   // Lets the physics engine's WebAssembly be loaded as its own file instead of
   // being embedded in the JavaScript as text.
   plugins: [wasm()],

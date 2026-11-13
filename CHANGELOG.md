@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.0.0 (M10) — Release
+
+- Par times corrected on 16 levels. On levels with a short convoy the old par could not be
+  reached without abilities (nobody can get ahead of the front row), and five pars were below
+  the 15 s the design sets as the minimum.
+- Release checks over the whole campaign: shape, par range, a fast scripted run under par on
+  38 of 54 levels, and the simulation and restart cost of the largest level.
+- `npm run package` builds a zip for static hosting or a game portal; `npm run check` runs
+  everything.
+- The version is shown on the main menu.
+
 ## M9 — Level editor
 
 - A level editor in the browser (main menu, Level Editor): a top-down map with drag, pan and
