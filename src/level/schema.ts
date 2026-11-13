@@ -182,6 +182,37 @@ export interface StrikeDef {
   radius?: number;
 }
 
+export interface BeltDef {
+  type: 'belt';
+  /** Centre of the belt, on the road. */
+  pos: Vec3;
+  /** [width across the road (X), length along it (Z)]. */
+  size: [number, number];
+  /** Trucks that cross it drive this many times their speed for `seconds`. */
+  factor: number;
+  seconds: number;
+}
+
+export interface PressDef {
+  type: 'press';
+  /** Centre of the block's footprint, on the road. */
+  pos: Vec3;
+  /** [width across the road (X), length along it (Z)]. */
+  size: [number, number];
+  /** Seconds for one full cycle, and how long of it the block stays down. */
+  period: number;
+  down: number;
+  /** Where in the cycle it starts, 0 to 1. */
+  phase?: number;
+}
+
+export interface MeltDef {
+  type: 'melt';
+  /** Metres per second the surface rises, after `delay` seconds. */
+  rise: number;
+  delay?: number;
+}
+
 export type HazardDef =
   | BreakableWallDef
   | SpinnerDef
@@ -192,7 +223,10 @@ export type HazardDef =
   | PlateDef
   | BoulderDef
   | WindDef
-  | StrikeDef;
+  | StrikeDef
+  | BeltDef
+  | PressDef
+  | MeltDef;
 export const HAZARD_TYPES = [
   'breakableWall',
   'spinner',
@@ -204,6 +238,9 @@ export const HAZARD_TYPES = [
   'boulder',
   'wind',
   'strike',
+  'belt',
+  'press',
+  'melt',
 ] as const;
 
 export interface GoalDef {
@@ -645,6 +682,38 @@ export function validateLevel(raw: unknown, source = 'level'): LevelDef {
           c.num(g, 'phase', `${at}.gust`, { optional: true });
         }
       }
+    } else if (ho.type === 'belt' || ho.type === 'press') {
+      c.unknownKeys(
+        ho,
+        ho.type === 'belt'
+          ? ['type', 'pos', 'size', 'factor', 'seconds']
+          : ['type', 'pos', 'size', 'period', 'down', 'phase'],
+        at,
+      );
+      c.vec3(ho, 'pos', at);
+      const size = ho.size;
+      if (
+        !Array.isArray(size) ||
+        size.length !== 2 ||
+        size.some((n) => typeof n !== 'number' || !(n > 0))
+      ) {
+        c.fail(`${at}.size`, `expected [width, length] larger than 0, got ${describe(size)}`);
+      }
+      if (ho.type === 'belt') {
+        c.num(ho, 'factor', at, { min: 1.05, max: 2.5 });
+        c.num(ho, 'seconds', at, { min: 0.2, max: 20 });
+      } else {
+        const period = c.num(ho, 'period', at, { min: 3 });
+        const down = c.num(ho, 'down', at, { min: 0.1 });
+        if (down > period - 2.5) {
+          c.fail(`${at}.down`, `must leave 2.5 s of the period (${period}) for moving and waiting`);
+        }
+        c.num(ho, 'phase', at, { optional: true });
+      }
+    } else if (ho.type === 'melt') {
+      c.unknownKeys(ho, ['type', 'rise', 'delay'], at);
+      c.num(ho, 'rise', at, { min: 0.01, max: 5 });
+      c.num(ho, 'delay', at, { optional: true, min: 0 });
     } else if (ho.type === 'strike') {
       c.unknownKeys(ho, ['type', 'period', 'warning', 'phase', 'radius'], at);
       const period = c.num(ho, 'period', at, { min: 1 });

@@ -293,6 +293,33 @@ export const TUNING = {
     /** Streaks are drawn within this many metres ahead of and behind the player, and this far to each side. */
     windStreakSpan: 110,
     windStreakSide: 22,
+    /** Boost belt: number of moving stripes, their length (m) and speed (m/s). */
+    beltStripes: 6,
+    beltStripeLength: 1.2,
+    beltStripeSpeed: 14,
+    /**
+     * Press: height of the block's underside when up and when down (m), block height, how fast it
+     * slams and rises (s), how long its lamp flashes first (s), and below which height it crushes
+     * a truck under it, reaching this far past its own footprint (m).
+     */
+    pressTop: 10,
+    pressBottom: 0.6,
+    pressBlock: 7,
+    pressSlam: 0.18,
+    pressRise: 1.1,
+    pressWarning: 1.1,
+    pressCrushBelow: 3.6,
+    pressReach: 1.5,
+    /**
+     * Melt: it destroys trucks once it is this deep (m), a truck whose centre is less than this
+     * above the surface is gone, the slab that draws it, and the HUD bar starts filling this many
+     * seconds before the trucks go.
+     */
+    meltTruckHeight: 1.2,
+    meltTruckClear: 1.6,
+    meltSize: 1400,
+    meltDepth: 4,
+    meltCountdown: 20,
     /** Lightning: lethal radius (m), column height, how long the bolt stays (s), mark width and flicker. */
     strikeRadius: 1.5,
     strikeHeight: 70,
