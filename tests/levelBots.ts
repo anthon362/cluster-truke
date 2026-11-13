@@ -8,6 +8,7 @@ import { TUNING } from '../src/config/tuning';
 import { Sim } from '../src/core/sim';
 import { type BeamState, beamHalfExtents, beamStateAt } from '../src/level/hazards/beam';
 import { pendulumAt } from '../src/level/hazards/pendulum';
+import { type PressState, pressStateAt, underPress } from '../src/level/hazards/press';
 import { Strike } from '../src/level/hazards/strike';
 import type { BeamDef, LevelDef, PendulumDef, RotorDef } from '../src/level/schema';
 import { NO_INPUT, type MoveInput } from '../src/player/movement';
@@ -99,12 +100,29 @@ export function holdLine(maker: () => Script): () => Script {
   };
 }
 
+/** A row gap this much longer than normal (m) is not worth jumping. */
+const STRETCH_LIMIT = 2;
+
 /** Run the convoy forward; once on the lead row there is nothing to hop to, so ride. */
 export const runForward = (): Script => (sim) => {
   const here = sim.player.groundTruck ?? sim.player.lastTruck!;
   const a = here.assignment;
   const hasNext = !!sim.pool.find(a.convoy, a.row + 1, a.lane);
   return hasNext || !sim.player.grounded ? bot(sim, 1) : null;
+};
+
+/**
+ * Run the convoy forward, but wait when the rows have been pulled apart (by a
+ * boost belt) until the gap closes again.
+ */
+export const runCareful = (): Script => (sim) => {
+  const here = sim.player.groundTruck ?? sim.player.lastTruck!;
+  const a = here.assignment;
+  const next = sim.pool.find(a.convoy, a.row + 1, a.lane);
+  if (!sim.player.grounded) return bot(sim, 1);
+  if (!next?.driving) return null;
+  if (next.pos.distanceTo(here.pos) > T.rowSpacing + STRETCH_LIMIT) return null;
+  return bot(sim, 1);
 };
 
 /** One sideways hop to the next lane at time `at` (+1 = toward +X). */
@@ -354,6 +372,9 @@ export function inBeam(def: BeamDef, x: number, feet: number, z: number, at: num
 }
 
 const weightPos = new Vector3();
+const pressState: PressState = { bottom: 0, warning: false };
+/** Stay this far clear of a press's footprint: it reaches past its block for trucks (m). */
+const PRESS_MARGIN = 2.5;
 
 /** Would someone standing with their feet at (x, feet, z) be hit by a swinging weight at time `at`? */
 export function inPendulum(
@@ -437,6 +458,11 @@ export const dodgeBeams = (): Script => {
         if (Math.abs(x - target.x) < T.laneSpacing / 2 && Math.abs(p.pos.z - target.z) < 9) {
           return true;
         }
+      }
+      // A press that will be low enough to hit when this lane gets under it.
+      for (const h of sim.level.hazards) {
+        if (h.type !== 'press' || !underPress(h, x, z, PRESS_MARGIN)) continue;
+        if (pressStateAt(h, t + lead, pressState).bottom < p.feetY + P.height + 2.5) return true;
       }
       // A swinging weight is too big to jump.
       for (const w of pendulumsOf(sim)) {

@@ -297,6 +297,9 @@ export const TUNING = {
     beltStripes: 6,
     beltStripeLength: 1.2,
     beltStripeSpeed: 14,
+    /** Lit corner posts: height and how far outside the belt's edge they stand (m). */
+    beltPostHeight: 5,
+    beltPostOut: 1.4,
     /**
      * Press: height of the block's underside when up and when down (m), block height, how fast it
      * slams and rises (s), how long its lamp flashes first (s), and below which height it crushes

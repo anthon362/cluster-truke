@@ -15,6 +15,7 @@ import {
   hopTo,
   play,
   ride,
+  runCareful,
   runForward,
   summary,
   toCab,
@@ -142,9 +143,33 @@ const CASES: Case[] = [
     minWins: 4,
     fast: true,
   },
+  { id: '7-1', demo: ride, demoName: 'riding one truck over the belts', minWins: 5 },
+  { id: '7-2', demo: dodgeBeams, demoName: 'riding, changing lane for the presses', minWins: 4 },
+  {
+    id: '7-3',
+    demo: runForward,
+    demoName: 'running up the convoy ahead of the melt',
+    minWins: 4,
+    fast: true,
+  },
+  { id: '7-4', demo: dodgeBeams, demoName: 'riding, changing lane for the presses', minWins: 4 },
+  {
+    id: '7-5',
+    demo: runCareful,
+    demoName: 'running up the convoy, waiting out the belts',
+    minWins: 3,
+    fast: true,
+  },
+  {
+    id: '7-6',
+    demo: either(dodgeBeams, runCareful),
+    demoName: 'running up the convoy, changing lane for the presses',
+    minWins: 3,
+    fast: true,
+  },
 ];
 
-describe('worlds 2 to 6 are completable without abilities', () => {
+describe('worlds 2 to 7 are completable without abilities', () => {
   it('each has six levels, in order', () => {
     for (const [world, n] of [
       ['overpass', 2],
@@ -152,6 +177,7 @@ describe('worlds 2 to 6 are completable without abilities', () => {
       ['nightfreight', 4],
       ['quarry', 5],
       ['stormfront', 6],
+      ['foundry', 7],
     ] as const) {
       const ids = LEVELS.filter((l) => l.world === world).map((l) => l.id);
       expect(ids).toEqual([1, 2, 3, 4, 5, 6].map((i) => `${n}-${i}`));
@@ -183,7 +209,7 @@ describe('worlds 2 to 6 are completable without abilities', () => {
 describe('unlock order', () => {
   it('opens levels one at a time, and the next world after the last level of a world', () => {
     const campaign = campaignLevels(LEVELS);
-    expect(campaign.length).toBe(36);
+    expect(campaign.length).toBe(42);
     const times: Record<string, number> = {};
     expect(isUnlocked(findLevel('1-1')!, LEVELS, times)).toBe(true);
     expect(isUnlocked(findLevel('1-2')!, LEVELS, times)).toBe(false);
@@ -209,6 +235,7 @@ describe('unlock order', () => {
     expect(nextCampaignLevel(findLevel('3-6')!, LEVELS)?.id).toBe('4-1');
     expect(nextCampaignLevel(findLevel('4-6')!, LEVELS)?.id).toBe('5-1');
     expect(nextCampaignLevel(findLevel('5-6')!, LEVELS)?.id).toBe('6-1');
-    expect(nextCampaignLevel(findLevel('6-6')!, LEVELS)).toBeUndefined();
+    expect(nextCampaignLevel(findLevel('6-6')!, LEVELS)?.id).toBe('7-1');
+    expect(nextCampaignLevel(findLevel('7-6')!, LEVELS)).toBeUndefined();
   });
 });

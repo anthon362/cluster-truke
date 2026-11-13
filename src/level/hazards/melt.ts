@@ -71,7 +71,11 @@ export class Melt implements Hazard {
     if (level < H.meltTruckHeight) return;
     for (const t of this.ctx.trucks) {
       if (t.state !== 'alive' || t.assignment.float) continue;
-      if (t.pos.y - level < H.meltTruckClear) this.ctx.wreck(t, true);
+      if (t.pos.y - level < H.meltTruckClear) {
+        this.ctx.wreck(t, true);
+        // It sinks: nothing is left to stand on.
+        t.despawn();
+      }
     }
   }
 
@@ -97,6 +101,7 @@ export class Melt implements Hazard {
   /** The slab follows the player sideways so it always fills the view; only its height matters. */
   private place(t: number): void {
     const p = this.ctx.player.pos;
-    this.surface.pos.set(p.x, meltLevelAt(this.def, t) - H.meltDepth / 2, p.z);
+    // A hair above the floor at the start, so the two surfaces do not flicker through each other.
+    this.surface.pos.set(p.x, meltLevelAt(this.def, t) + 0.05 - H.meltDepth / 2, p.z);
   }
 }

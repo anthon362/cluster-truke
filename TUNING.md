@@ -386,6 +386,42 @@ values live in the level files: wind `force` and `gust`, lightning `period` and 
 - The scripted lane change now steers onto the middle of the truck it is aiming for and, when
   the lane beside is gone, runs forward to the next row instead.
 
+## M8 (part 4: world 7, FOUNDRY)
+
+**Values changed from the design document:** none.
+
+**Values the document did not give (added):** `hazards.beltStripes` / `beltStripeLength` /
+`beltStripeSpeed` / `beltPostHeight` / `beltPostOut` (drawing), `hazards.pressTop` 10 m,
+`pressBottom` 0.6 m, `pressBlock` 7 m, `pressSlam` 0.18 s, `pressRise` 1.1 s, `pressWarning`
+1.1 s, `pressCrushBelow` 3.6 m, `pressReach` 1.5 m, `hazards.meltTruckHeight` 1.2 m,
+`meltTruckClear` 1.6 m, `meltSize`, `meltDepth`, `meltCountdown` 20 s. Per-level values live in
+the level files: belt `factor` and `seconds`, press `period` and `down`, melt `rise`.
+
+**Measured:**
+
+- The first belt used the existing truck boost (the one TAILWIND uses). The convoy was no
+  faster at the goal (23.3 s against 23.4 s): each truck is pulled back to its place in the
+  formation when the boost ends. Belts now use a new `surge`, which moves the truck's place
+  forward with it. Two belts at 1.35 x for 3 s take a ride from 23.4 s to 21.3 s.
+- Rows cross a belt one after another, so the gap between two rows opens by about 4.5 m for a
+  moment. The scripted runner fell into it; it now waits when a gap is more than 2 m longer
+  than normal, as a player would.
+- A gantry of three presses (period about 6 s, down 1 s) crushes roughly 4 of every 10 trucks
+  that pass under it.
+
+**Notes:**
+
+- `belt`: speeds up every truck that crosses it, and they keep the ground gained.
+- `press`: a block over one lane. Touching it kills; when it comes down it flattens the truck
+  under it, which is removed at once so the next truck does not drive into a wreck. Its lamp
+  flashes for 1.1 s first. Gantries bring their presses down one after another, so one lane is
+  always open.
+- `melt`: the floor floods. When it is 1.2 m deep every truck sinks. The HUD counts down. 7-3,
+  7-5 and 7-6 cannot be finished by riding (a ride takes 23 s, the melt allows 15 to 18 s); the
+  demonstration runs up the convoy and finishes in about 13 to 17 s.
+- Crushed and sunk trucks are destroyed without a blast wave and count as explosions in the
+  statistics.
+
 ## What to adjust if it feels wrong
 
 | Feels like                                    | Change                                                                |
@@ -420,3 +456,6 @@ values live in the level files: wind `force` and `gust`, lightning `period` and 
 | Boulder catches up too fast / too slowly      | `speed` and `startAt` on the boulder in the level file                |
 | Wind too strong / too weak                    | `force` on the wind in the level file (a jump drifts 0.43 m per unit) |
 | Lightning leaves too little time              | `warning` and `period` on the strike in the level file                |
+| Belts give too little / too much              | `factor` and `seconds` on the belt in the level file                  |
+| Presses too fast / too slow                   | `period` and `down` on the press in the level file                    |
+| Melt leaves too little time                   | `rise` on the melt in the level file (deadline = 1.2 / rise seconds)  |

@@ -10,11 +10,12 @@ const tmp = new Vector3();
 
 /**
  * A boost belt set into the road. Every truck that drives onto it speeds up
- * for a while, so the convoy stretches as its front rows pull away and
- * closes up again afterwards.
+ * for a while and keeps the ground it gains. The rows cross it one after
+ * another, so the gaps between them open up for a moment and close again.
  */
 export class Belt implements Hazard {
   readonly parts: HazardPart[] = [];
+  private readonly stripes: HazardPart[] = [];
   private readonly centre = new Vector3();
   private readonly over = new Set<Truck>();
   /** Trucks boosted this attempt (tests). */
@@ -29,7 +30,7 @@ export class Belt implements Hazard {
     // Chevron stripes that run along the belt, so its direction and pull read at a glance.
     for (let i = 0; i < H.beltStripes; i++) {
       const pos = new Vector3();
-      this.parts.push({
+      this.stripes.push({
         size: new Vector3(def.size[0], H.plateThickness, H.beltStripeLength),
         color: PALETTE.belt,
         glow: true,
@@ -40,6 +41,27 @@ export class Belt implements Hazard {
         rot,
       });
     }
+    this.parts.push(...this.stripes);
+    // Lit posts at the four corners, so the belt can be seen from a roof and over a flooded floor.
+    for (const sx of [-1, 1]) {
+      for (const sz of [-1, 1]) {
+        const pos = new Vector3(
+          def.pos[0] + sx * (def.size[0] / 2 + H.beltPostOut),
+          def.pos[1] + H.beltPostHeight / 2,
+          def.pos[2] + (sz * def.size[1]) / 2,
+        );
+        this.parts.push({
+          size: new Vector3(0.3, H.beltPostHeight, 0.3),
+          color: PALETTE.belt,
+          glow: true,
+          visible: true,
+          prevPos: pos,
+          prevRot: rot,
+          pos,
+          rot,
+        });
+      }
+    }
     this.reset();
   }
 
@@ -47,7 +69,7 @@ export class Belt implements Hazard {
     this.over.clear();
     this.boosted = 0;
     this.draw(0);
-    for (const p of this.parts) p.prevPos.copy(p.pos);
+    for (const p of this.stripes) p.prevPos.copy(p.pos);
   }
 
   update(): void {
@@ -63,7 +85,7 @@ export class Belt implements Hazard {
       }
       if (this.over.has(t)) continue;
       this.over.add(t);
-      t.boost(def.factor, def.seconds);
+      t.surge(def.factor, def.seconds);
       this.boosted++;
     }
   }
@@ -78,9 +100,9 @@ export class Belt implements Hazard {
   private draw(t: number): void {
     const def = this.def;
     const length = def.size[1];
-    const gap = length / this.parts.length;
-    for (let i = 0; i < this.parts.length; i++) {
-      const p = this.parts[i];
+    const gap = length / this.stripes.length;
+    for (let i = 0; i < this.stripes.length; i++) {
+      const p = this.stripes[i];
       p.prevPos.copy(p.pos);
       const along = ((i * gap + t * H.beltStripeSpeed) % length) - length / 2;
       p.pos.set(this.centre.x, this.centre.y + H.plateThickness / 2, this.centre.z + along);

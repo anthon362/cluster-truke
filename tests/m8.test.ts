@@ -5,17 +5,23 @@ import { Sim } from '../src/core/sim';
 import { type BeamState, beamStateAt } from '../src/level/hazards/beam';
 import { boulderDistanceAt } from '../src/level/hazards/boulder';
 import { pendulumAt } from '../src/level/hazards/pendulum';
+import { Belt } from '../src/level/hazards/belt';
+import { meltDeadline, meltLevelAt } from '../src/level/hazards/melt';
 import { Plate } from '../src/level/hazards/plate';
+import { Press, type PressState, pressStateAt, underPress } from '../src/level/hazards/press';
 import { Strike } from '../src/level/hazards/strike';
 import { type WindState, inWind, windStateAt } from '../src/level/hazards/wind';
 import { TEST_LEVELS } from '../src/level/levels';
 import type {
   BeamDef,
+  BeltDef,
   BoulderDef,
   HazardDef,
   LevelDef,
+  MeltDef,
   PendulumDef,
   PlateDef,
+  PressDef,
   StrikeDef,
   WindDef,
 } from '../src/level/schema';
@@ -402,5 +408,119 @@ describe('lightning', () => {
     expect(strike.target).toBeNull();
     run(sim, 2 * HZ, input());
     expect(sim.state).toBe('playing');
+  });
+});
+
+describe('boost belt', () => {
+  const def: BeltDef = { type: 'belt', pos: [0, 0, 100], size: [12, 14], factor: 1.35, seconds: 3 };
+
+  it('validates, and rejects a belt that does not speed anything up', () => {
+    expect(() => validateLevel(JSON.parse(JSON.stringify(withHazards([def]))))).not.toThrow();
+    const bad = JSON.parse(JSON.stringify(withHazards([def])));
+    bad.hazards[0].factor = 1;
+    expect(() => validateLevel(bad)).toThrow(/factor/);
+  });
+
+  it('speeds the truck up once and it keeps the ground it gained', () => {
+    const plain = new Sim({ seed: 1, level: withHazards([]) });
+    const belted = new Sim({ seed: 1, level: withHazards([def]) });
+    run(plain, 14 * HZ, input());
+    let top = 0;
+    for (let i = 0; i < 14 * HZ; i++) {
+      run(belted, 1, input());
+      top = Math.max(top, belted.trucks[0].body.linvel().z);
+    }
+    expect((belted.hazards[0] as Belt).boosted).toBe(1);
+    expect(top).toBeGreaterThan(18 * 1.25);
+    // 3 s at 0.35 x 18 m/s = 18.9 m ahead, and still ahead long after the boost ended.
+    const gained = belted.trucks[0].pos.z - plain.trucks[0].pos.z;
+    expect(gained).toBeGreaterThan(14);
+    expect(gained).toBeLessThan(22);
+    expect(belted.trucks[0].body.linvel().z).toBeCloseTo(18, 0);
+    expect(belted.state).toBe('playing');
+    expect(belted.player.onTruck).toBe(true);
+  });
+});
+
+describe('press', () => {
+  const def: PressDef = { type: 'press', pos: [0, 0, 120], size: [3, 8], period: 6, down: 1 };
+  const state = (): PressState => ({ bottom: 0, warning: false });
+  const H = TUNING.hazards;
+  const wait = 6 - 1 - H.pressSlam - H.pressRise;
+
+  it('waits at the top, warns, slams down, holds and rises', () => {
+    expect(pressStateAt(def, 0, state())).toEqual({ bottom: H.pressTop, warning: false });
+    expect(pressStateAt(def, wait - 0.5, state())).toEqual({ bottom: H.pressTop, warning: true });
+    expect(pressStateAt(def, wait + H.pressSlam + 0.5, state()).bottom).toBeCloseTo(H.pressBottom);
+    const rising = pressStateAt(def, wait + H.pressSlam + 1 + H.pressRise / 2, state()).bottom;
+    expect(rising).toBeCloseTo((H.pressTop + H.pressBottom) / 2);
+    expect(pressStateAt(def, 6, state()).bottom).toBeCloseTo(H.pressTop);
+  });
+
+  it('knows what is under it', () => {
+    expect(underPress(def, 0, 120)).toBe(true);
+    expect(underPress(def, 3.4, 120)).toBe(false);
+    expect(underPress(def, 0, 126)).toBe(false);
+    expect(underPress(def, 0, 126, 2.5)).toBe(true);
+  });
+
+  it('validates, and rejects a press that is down for most of its cycle', () => {
+    expect(() => validateLevel(JSON.parse(JSON.stringify(withHazards([def]))))).not.toThrow();
+    const bad = JSON.parse(JSON.stringify(withHazards([def])));
+    bad.hazards[0].down = 5;
+    expect(() => validateLevel(bad)).toThrow(/down/);
+  });
+
+  // The truck's centre reaches z = 120 after 120 / 18 = 6.67 s.
+  const phaseFor = (cycleTimeOnArrival: number): number =>
+    ((((cycleTimeOnArrival - 120 / 18) / 6) % 1) + 1) % 1;
+
+  it('crushes the truck under it when it comes down, and the rider with it', () => {
+    const sim = new Sim({
+      seed: 1,
+      level: withHazards([{ ...def, phase: phaseFor(wait + H.pressSlam + 0.2) }]),
+    });
+    run(sim, 9 * HZ, input());
+    expect((sim.hazards[0] as Press).crushed).toBe(1);
+    expect(sim.trucks[0].state).toBe('gone');
+    expect(sim.state).toBe('failed');
+  });
+
+  it('lets a truck through while it is up', () => {
+    const sim = new Sim({ seed: 1, level: withHazards([{ ...def, phase: phaseFor(1) }]) });
+    run(sim, 9 * HZ, input());
+    expect((sim.hazards[0] as Press).crushed).toBe(0);
+    expect(sim.state).toBe('playing');
+    expect(sim.player.pos.z).toBeGreaterThan(140);
+  });
+});
+
+describe('melt', () => {
+  const def: MeltDef = { type: 'melt', rise: 0.2, delay: 1 };
+
+  it('rises steadily after its delay and reaches the trucks on time', () => {
+    expect(meltLevelAt(def, 0.5)).toBe(0);
+    expect(meltLevelAt(def, 3)).toBeCloseTo(0.4);
+    expect(meltDeadline(def)).toBeCloseTo(1 + TUNING.hazards.meltTruckHeight / 0.2);
+  });
+
+  it('validates, and rejects melt that does not rise', () => {
+    expect(() => validateLevel(JSON.parse(JSON.stringify(withHazards([def]))))).not.toThrow();
+    const bad = JSON.parse(JSON.stringify(withHazards([def])));
+    bad.hazards[0].rise = 0;
+    expect(() => validateLevel(bad)).toThrow(/rise/);
+  });
+
+  it('leaves the trucks alone until the deadline, then takes them and whoever is on them', () => {
+    const sim = new Sim({ seed: 1, level: withHazards([def]) });
+    const deadline = meltDeadline(def);
+    run(sim, Math.round((deadline - 0.3) * HZ), input());
+    expect(sim.state).toBe('playing');
+    expect(sim.trucks[0].state).toBe('alive');
+    expect(sim.chase()!.text).toMatch(/^MELT 0\.[0-9] s$/);
+    run(sim, 2 * HZ, input());
+    expect(sim.trucks[0].state).toBe('gone');
+    expect(sim.state).toBe('failed');
+    expect(sim.time).toBeLessThan(deadline + 1.2);
   });
 });

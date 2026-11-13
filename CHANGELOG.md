@@ -1,5 +1,16 @@
 # Changelog
 
+## M8 (part 4) — World 7: FOUNDRY
+
+- New hazards: `belt` (a boost belt: trucks speed up and keep the ground gained), `press`
+  (comes down on one lane and flattens the truck under it) and `melt` (the floor floods on a
+  countdown).
+- Six foundry levels: Fast Lane, Stamping Line, Meltdown, Hot Press, Overflow, Furnace Line,
+  with their own palette and music loop.
+- Trucks can `surge`: a speed-up that moves their place in the formation forward.
+- Scripted players change lane for presses and wait out stretched gaps; every level is
+  completed without abilities.
+
 ## M8 (part 3) — World 6: STORMFRONT
 
 - New hazards: `wind` (a crosswind, steady or in gusts, that carries jumps sideways) and

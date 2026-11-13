@@ -101,6 +101,8 @@ export class Press implements Hazard {
       if (!underPress(def, t.pos.x, t.pos.z, H.pressReach)) continue;
       // No blast wave: the trucks in the lanes beside it are not thrown about.
       this.ctx.wreck(t, true);
+      // Flattened: nothing is left standing in the lane for the next truck to hit.
+      t.despawn();
       this.crushed++;
     }
   }
