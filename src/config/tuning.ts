@@ -276,6 +276,28 @@ export const TUNING = {
     beamThickness: 0.35,
     beamWarning: 0.8,
     beamWarningHz: 7,
+    /**
+     * Wind: share of its push that reaches someone standing on a roof and a truck, how high it
+     * reaches (m), and how long before a gust its streaks appear (s).
+     */
+    windGroundShare: 0.3,
+    windTruckShare: 0.04,
+    windHeight: 40,
+    windWarning: 0.9,
+    /** Wind streaks: how many per zone, their size (m), speed (m/s) and how high they fly (m). */
+    windStreaks: 18,
+    windStreakLength: 4,
+    windStreakThickness: 0.07,
+    windStreakSpeed: 34,
+    windStreakTop: 9,
+    /** Lightning: lethal radius (m), column height, how long the bolt stays (s), mark width and flicker. */
+    strikeRadius: 2,
+    strikeHeight: 70,
+    strikeBoltTime: 0.2,
+    strikeMarkWidth: 0.35,
+    strikeFlickerHz: 5,
+    /** Lightning only picks trucks this close to the player sideways (m). */
+    strikeAcross: 12,
   },
 
   goal: {

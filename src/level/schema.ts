@@ -160,8 +160,44 @@ export interface BoulderDef {
   radius: number;
 }
 
+export interface WindDef {
+  type: 'wind';
+  /** Centre of the zone, on the ground. */
+  pos: Vec3;
+  /** [width across the road (X), length along it (Z)]. */
+  size: [number, number];
+  /** Sideways push in m/s² on someone in the air; positive blows toward +X. */
+  force: number;
+  /** Blows for `on` seconds, rests for `off` seconds, repeating. Without it the wind never stops. */
+  gust?: { on: number; off: number; phase?: number };
+}
+
+export interface StrikeDef {
+  type: 'strike';
+  /** Seconds between strikes, and how long before each one its target is marked. */
+  period: number;
+  warning: number;
+  /** Where in the cycle it starts, 0 to 1. */
+  phase?: number;
+  /** Targets are picked among trucks this far ahead of and behind the player (m). */
+  ahead: number;
+  behind: number;
+  /** Chance (0 to 1) that it picks the truck the player is standing on. */
+  aim: number;
+  radius?: number;
+}
+
 export type HazardDef =
-  BreakableWallDef | SpinnerDef | IceDef | RotorDef | BeamDef | PendulumDef | PlateDef | BoulderDef;
+  | BreakableWallDef
+  | SpinnerDef
+  | IceDef
+  | RotorDef
+  | BeamDef
+  | PendulumDef
+  | PlateDef
+  | BoulderDef
+  | WindDef
+  | StrikeDef;
 export const HAZARD_TYPES = [
   'breakableWall',
   'spinner',
@@ -171,6 +207,8 @@ export const HAZARD_TYPES = [
   'pendulum',
   'plate',
   'boulder',
+  'wind',
+  'strike',
 ] as const;
 
 export interface GoalDef {
@@ -590,6 +628,42 @@ export function validateLevel(raw: unknown, source = 'level'): LevelDef {
       c.num(ho, 'startAt', at);
       c.num(ho, 'speed', at, { min: 1, max: 60 });
       c.num(ho, 'radius', at, { min: 1, max: 20 });
+    } else if (ho.type === 'wind') {
+      c.unknownKeys(ho, ['type', 'pos', 'size', 'force', 'gust'], at);
+      c.vec3(ho, 'pos', at);
+      const size = ho.size;
+      if (
+        !Array.isArray(size) ||
+        size.length !== 2 ||
+        size.some((n) => typeof n !== 'number' || !(n > 0))
+      ) {
+        c.fail(`${at}.size`, `expected [width, length] larger than 0, got ${describe(size)}`);
+      }
+      const force = c.num(ho, 'force', at, { min: -40, max: 40 });
+      if (force === 0) c.fail(`${at}.force`, 'must not be 0');
+      if (ho.gust !== undefined) {
+        const g = c.obj(ho.gust, `${at}.gust`);
+        if (g) {
+          c.unknownKeys(g, ['on', 'off', 'phase'], `${at}.gust`);
+          c.num(g, 'on', `${at}.gust`, { min: 0.1 });
+          c.num(g, 'off', `${at}.gust`, { min: 0.1 });
+          c.num(g, 'phase', `${at}.gust`, { optional: true });
+        }
+      }
+    } else if (ho.type === 'strike') {
+      c.unknownKeys(
+        ho,
+        ['type', 'period', 'warning', 'phase', 'ahead', 'behind', 'aim', 'radius'],
+        at,
+      );
+      const period = c.num(ho, 'period', at, { min: 1 });
+      const warning = c.num(ho, 'warning', at, { min: 0.3 });
+      if (warning >= period) c.fail(`${at}.warning`, `must be shorter than the period (${period})`);
+      c.num(ho, 'phase', at, { optional: true, min: 0, max: 1 });
+      c.num(ho, 'ahead', at, { min: 0, max: 200 });
+      c.num(ho, 'behind', at, { min: 0, max: 200 });
+      c.num(ho, 'aim', at, { min: 0, max: 1 });
+      c.num(ho, 'radius', at, { optional: true, min: 0.5, max: 10 });
     } else if (ho.type === 'rotor') {
       c.unknownKeys(ho, ['type', 'pos', 'radius', 'spokes', 'speed', 'phase', 'yaw'], at);
       c.vec3(ho, 'pos', at);

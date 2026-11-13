@@ -8,6 +8,8 @@ import { Pendulum } from './pendulum';
 import { Plate } from './plate';
 import { Rotor } from './rotor';
 import { Spinner } from './spinner';
+import { Strike } from './strike';
+import { Wind } from './wind';
 
 export function createHazard(def: HazardDef, ctx: HazardContext): Hazard {
   switch (def.type) {
@@ -27,6 +29,10 @@ export function createHazard(def: HazardDef, ctx: HazardContext): Hazard {
       return new Plate(def, ctx);
     case 'boulder':
       return new Boulder(def, ctx);
+    case 'wind':
+      return new Wind(def, ctx);
+    case 'strike':
+      return new Strike(def, ctx);
   }
 }
 
