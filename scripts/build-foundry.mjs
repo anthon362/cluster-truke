@@ -80,16 +80,16 @@ function combine(...pieces) {
 const levels = [];
 
 // 7-1 Fast Lane: boost belts. The front rows pull away, then the convoy closes up again.
-levels.push(['fast-lane', level(1, 'Fast Lane', 14, 20, combine(belt(150), belt(290)))]);
+levels.push(['fast-lane', level(1, 'Fast Lane', 15, 20, combine(belt(150), belt(290)))]);
 
 // 7-2 Stamping Line: presses over the lanes, one at a time. Be in a lane that is open.
 levels.push([
   'stamping-line',
-  level(2, 'Stamping Line', 16, 8, combine(presses(210, 6), presses(340, 5.4, [0, 1, 2], 0.5))),
+  level(2, 'Stamping Line', 20, 8, combine(presses(210, 6), presses(340, 5.4, [0, 1, 2], 0.5))),
 ]);
 
 // 7-3 Meltdown: the floor floods. Ride and you sink with the trucks; run up the convoy.
-levels.push(['meltdown', level(3, 'Meltdown', 14, 20, combine(melt(17)))]);
+levels.push(['meltdown', level(3, 'Meltdown', 15, 20, combine(melt(17)))]);
 
 // 7-4 Hot Press: a belt throws the convoy at a gantry.
 levels.push([
@@ -97,14 +97,14 @@ levels.push([
   level(
     4,
     'Hot Press',
-    15,
+    20,
     8,
     combine(belt(140), presses(260, 5.6), presses(370, 5, [0, 1, 2], 0.4)),
   ),
 ]);
 
 // 7-5 Overflow: the melt again, with belts to gain time on.
-levels.push(['overflow', level(5, 'Overflow', 13, 20, combine(melt(15), belt(120), belt(260)))]);
+levels.push(['overflow', level(5, 'Overflow', 15, 20, combine(melt(15), belt(120), belt(260)))]);
 
 // 7-6 Furnace Line: the melt and the presses together.
 levels.push([
@@ -112,7 +112,7 @@ levels.push([
   level(
     6,
     'Furnace Line',
-    14,
+    18,
     12,
     combine(melt(18), presses(250, 6), presses(380, 5.4, [0, 1, 2], 0.5)),
   ),

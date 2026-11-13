@@ -2,7 +2,7 @@
   "id": "5-2",
   "name": "Kerb Jump",
   "world": "quarry",
-  "parTime": 16,
+  "parTime": 20,
   "killY": -5,
   "palette": {
     "sky": "#e6d2ae",

@@ -190,7 +190,7 @@ const levels = [];
 // 9-1 Foothills: black ice, then a kerb to be thrown over.
 levels.push([
   'foothills',
-  level(1, 'Foothills', 16, 8, combine(ice(170, 70), kerbJump(290), ice(385, 50), slopes(20, 460))),
+  level(1, 'Foothills', 20, 8, combine(ice(170, 70), kerbJump(290), ice(385, 50), slopes(20, 460))),
 ]);
 
 // 9-2 Ridge Wind: the wind over the ridge, with cables to jump.
@@ -224,7 +224,7 @@ levels.push([
   level(
     4,
     'Cornice',
-    16,
+    19,
     10,
     combine(slide(22, 55), kerbJump(215), kerbJump(350), slopes(20, 460)),
   ),

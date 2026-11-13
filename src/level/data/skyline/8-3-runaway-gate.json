@@ -2,7 +2,7 @@
   "id": "8-3",
   "name": "Runaway Gate",
   "world": "skyline",
-  "parTime": 12,
+  "parTime": 15,
   "killY": -45,
   "ground": "none",
   "palette": {

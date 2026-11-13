@@ -2,7 +2,7 @@
   "id": "5-1",
   "name": "Blast Plate",
   "world": "quarry",
-  "parTime": 16,
+  "parTime": 17,
   "killY": -5,
   "palette": {
     "sky": "#e6d2ae",

@@ -2,7 +2,7 @@
   "id": "7-1",
   "name": "Fast Lane",
   "world": "foundry",
-  "parTime": 14,
+  "parTime": 15,
   "killY": -5,
   "palette": {
     "sky": "#2a1d1a",

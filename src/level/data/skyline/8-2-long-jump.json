@@ -2,7 +2,7 @@
   "id": "8-2",
   "name": "Long Jump",
   "world": "skyline",
-  "parTime": 16,
+  "parTime": 20,
   "killY": -45,
   "ground": "none",
   "palette": {

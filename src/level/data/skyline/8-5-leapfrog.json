@@ -2,7 +2,7 @@
   "id": "8-5",
   "name": "Leapfrog",
   "world": "skyline",
-  "parTime": 17,
+  "parTime": 20,
   "killY": -45,
   "ground": "none",
   "palette": {

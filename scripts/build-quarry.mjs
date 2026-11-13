@@ -139,7 +139,7 @@ const levels = [];
 // 5-1 Blast Plate: plates in the road throw every truck into the air. Hold on.
 levels.push([
   'blast-plate',
-  level(1, 'Blast Plate', 16, 12, {
+  level(1, 'Blast Plate', 17, 12, {
     hazards: [plate(220, 9), plate(340, 10)],
     scenery: rocks([90, 170, 280, 400]),
   }),
@@ -148,7 +148,7 @@ levels.push([
 // 5-2 Kerb Jump: a plate, then a rock kerb the thrown trucks sail over.
 levels.push([
   'kerb-jump',
-  level(2, 'Kerb Jump', 16, 8, {
+  level(2, 'Kerb Jump', 20, 8, {
     ...combine(kerbJump(200), kerbJump(330), { scenery: rocks([100, 260, 410]) }),
   }),
 ]);
@@ -173,7 +173,7 @@ levels.push([
 // 5-5 Quarry Run: a kerb jump, a wrecking weight, another kerb jump.
 levels.push([
   'quarry-run',
-  level(5, 'Quarry Run', 17, 8, {
+  level(5, 'Quarry Run', 20, 8, {
     ...combine(kerbJump(180), swing(275, 5), kerbJump(360), { scenery: rocks([110, 230, 420]) }),
   }),
 ]);
@@ -181,7 +181,7 @@ levels.push([
 // 5-6 Deep Cut: the boulder again, with kerb jumps on the way.
 levels.push([
   'deep-cut',
-  level(6, 'Deep Cut', 17, 10, {
+  level(6, 'Deep Cut', 19, 10, {
     ...combine(kerbJump(210), kerbJump(345), {
       hazards: [boulder(23, 50)],
       scenery: rocks([80, 280, 430]),
