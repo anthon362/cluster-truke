@@ -435,7 +435,13 @@ async function boot(): Promise<void> {
           save.points += sim.score.total;
           persist();
           overlays.setWinPoints(sim.score.breakdown(), sim.score.total, save.points);
-          overlays.setWinResult(e.time, save.bestTimes[sim.level.id], newBest, !!nextLevel());
+          overlays.setWinResult(
+            e.time,
+            save.bestTimes[sim.level.id],
+            newBest,
+            !!nextLevel(),
+            world !== 'test' && !nextLevel(),
+          );
           // Free the mouse for the buttons.
           releaseMouse();
         }

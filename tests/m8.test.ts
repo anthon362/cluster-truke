@@ -9,6 +9,7 @@ import { Belt } from '../src/level/hazards/belt';
 import { meltDeadline, meltLevelAt } from '../src/level/hazards/melt';
 import { Plate } from '../src/level/hazards/plate';
 import { Press, type PressState, pressStateAt, underPress } from '../src/level/hazards/press';
+import { Slide, slideDistanceAt } from '../src/level/hazards/slide';
 import { Strike } from '../src/level/hazards/strike';
 import { type WindState, inWind, windStateAt } from '../src/level/hazards/wind';
 import { TEST_LEVELS } from '../src/level/levels';
@@ -22,6 +23,7 @@ import type {
   PendulumDef,
   PlateDef,
   PressDef,
+  SlideDef,
   StrikeDef,
   WindDef,
 } from '../src/level/schema';
@@ -563,5 +565,83 @@ describe('moving goal', () => {
     sim.reset();
     expect(sim.goal.centre.z).toBeCloseTo(100);
     expect(sim.goal.prevCentre.z).toBeCloseTo(100);
+  });
+});
+
+describe('avalanche', () => {
+  const def: SlideDef = { type: 'slide', path: 'road', startAt: -60, speed: 24, width: 40 };
+
+  it('moves at its speed and changes pace at each stage', () => {
+    expect(slideDistanceAt(def, 0)).toBe(-60);
+    expect(slideDistanceAt(def, 5)).toBe(60);
+    const staged: SlideDef = {
+      ...def,
+      speed: 20,
+      stages: [
+        [40, 10],
+        [90, 30],
+      ],
+    };
+    // 5 s at 20 m/s reaches 40; then 5 s at 10 m/s reaches 90; then 30 m/s.
+    expect(slideDistanceAt(staged, 5)).toBeCloseTo(40);
+    expect(slideDistanceAt(staged, 7)).toBeCloseTo(60);
+    expect(slideDistanceAt(staged, 10)).toBeCloseTo(90);
+    expect(slideDistanceAt(staged, 11)).toBeCloseTo(120);
+  });
+
+  it('validates, and rejects stages that go backwards', () => {
+    expect(() => validateLevel(JSON.parse(JSON.stringify(withHazards([def]))))).not.toThrow();
+    const bad = JSON.parse(JSON.stringify(withHazards([def])));
+    bad.hazards[0].stages = [
+      [100, 20],
+      [50, 25],
+    ];
+    expect(() => validateLevel(bad)).toThrow(/increase/);
+  });
+
+  it('shows on the HUD how far behind it is, buries the truck it reaches and kills the rider', () => {
+    const sim = new Sim({ seed: 1, level: withHazards([def]) });
+    run(sim, 1, input());
+    const first = sim.chase()!;
+    expect(first.label).toBe('AVALANCHE');
+    expect(first.gap).toBeGreaterThan(50);
+    run(sim, 2 * HZ, input());
+    // It closes at 24 - 18 = 6 m/s.
+    expect(sim.chase()!.gap).toBeCloseTo(first.gap - 12, 0);
+    run(sim, 12 * HZ, input());
+    expect((sim.hazards[0] as Slide).buried).toBe(1);
+    expect(sim.trucks[0].state).toBe('gone');
+    expect(sim.state).toBe('failed');
+  });
+
+  it('never reaches a truck it is slower than, and starts over on restart', () => {
+    const sim = new Sim({ seed: 1, level: withHazards([{ ...def, speed: 12 }]) });
+    run(sim, 10 * HZ, input());
+    expect(sim.state).toBe('playing');
+    const far = sim.chase()!.gap;
+    sim.reset();
+    run(sim, 1, input());
+    expect(sim.chase()!.gap).toBeLessThan(far);
+  });
+});
+
+describe('lightning limited to a stretch of the level', () => {
+  it('holds off until the player is inside the stretch', () => {
+    const def: StrikeDef = { type: 'strike', period: 4, warning: 1.5, between: [200, 400] };
+    const sim = new Sim({ seed: 1, level: withHazards([def]) });
+    const strike = sim.hazards[0] as Strike;
+    // z = 200 is reached after about 11.2 s; nothing happens before that.
+    run(sim, 10 * HZ, input());
+    expect(strike.strikes).toBe(0);
+    expect(strike.target).toBeNull();
+    expect(sim.state).toBe('playing');
+    run(sim, 6 * HZ, input());
+    expect(strike.strikes).toBe(1);
+    expect(sim.state).toBe('failed');
+  });
+
+  it('validates, and rejects a stretch that runs backwards', () => {
+    const def: StrikeDef = { type: 'strike', period: 4, warning: 1.5, between: [400, 200] };
+    expect(() => validateLevel(JSON.parse(JSON.stringify(withHazards([def]))))).toThrow(/between/);
   });
 });

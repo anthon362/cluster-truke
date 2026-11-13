@@ -1,5 +1,17 @@
 # Changelog
 
+## M8 (part 6) — World 9: THE SUMMIT and the finale
+
+- New hazard `slide`: an avalanche that follows the road, buries the trucks it reaches and can
+  change speed at set points.
+- Six mountain levels: Foothills, Ridge Wind, First Slide, Cornice, Thin Air and the finale,
+  The Avalanche: three stages with one avalanche behind you all the way, finished in under a
+  minute.
+- Lightning can be limited to a stretch of a level.
+- An ending on the result screen after the last level.
+- The campaign is complete: 9 worlds, 54 levels, each completed without abilities by a
+  scripted player.
+
 ## M8 (part 5) — World 8: SKYLINE
 
 - Six rooftop levels: Rooftops, Long Jump, Runaway Gate, Crane Line, Leapfrog, Last Roof, with

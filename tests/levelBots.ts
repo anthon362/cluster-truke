@@ -436,7 +436,7 @@ export const hopBeams = (): Script => {
  * neighbouring lane that will not.
  */
 export const dodgeBeams = (): Script => {
-  let hop: { until: number; to: Truck; started: boolean; forward?: boolean } | null = null;
+  let hop: { until: number; to: Truck; started: boolean; along?: 1 | -1 } | null = null;
   let quietUntil = 0;
   /** Will a rider at sideways position x run into a beam they cannot jump, between `from` and `to` seconds ahead? */
   const blocked = (sim: Sim, x: number, t: number, from: number, to: number): boolean => {
@@ -478,10 +478,10 @@ export const dodgeBeams = (): Script => {
       const landed = hop.started && p.groundTruck === hop.to && Math.abs(err) < 0.6;
       if (t > hop.until || landed || !hop.to.isSolid) hop = null;
       else {
-        if (hop.forward) {
-          // The next row: run and jump, as when moving up the convoy.
+        if (hop.along) {
+          // Another row: run and jump, as when moving along the convoy.
           hop.started = hop.started || !p.grounded;
-          return bot(sim, 1);
+          return bot(sim, hop.along);
         }
         const first = !hop.started && p.grounded;
         hop.started = hop.started || first;
@@ -502,11 +502,15 @@ export const dodgeBeams = (): Script => {
         return null;
       }
     }
-    // No lane to move to (it is gone, or no better): go forward to the next row instead.
-    const ahead = sim.pool.find(here.convoy, here.row + 1, here.lane);
-    if (ahead?.driving && struck(sim, p.groundTruck)) {
-      hop = { until: t + 3, to: ahead, started: false, forward: true };
-      quietUntil = t + 3;
+    // No lane to move to (it is gone, or no better): go to the next row instead, or the one behind.
+    if (struck(sim, p.groundTruck)) {
+      for (const along of [1, -1] as const) {
+        const to = sim.pool.find(here.convoy, here.row + along, here.lane);
+        if (!to?.driving) continue;
+        hop = { until: t + 3, to, started: false, along };
+        quietUntil = t + 3;
+        break;
+      }
     }
     return null;
   };
@@ -516,6 +520,20 @@ export const dodgeBeams = (): Script => {
 function struck(sim: Sim, truck: Truck): boolean {
   return sim.hazards.some((h) => h instanceof Strike && h.target === truck);
 }
+
+/**
+ * Move up the convoy only while whatever is chasing is closer than `limit`
+ * metres; otherwise ride. Staying in the middle of the convoy keeps trucks
+ * on every side to escape to.
+ */
+export const runWhenChased = (limit: number) => (): Script => {
+  const run = runCareful();
+  return (sim, t) => {
+    const chase = sim.chase();
+    const near = !!chase && chase.fill === undefined && chase.gap < limit;
+    return near || !sim.player.grounded ? run(sim, t) : null;
+  };
+};
 
 /** Walk forward off the trailer onto the truck's cab, which is lower, and stay there. */
 export const toCab = (): Script => {

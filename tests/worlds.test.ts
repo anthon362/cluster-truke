@@ -17,6 +17,7 @@ import {
   ride,
   runCareful,
   runForward,
+  runWhenChased,
   summary,
   toCab,
 } from './levelBots';
@@ -183,9 +184,38 @@ const CASES: Case[] = [
     demoName: 'across the gap, then one hop onto the carried trucks',
     minWins: 4,
   },
+  { id: '9-1', demo: ride, demoName: 'riding one truck over the ice and the kerb', minWins: 5 },
+  { id: '9-2', demo: holdLine(hopBeams), demoName: 'jumping the cables in the wind', minWins: 5 },
+  {
+    id: '9-3',
+    demo: runForward,
+    demoName: 'running up the convoy ahead of the avalanche',
+    minWins: 4,
+    fast: true,
+  },
+  {
+    id: '9-4',
+    demo: runForward,
+    demoName: 'running up the convoy ahead of the avalanche',
+    minWins: 3,
+    fast: true,
+  },
+  {
+    id: '9-5',
+    demo: either(dodgeBeams, runForward),
+    demoName: 'running up the convoy, changing lane for the weights',
+    minWins: 4,
+    fast: true,
+  },
+  {
+    id: '9-6',
+    demo: holdLine(either(dodgeBeams, runWhenChased(90))),
+    demoName: 'all three stages: dodging, and moving up when the avalanche is close',
+    minWins: 3,
+  },
 ];
 
-describe('worlds 2 to 8 are completable without abilities', () => {
+describe('worlds 2 to 9 are completable without abilities', () => {
   it('each has six levels, in order', () => {
     for (const [world, n] of [
       ['overpass', 2],
@@ -195,6 +225,7 @@ describe('worlds 2 to 8 are completable without abilities', () => {
       ['stormfront', 6],
       ['foundry', 7],
       ['skyline', 8],
+      ['summit', 9],
     ] as const) {
       const ids = LEVELS.filter((l) => l.world === world).map((l) => l.id);
       expect(ids).toEqual([1, 2, 3, 4, 5, 6].map((i) => `${n}-${i}`));
@@ -226,7 +257,7 @@ describe('worlds 2 to 8 are completable without abilities', () => {
 describe('unlock order', () => {
   it('opens levels one at a time, and the next world after the last level of a world', () => {
     const campaign = campaignLevels(LEVELS);
-    expect(campaign.length).toBe(48);
+    expect(campaign.length).toBe(54);
     const times: Record<string, number> = {};
     expect(isUnlocked(findLevel('1-1')!, LEVELS, times)).toBe(true);
     expect(isUnlocked(findLevel('1-2')!, LEVELS, times)).toBe(false);
@@ -254,6 +285,7 @@ describe('unlock order', () => {
     expect(nextCampaignLevel(findLevel('5-6')!, LEVELS)?.id).toBe('6-1');
     expect(nextCampaignLevel(findLevel('6-6')!, LEVELS)?.id).toBe('7-1');
     expect(nextCampaignLevel(findLevel('7-6')!, LEVELS)?.id).toBe('8-1');
-    expect(nextCampaignLevel(findLevel('8-6')!, LEVELS)).toBeUndefined();
+    expect(nextCampaignLevel(findLevel('8-6')!, LEVELS)?.id).toBe('9-1');
+    expect(nextCampaignLevel(findLevel('9-6')!, LEVELS)).toBeUndefined();
   });
 });

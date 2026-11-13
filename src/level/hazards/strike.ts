@@ -81,11 +81,16 @@ export class Strike implements Hazard {
 
   update(dt: number): void {
     const def = this.def;
-    this.cycle += dt;
-    if (this.boltLeft > 0) {
-      this.boltLeft -= dt;
-      if (this.boltLeft <= 0) this.body.setNextKinematicTranslation(PARKED);
+    // Outside its stretch of the level the storm holds off, and starts its count from the top.
+    const between = def.between;
+    const z = this.ctx.player.pos.z;
+    if (between && !this.target && (z < between[0] || z > between[1])) {
+      this.cycle = (def.phase ?? 0) * def.period;
+      this.tickBolt(dt);
+      return;
     }
+    this.cycle += dt;
+    this.tickBolt(dt);
     if (!this.target && this.cycle >= def.period - def.warning) {
       this.target = this.choose();
       if (!this.target) this.cycle = 0;
@@ -103,6 +108,12 @@ export class Strike implements Hazard {
     this.target = null;
     this.cycle = 0;
     this.strikeIn = 0;
+  }
+
+  private tickBolt(dt: number): void {
+    if (this.boltLeft <= 0) return;
+    this.boltLeft -= dt;
+    if (this.boltLeft <= 0) this.body.setNextKinematicTranslation(PARKED);
   }
 
   afterStep(): void {

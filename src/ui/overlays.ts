@@ -41,6 +41,7 @@ export class Overlays {
   private readonly failed: HTMLDivElement;
   private readonly won: HTMLDivElement;
   private readonly wonTime: HTMLElement;
+  private readonly wonEnding: HTMLElement;
   private readonly wonBest: HTMLElement;
   private readonly wonBreakdown: HTMLElement;
   private readonly wonEarned: HTMLElement;
@@ -88,6 +89,7 @@ export class Overlays {
     this.won = el(
       'won',
       `<h2>FINISHED</h2>
+       <div class="hint ending hidden">That was the last road. Every level is open: go back for the times.</div>
        <div class="result"><span class="label">Time</span><span class="time"></span></div>
        <div class="result small"><span class="label">Best</span><span class="best"></span></div>
        <div class="breakdown"></div>
@@ -102,6 +104,7 @@ export class Overlays {
        <div class="hint"><kbd>Enter</kbd> next &nbsp; <kbd>R</kbd> retry</div>`,
     );
     this.wonTime = this.won.querySelector('.time')!;
+    this.wonEnding = this.won.querySelector('.ending')!;
     this.wonBest = this.won.querySelector('.best')!;
     this.wonBreakdown = this.won.querySelector('.breakdown')!;
     this.wonEarned = this.won.querySelector('.earned')!;
@@ -134,8 +137,17 @@ export class Overlays {
     this.ghostButton.textContent = `Ghost: ${on ? 'own best' : 'off'}`;
   }
 
-  setWinResult(time: number, best: number, newBest: boolean, hasNext: boolean): void {
+  /** `ending`: this was the last level of the campaign. */
+  setWinResult(
+    time: number,
+    best: number,
+    newBest: boolean,
+    hasNext: boolean,
+    ending = false,
+  ): void {
     this.nextButton.disabled = !hasNext;
+    this.won.querySelector('h2')!.textContent = ending ? 'SUMMIT REACHED' : 'FINISHED';
+    this.wonEnding.classList.toggle('hidden', !ending);
     this.wonTime.textContent = formatTime(time);
     this.wonBest.textContent = formatTime(best) + (newBest ? '  NEW BEST' : '');
     this.wonBest.classList.toggle('new', newBest);

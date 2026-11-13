@@ -1,0 +1,217 @@
+{
+  "id": "9-2",
+  "name": "Ridge Wind",
+  "world": "summit",
+  "parTime": 16,
+  "killY": -5,
+  "palette": {
+    "sky": "#b9cfe6",
+    "ground": "#e6eef5",
+    "fog": "#c9dbec",
+    "fogFar": 380,
+    "road": "#77879a"
+  },
+  "player": {
+    "convoy": "main",
+    "row": 1,
+    "lane": 1
+  },
+  "paths": [
+    {
+      "id": "road",
+      "width": 14,
+      "lanes": 3,
+      "points": [
+        [0, 0, -40],
+        [0, 0, 1300]
+      ]
+    }
+  ],
+  "convoys": [
+    {
+      "id": "main",
+      "path": "road",
+      "rows": 20,
+      "lanesUsed": [0, 1, 2],
+      "startAt": 50,
+      "wobble": 0.06
+    }
+  ],
+  "scenery": [
+    {
+      "type": "box",
+      "pos": [-8.5, 3.5, 190],
+      "size": [0.6, 7, 0.6],
+      "lethal": true,
+      "color": "#6b5a48"
+    },
+    {
+      "type": "box",
+      "pos": [8.5, 3.5, 190],
+      "size": [0.6, 7, 0.6],
+      "lethal": true,
+      "color": "#6b5a48"
+    },
+    {
+      "type": "box",
+      "pos": [-8.5, 3.5, 330],
+      "size": [0.6, 7, 0.6],
+      "lethal": true,
+      "color": "#6b5a48"
+    },
+    {
+      "type": "box",
+      "pos": [8.5, 3.5, 330],
+      "size": [0.6, 7, 0.6],
+      "lethal": true,
+      "color": "#6b5a48"
+    },
+    {
+      "type": "box",
+      "pos": [-8.5, 3.5, 400],
+      "size": [0.6, 7, 0.6],
+      "lethal": true,
+      "color": "#6b5a48"
+    },
+    {
+      "type": "box",
+      "pos": [8.5, 3.5, 400],
+      "size": [0.6, 7, 0.6],
+      "lethal": true,
+      "color": "#6b5a48"
+    },
+    {
+      "type": "box",
+      "pos": [-12, 3.5, 20],
+      "size": [1.6, 7, 1.6],
+      "lethal": true,
+      "color": "#2f5d4a"
+    },
+    {
+      "type": "box",
+      "pos": [15, 4.5, 54],
+      "size": [1.6, 9, 1.6],
+      "lethal": true,
+      "color": "#2f5d4a"
+    },
+    {
+      "type": "box",
+      "pos": [-18, 2.1, 88],
+      "size": [5, 5, 5],
+      "rot": [0, 66, 0],
+      "lethal": true,
+      "color": "#5d6875"
+    },
+    {
+      "type": "box",
+      "pos": [12, 6.5, 122],
+      "size": [1.6, 13, 1.6],
+      "lethal": true,
+      "color": "#2f5d4a"
+    },
+    {
+      "type": "box",
+      "pos": [-15, 3.5, 156],
+      "size": [1.6, 7, 1.6],
+      "lethal": true,
+      "color": "#2f5d4a"
+    },
+    {
+      "type": "box",
+      "pos": [18, 1.6, 190],
+      "size": [4, 4, 4],
+      "rot": [0, 135, 0],
+      "lethal": true,
+      "color": "#5d6875"
+    },
+    {
+      "type": "box",
+      "pos": [-12, 5.5, 224],
+      "size": [1.6, 11, 1.6],
+      "lethal": true,
+      "color": "#2f5d4a"
+    },
+    {
+      "type": "box",
+      "pos": [15, 6.5, 258],
+      "size": [1.6, 13, 1.6],
+      "lethal": true,
+      "color": "#2f5d4a"
+    },
+    {
+      "type": "box",
+      "pos": [-18, 1.1, 292],
+      "size": [3, 3, 3],
+      "rot": [0, 204, 0],
+      "lethal": true,
+      "color": "#5d6875"
+    },
+    {
+      "type": "box",
+      "pos": [12, 4.5, 326],
+      "size": [1.6, 9, 1.6],
+      "lethal": true,
+      "color": "#2f5d4a"
+    },
+    {
+      "type": "box",
+      "pos": [-15, 5.5, 360],
+      "size": [1.6, 11, 1.6],
+      "lethal": true,
+      "color": "#2f5d4a"
+    },
+    {
+      "type": "box",
+      "pos": [18, 2.6, 394],
+      "size": [6, 6, 6],
+      "rot": [0, 273, 0],
+      "lethal": true,
+      "color": "#5d6875"
+    },
+    {
+      "type": "box",
+      "pos": [-12, 3.5, 428],
+      "size": [1.6, 7, 1.6],
+      "lethal": true,
+      "color": "#2f5d4a"
+    }
+  ],
+  "hazards": [
+    {
+      "type": "wind",
+      "pos": [0, 0, 180],
+      "size": [60, 140],
+      "force": 8
+    },
+    {
+      "type": "wind",
+      "pos": [0, 0, 350],
+      "size": [60, 160],
+      "force": -8,
+      "gust": {
+        "on": 2.2,
+        "off": 2.2
+      }
+    },
+    {
+      "type": "beam",
+      "pos": [0, 4.3, 190],
+      "length": 16
+    },
+    {
+      "type": "beam",
+      "pos": [0, 4.3, 330],
+      "length": 16
+    },
+    {
+      "type": "beam",
+      "pos": [0, 4.3, 400],
+      "length": 16
+    }
+  ],
+  "goal": {
+    "pos": [0, 0, 443],
+    "width": 16,
+    "height": 12
+  }
+}

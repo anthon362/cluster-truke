@@ -180,6 +180,8 @@ export interface StrikeDef {
   /** Where in the cycle it starts, 0 to 1. */
   phase?: number;
   radius?: number;
+  /** Only strikes while the player is between these two Z positions (a stretch of a level). */
+  between?: readonly [number, number];
 }
 
 export interface BeltDef {
@@ -763,7 +765,17 @@ export function validateLevel(raw: unknown, source = 'level'): LevelDef {
       c.num(ho, 'rise', at, { min: 0.01, max: 5 });
       c.num(ho, 'delay', at, { optional: true, min: 0 });
     } else if (ho.type === 'strike') {
-      c.unknownKeys(ho, ['type', 'period', 'warning', 'phase', 'radius'], at);
+      c.unknownKeys(ho, ['type', 'period', 'warning', 'phase', 'radius', 'between'], at);
+      if (ho.between !== undefined) {
+        const b = ho.between;
+        const ok =
+          Array.isArray(b) &&
+          b.length === 2 &&
+          b.every((n) => typeof n === 'number' && Number.isFinite(n)) &&
+          b[0] < b[1];
+        if (!ok)
+          c.fail(`${at}.between`, `expected [from, to] with from below to, got ${describe(b)}`);
+      }
       const period = c.num(ho, 'period', at, { min: 1 });
       const warning = c.num(ho, 'warning', at, { min: 0.3 });
       if (warning >= period) c.fail(`${at}.warning`, `must be shorter than the period (${period})`);

@@ -448,6 +448,46 @@ problem as the banked roads of world 6. Rooftop gaps crossed with blast plates t
   movement with the gate's movement in the same step, so a gate cannot slip past unnoticed.
 - 8-4 and 8-6 end on the crane line: the roofs run out and the gate is on the carried trucks.
 
+## M8 (part 6: world 9, THE SUMMIT, and the finale)
+
+**Values changed from the design document:** none.
+
+**Values the document did not give (added):** `hazards.slideHeight` 16 m, `slideDepth` 14 m,
+`slideReach` 3 m, `slideChunks` 14, `slideChunkReach` 9 m. Per-level values live in the level
+files: the avalanche's `speed`, `startAt` and `stages`; lightning can be limited to a stretch
+of a level with `between`.
+
+**The finale, 9-6 THE AVALANCHE** (my own design, as agreed: no vehicle-giant boss). One
+avalanche comes down the road behind the convoy for the whole level, 980 m, on trucks
+throughout:
+
+| Stage         | Road (z)    | Avalanche | What is in the way                             |
+| ------------- | ----------- | --------- | ---------------------------------------------- |
+| 1, tree line  | up to 330   | 19.5 m/s  | two swinging cableway weights                  |
+| 2, the ridge  | 330 to 660  | 20.5 m/s  | gusting crosswind, two kerbs to be thrown over |
+| 3, the summit | 660 to goal | 22 m/s    | lightning on the truck you stand on            |
+
+The convoy drives 18 m/s, so the avalanche gains all the time and faster in each stage. It
+starts 70 m behind the rear row.
+
+**Measured on the finale:**
+
+- A rider who never moves is caught by a weight after 7 s. Nobody finishes by standing still.
+- The scripted player that dodges and only moves up the convoy when the avalanche is within
+  90 m wins 5 of 6 runs in 46 s. One that sprints to the front row wins 3 of 6 in 38.8 s: the
+  front row has no row ahead to escape to when lightning marks it. Both are well under the 90 s
+  the design asks for. Par is 42 s.
+- Lightning in the finale first struck at 4 s, in stage 1, because it had no notion of place.
+  It is now limited to stage 3.
+
+**Notes:**
+
+- `slide`: a 44 m wide wall of snow following the road. It buries (removes) every truck it
+  reaches and is lethal to touch. The HUD gauge shows the distance, as for the boulder.
+- The finale has 24 rows (72 trucks), the largest convoy in the game. Frame rate with that
+  many trucks has not been measured on a real graphics card.
+- After the last level the result screen reads SUMMIT REACHED and Next is greyed out.
+
 ## What to adjust if it feels wrong
 
 | Feels like                                    | Change                                                                |
@@ -487,3 +527,4 @@ problem as the banked roads of world 6. Rooftop gaps crossed with blast plates t
 | Melt leaves too little time                   | `rise` on the melt in the level file (deadline = 1.2 / rise seconds)  |
 | Trucks fall short of / overshoot a roof gap   | `power` on the plate before it (and its distance from the edge)       |
 | The moving gate is too hard to catch          | `speed` on the goal in the level file                                 |
+| Avalanche too fast / too slow                 | `speed` and `stages` on the slide in the level file                   |
