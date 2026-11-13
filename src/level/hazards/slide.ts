@@ -69,6 +69,8 @@ export class Slide implements Hazard {
     const part = (size: Vector3, color: number): HazardPart => ({
       size,
       color,
+      // Unlit: it faces away from the sun, and lit snow in shadow reads as grey rock.
+      glow: true,
       visible: true,
       prevPos: new Vector3(),
       prevRot: new Quaternion(),
