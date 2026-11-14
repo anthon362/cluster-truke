@@ -149,7 +149,9 @@ describe('scoring in the simulation', () => {
       new Vector3(v.x, v.y, v.z),
     );
     for (let i = 0; i < 3 * HZ && !sim.player.grounded; i++) {
-      sim.step(input({ jumpHeld: true, yaw: -Math.PI / 2, moveF: 1 }));
+      // Lean in and hold jump while on the side; once over the roof edge, just drift onto it.
+      const below = sim.player.feetY < TUNING.truck.trailerRoof;
+      sim.step(input({ jumpHeld: below, yaw: -Math.PI / 2, moveF: below ? 1 : 0.3 }));
     }
     expect(sim.state).toBe('playing');
     expect(sim.player.grounded).toBe(true);

@@ -57,23 +57,28 @@ describe('running', () => {
   it('reaches walk and sprint speed relative to the truck', () => {
     const sim = new Sim({ seed: 1 });
     run(sim, 15, input({ moveF: 1 }));
-    expect(sim.player.relativeSpeed).toBeCloseTo(P.walkSpeed, 3);
+    // On a roof the player runs a little slower than the full value.
+    expect(sim.player.relativeSpeed).toBeCloseTo(P.walkSpeed * P.roofSpeedFactor, 3);
     const sim2 = new Sim({ seed: 1 });
     run(sim2, 15, input({ moveF: 1, sprint: true }));
-    expect(sim2.player.relativeSpeed).toBeCloseTo(P.sprintSpeed, 3);
-    expect(sim2.player.vel.z).toBeCloseTo(T.cruiseSpeed + P.sprintSpeed, 1);
+    expect(sim2.player.relativeSpeed).toBeCloseTo(P.sprintSpeed * P.roofSpeedFactor, 3);
+    expect(sim2.player.vel.z).toBeCloseTo(T.cruiseSpeed + P.sprintSpeed * P.roofSpeedFactor, 1);
   });
 
-  it('is slow sideways and backward, fastest on the diagonal', () => {
+  it('runs as fast sideways and backward as forward, and faster still on the diagonal', () => {
     const speedFor = (f: number, s: number) => {
       const sim = new Sim({ seed: 1, god: true });
-      run(sim, 17, input({ moveF: f, moveS: s, sprint: true }));
+      // Long enough to reach full speed, short enough not to run off the side of the roof.
+      run(sim, 10, input({ moveF: f, moveS: s, sprint: true }));
       return sim.player.relativeSpeed;
     };
-    const side = P.sprintSpeed * P.strafeMultiplier;
+    const forward = P.sprintSpeed * P.roofSpeedFactor;
+    const side = forward * P.strafeMultiplier;
     expect(speedFor(0, 1)).toBeCloseTo(side, 3);
     expect(speedFor(-1, 0)).toBeCloseTo(side, 3);
-    expect(speedFor(1, 1)).toBeCloseTo(Math.hypot(P.sprintSpeed, side), 3);
+    // Forward and strafe add up without being normalised: about 1.4 times faster.
+    expect(speedFor(1, 1)).toBeCloseTo(Math.hypot(forward, side), 3);
+    expect(speedFor(1, 1) / speedFor(1, 0)).toBeCloseTo(Math.SQRT2, 2);
   });
 });
 
@@ -85,7 +90,10 @@ describe('jumping', () => {
     const y0 = sim.player.pos.y;
     let apex = 0;
     let airSteps = 0;
-    run(sim, 90, input({ jumpPressed: true, jumpHeld: true }), () => {
+    // A tap: the plain jump, with no hold-lift.
+    run(sim, 1, input({ jumpPressed: true }));
+    airSteps++;
+    run(sim, 89, input(), () => {
       apex = Math.max(apex, sim.player.pos.y - y0);
       if (!sim.player.grounded) airSteps++;
     });
@@ -99,7 +107,7 @@ describe('jumping', () => {
     expect(Math.abs(airSteps / HZ - expectedAir)).toBeLessThan(0.06);
   });
 
-  it('releasing jump early gives a clearly lower jump', () => {
+  it('holding jump gives a little more height than a tap, not a different jump', () => {
     const apexFor = (holdSteps: number) => {
       const sim = new Sim({ seed: 1 });
       run(sim, 10, input());
@@ -110,10 +118,30 @@ describe('jumping', () => {
       run(sim, 90, input(), track);
       return apex;
     };
-    const full = apexFor(60);
+    // Held through the whole hold window, but let go before landing (holding on would hop again).
+    const full = apexFor(30);
     const short = apexFor(3);
-    expect(short).toBeLessThan(full * 0.6);
-    expect(short).toBeGreaterThan(0.3);
+    expect(full).toBeGreaterThan(short * 1.15);
+    expect(full).toBeLessThan(short * 1.6);
+    // The tap is the plain arc.
+    expect(short).toBeCloseTo((P.jumpVelocity * P.jumpVelocity) / (2 * P.gravity), 0);
+  });
+
+  it('keeps hopping on every landing while jump is held, and stops when it is let go', () => {
+    const sim = new Sim({ seed: 1 });
+    run(sim, 10, input());
+    let takeoffs = 0;
+    let wasGrounded = true;
+    run(sim, 1, input({ jumpPressed: true, jumpHeld: true }));
+    run(sim, 3 * HZ, input({ jumpHeld: true }), () => {
+      if (wasGrounded && !sim.player.grounded) takeoffs++;
+      wasGrounded = sim.player.grounded;
+    });
+    // About one hop per second of holding.
+    expect(takeoffs).toBeGreaterThanOrEqual(2);
+    expect(sim.falls).toBe(0);
+    run(sim, 2 * HZ, input());
+    expect(sim.player.grounded).toBe(true);
   });
 
   it('buffers a jump pressed just before landing', () => {
@@ -156,8 +184,9 @@ describe('jumping', () => {
         break;
       }
     }
-    expect(dist).toBeGreaterThan(11.5);
-    expect(dist).toBeLessThan(13.5);
+    // Long rather than high: about six times as far as the jump is tall.
+    expect(dist).toBeGreaterThan(10);
+    expect(dist).toBeLessThan(12.5);
   });
 });
 
@@ -182,6 +211,24 @@ describe('coyote time', () => {
 
   it('refuses a jump after the window', () => {
     expect(jumpAfterLeaving(Math.ceil(P.coyoteTime * HZ) + 3)).toBe(false);
+  });
+
+  it('a jump taken later in the fall is lower: it starts from the falling speed', () => {
+    const riseAfter = (delaySteps: number): number => {
+      const sim = new Sim({ seed: 1, god: true });
+      const back = input({ moveF: -1 });
+      let guard = 0;
+      while (sim.player.grounded && guard++ < 600) sim.step(back);
+      run(sim, delaySteps - 1, back);
+      sim.step({ ...back, jumpPressed: true });
+      expect(sim.player.jumped).toBe(true);
+      return sim.player.vel.y - sim.player.frameVel.y;
+    };
+    const early = riseAfter(2);
+    const late = riseAfter(Math.floor(P.coyoteTime * HZ) - 1);
+    expect(early).toBeLessThan(P.jumpVelocity);
+    expect(late).toBeLessThan(early - 1.5);
+    expect(late).toBeGreaterThan(P.jumpVelocity * 0.5);
   });
 
   it('gives no second jump in the air', () => {

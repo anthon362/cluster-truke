@@ -30,24 +30,34 @@ export const TUNING = {
     radius: 0.4,
     height: 1.8,
     eyeHeight: 1.65,
-    walkSpeed: 9,
-    sprintSpeed: 14,
-    /** Strafe and backward speed as a fraction of the forward value. */
-    strafeMultiplier: 0.55,
-    groundAccel: 60,
-    groundDecel: 40,
+    walkSpeed: 7,
+    sprintSpeed: 11,
+    /**
+     * Strafe and backward speed as a fraction of the forward value. At 1, forward plus strafe
+     * add up without being normalised, so running diagonally is about 1.4 times faster.
+     */
+    strafeMultiplier: 1,
+    /** On a roof the player runs at this share of full speed, so they do not slip off by accident; in the air it is 1. */
+    roofSpeedFactor: 0.88,
+    /** Full sprint speed in about 0.12 s. */
+    groundAccel: 90,
+    groundDecel: 50,
     /** Slow-down rate on the ground while faster than the input cap. */
     overspeedBleed: 8,
-    airAccel: 14,
+    /** About a quarter of the ground value: enough to nudge a jump, not to turn it around. */
+    airAccel: 22,
     airDrag: 0,
-    gravity: 22,
-    jumpVelocity: 10,
-    /** Upward velocity multiplier when jump is released while rising. */
-    jumpCutMultiplier: 0.5,
-    coyoteTime: 0.15,
+    gravity: 20,
+    /** A tap gives this: a low, flat arc of about 0.85 s. */
+    jumpVelocity: 8.5,
+    /** Holding jump adds this much lift (m/s²) for up to `jumpHoldTime` seconds: a soft push, not a rocket. */
+    jumpHoldAccel: 9,
+    jumpHoldTime: 0.2,
+    coyoteTime: 0.2,
     jumpBuffer: 0.12,
     /** Side-of-truck climbing (M2). */
-    clingAccel: 30,
+    /** Gravity still pulls while climbing, so the climb itself is this minus gravity: 12 m/s² upward. */
+    clingAccel: 32,
     clingMaxRise: 6,
     /** Stronger upward acceleration while still falling, so grabbing a side catches you. */
     clingCatchAccel: 70,
@@ -84,7 +94,7 @@ export const TUNING = {
   },
 
   camera: {
-    fovDefault: 90,
+    fovDefault: 95,
     fovMin: 50,
     fovMax: 140,
     sprintFovKick: 8,

@@ -222,7 +222,10 @@ describe('SLIPSTREAM and KICK OFF', () => {
   it('KICK OFF: the jump adds speed and shoves the truck back', () => {
     const base = jumpSpeed(null, 30);
     const kicked = jumpSpeed('kickOff', 30);
-    expect(kicked.speed - base.speed).toBeGreaterThan(A.kickOff.playerBoost * 0.7);
+    // The plain jump also gains a little in the air (the roof is slower), so compare with roof speed.
+    const roofSpeed = P.sprintSpeed * P.roofSpeedFactor;
+    expect(base.speed).toBeLessThanOrEqual(P.sprintSpeed + 0.01);
+    expect(kicked.speed - roofSpeed).toBeGreaterThan(A.kickOff.playerBoost * 0.9);
     expect(kicked.sim.trucks[0].pos.z).toBeLessThan(base.sim.trucks[0].pos.z - 0.05);
   });
 });
