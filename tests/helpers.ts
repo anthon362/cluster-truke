@@ -43,21 +43,31 @@ export function bot(sim: Sim, dir: 1 | -1): MoveInput {
   const local = p.pos.clone().sub(here.pos).applyQuaternion(here.rot.clone().invert());
   // Predict where a full jump and a tapped (low) jump would land on the next truck,
   // measured along the direction of travel, and take whichever hits its trailer.
-  const fullAir = (2 * P.jumpVelocity) / P.gravity;
+  // A tap gives the plain jump; holding adds the hold-lift on top.
+  const lowAir = (2 * P.jumpVelocity) / P.gravity;
+  const fullAir = (2 * (P.jumpVelocity + P.jumpHoldAccel * P.jumpHoldTime)) / P.gravity;
   const along = local.z * dir - T.rowSpacing;
   const full = along + p.relativeSpeed * fullAir;
-  const low = along + p.relativeSpeed * fullAir * P.jumpCutMultiplier;
+  const low = along + p.relativeSpeed * lowAir;
   const lo = dir === 1 ? -4.3 : -1.5;
   const hi = dir === 1 ? 1.2 : 4.0;
   const inWindow = (x: number) => x >= lo && x <= hi;
   // Coyote time lets the bot jump just after running off a trailer, like a player would.
-  const ready = (p.grounded || p.timeSinceGrounded <= P.coyoteTime * 0.6) && !!next;
+  // Only when actually moving the way it means to go: right after turning round it still has
+  // speed the other way, and a jump then would carry it off the wrong end.
+  const hereVel = here.body.linvel();
+  const going = (p.vel.x - hereVel.x) * fwd.x + (p.vel.z - hereVel.z) * fwd.z;
+  const ready =
+    (p.grounded || p.timeSinceGrounded <= P.coyoteTime * 0.6) &&
+    !!next &&
+    going > P.walkSpeed * 0.5;
   const fullJump = ready && inWindow(full);
   // A low jump from the cab cannot clear the next trailer's roof.
   const onTrailer = local.y - P.height / 2 > (T.trailerRoof + T.cabRoof) / 2;
   const lowJump = ready && !fullJump && onTrailer && inWindow(low);
   // Falling short of a roof: hold jump to climb the truck face instead.
-  const climb = !p.grounded && p.timeSinceGrounded > 0.4 && p.feetY < T.trailerRoof + 0.3;
+  // Only once below the roof: holding jump while coming down onto a roof would hop again on landing.
+  const climb = !p.grounded && p.timeSinceGrounded > 0.4 && p.feetY < T.trailerRoof - 0.15;
   const rising = !p.grounded && p.vel.y > p.frameVel.y && !botLow;
   if (fullJump) botLow = false;
   if (lowJump) botLow = true;

@@ -44,6 +44,10 @@ export class PlayerController {
   private jumpBufferLeft = 0;
   private jumpAvailable = false;
   private jumpRising = false;
+  /** Seconds of hold-lift left on the current jump. */
+  private jumpHoldLeft = 0;
+  /** True for the step after touching down (auto-hop). */
+  private justLanded = false;
 
   private readonly shape: RAPIER.Capsule;
   /** Slightly fatter capsule used to find truck faces within cling reach. */
@@ -213,8 +217,11 @@ export class PlayerController {
     this.jumped = false;
     this.airJumped = false;
 
-    if (input.jumpPressed) this.jumpBufferLeft = P.jumpBuffer;
+    // Holding jump hops again on every landing; no timing needed to keep a run going.
+    if (input.jumpPressed || (this.justLanded && input.jumpHeld))
+      this.jumpBufferLeft = P.jumpBuffer;
     else this.jumpBufferLeft = Math.max(0, this.jumpBufferLeft - dt);
+    this.justLanded = false;
 
     wishVelocity(input, wish);
     let carried = false;
@@ -233,6 +240,9 @@ export class PlayerController {
       this.pos.copy(this.localOnTruck).applyQuaternion(t.rot).add(t.pos);
       carried = true;
       this.readFrameVelocity(t);
+      // A little slower on a roof than the same input gives in the air.
+      wish.x *= P.roofSpeedFactor;
+      wish.z *= P.roofSpeedFactor;
       groundMove(this.rel, wish, dt);
       if (this.magnet) {
         this.rel.x = 0;
@@ -279,27 +289,25 @@ export class PlayerController {
       }
       // Recharge the mid-air jump while holding a truck.
       if (this.clinging) this.airJumpReady = true;
-      // Variable jump height: letting go while rising cuts the jump short.
+      // Variable jump: holding the button keeps a little lift going just after take-off.
       if (this.jumpRising) {
-        if (this.vel.y <= this.frameVel.y) this.jumpRising = false;
-        else if (!input.jumpHeld) {
-          this.vel.y = this.frameVel.y + (this.vel.y - this.frameVel.y) * P.jumpCutMultiplier;
-          this.jumpRising = false;
-        }
+        this.jumpHoldLeft -= dt;
+        if (!input.jumpHeld || this.jumpHoldLeft <= 0) this.jumpRising = false;
+        else this.vel.y += P.jumpHoldAccel * dt;
       }
     }
 
     // Jump: from the ground, or within coyote time after leaving an edge.
     const canJump = this.jumpAvailable && (this.grounded || this.timeSinceGrounded <= P.coyoteTime);
     if (this.jumpBufferLeft > 0 && canJump) {
-      this.vel.y = this.frameVel.y + P.jumpVelocity;
+      // A jump taken while already falling off an edge starts from that fall: lower and shorter.
+      const falling = this.grounded ? 0 : Math.min(0, this.vel.y - this.frameVel.y);
+      this.vel.y = this.frameVel.y + P.jumpVelocity + falling;
       this.grounded = false;
       this.groundTruck = null;
       this.jumpAvailable = false;
-      this.jumpRising = input.jumpHeld;
-      if (!input.jumpHeld) {
-        this.vel.y = this.frameVel.y + P.jumpVelocity * P.jumpCutMultiplier;
-      }
+      this.jumpRising = true;
+      this.jumpHoldLeft = P.jumpHoldTime;
       this.jumpBufferLeft = 0;
       this.jumped = true;
       this.timeSinceGrounded = P.coyoteTime + dt;
@@ -480,6 +488,7 @@ export class PlayerController {
         this.pos.y -= hit.time_of_impact;
         if (!wasGrounded) {
           // Landing: keep horizontal speed, now expressed relative to the truck.
+          this.justLanded = true;
           this.landingImpact = Math.max(0, -rise);
           this.rel.x = this.vel.x - surfaceVel.x;
           this.rel.z = this.vel.z - surfaceVel.z;

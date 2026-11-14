@@ -203,14 +203,16 @@ describe('side cling', () => {
     let topY = y0;
     // Lean toward the truck (it is to the right when facing forward... +X side is left of -X).
     const lean = input({ jumpHeld: true, yaw: -Math.PI / 2, moveF: 1 });
-    run(sim, 60, lean, () => {
+    // Let go once over the roof edge, as a player would: holding on would hop again on landing.
+    for (let i = 0; i < 90 && sim.player.feetY < T.trailerRoof + 0.2; i++) {
+      sim.step(lean);
       if (sim.player.clinging) clingSteps++;
       topY = Math.max(topY, sim.player.pos.y);
-    });
+    }
     expect(clingSteps).toBeGreaterThan(10);
     expect(topY - y0).toBeGreaterThan(1.5);
-    // Ends up standing on the roof, still with the truck.
-    run(sim, 40, input());
+    // Ends up standing on the roof, still with the truck (holding jump hops once on arriving).
+    run(sim, 90, input());
     expect(sim.player.grounded).toBe(true);
     expect(sim.player.feetY).toBeGreaterThan(T.trailerRoof - 0.1);
   });

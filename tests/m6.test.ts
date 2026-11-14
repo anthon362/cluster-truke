@@ -63,7 +63,9 @@ describe('carried (floating) convoys', () => {
     run(sim, 30, input());
     const truck = sim.player.groundTruck!;
     const before = sim.player.pos.z - truck.pos.z;
-    run(sim, 70, input({ jumpPressed: true, jumpHeld: true }));
+    // A tap, then wait for the landing (holding jump would hop again).
+    run(sim, 1, input({ jumpPressed: true }));
+    run(sim, 69, input());
     expect(sim.player.grounded).toBe(true);
     expect(Math.abs(sim.player.pos.z - truck.pos.z - before)).toBeLessThan(0.2);
     truck.blast(truck.pos.clone().add(new Vector3(1, 0, 0)), sim.rng);

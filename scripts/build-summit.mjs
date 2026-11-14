@@ -215,7 +215,7 @@ levels.push([
 // 9-3 First Slide: an avalanche comes down the road behind the convoy. Keep moving up.
 levels.push([
   'first-slide',
-  level(3, 'First Slide', 15, 20, combine(slide(23, 60), slopes(20, 460))),
+  level(3, 'First Slide', 16, 20, combine(slide(23, 60), slopes(20, 460))),
 ]);
 
 // 9-4 Cornice: the avalanche again, with kerbs on the way.

@@ -546,6 +546,55 @@ so these levels paid less than intended.
 - The packed game is 1.35 MB as a zip, 3.97 MB unpacked, six files. From a local server the
   menu is up in under a second.
 
+## Movement rework (after 1.0.0)
+
+The player's movement was retuned to a written description of the feel to aim for: a light,
+fast body with heavy forward momentum; a long, flat jump; instant response on the ground and
+only small corrections in the air. The description came with starting values, marked as
+estimates. These are the ones used.
+
+**Values changed:**
+
+| Value                                   | Before  | Now              | Why                                                                       |
+| --------------------------------------- | ------- | ---------------- | ------------------------------------------------------------------------- |
+| `player.walkSpeed` / `sprintSpeed`      | 9 / 14  | 7 / 11           | the given starting values; truck speed should dominate                    |
+| `player.roofSpeedFactor`                | (none)  | 0.88             | a little slower on a roof, so you do not run off by accident              |
+| `player.strafeMultiplier`               | 0.55    | 1                | forward plus strafe are not normalised: the diagonal is 1.41 times faster |
+| `player.groundAccel` / `groundDecel`    | 60 / 40 | 90 / 50          | full speed in about 0.12 s                                                |
+| `player.airAccel`                       | 14      | 22               | about a quarter of the ground value: nudges, no turning round             |
+| `player.gravity`                        | 22      | 20               | with the jump below: about 0.85 s in the air                              |
+| `player.jumpVelocity`                   | 10      | 8.5              | a low arc: 1.8 m high, 9 to 11 m long at a sprint                         |
+| `player.jumpCutMultiplier`              | 0.5     | removed          | replaced by the hold-lift below                                           |
+| `player.jumpHoldAccel` / `jumpHoldTime` | (none)  | 9 m/s² for 0.2 s | holding jump adds a soft push; a tap is the plain jump                    |
+| `player.coyoteTime`                     | 0.15    | 0.2              | "relatively long"                                                         |
+| `player.clingAccel`                     | 30      | 32               | gravity is 20, so the climb is a net 12 m/s² upward                       |
+| `camera.fovDefault`                     | 90      | 95               | more sense of speed                                                       |
+
+**Behaviour changed:**
+
+- Variable jump works the other way round. Before, letting go early cut the jump in half. Now a
+  tap is the full plain jump and holding adds a little on top (about 30 % more height).
+- Holding jump hops again on every landing. No timing is needed to keep a run going.
+- A jump taken while already falling off an edge (inside coyote time) starts from the falling
+  speed, so it is lower and shorter the later it comes.
+
+**One value not taken as given:** `groundDecel` is 50, not higher. The tow line pulls at 55
+m/s²; with a stronger brake a player standing on a roof could not be pulled off it.
+
+**What it did to the levels** (every level is still finished without abilities):
+
+- A sprint is slower, so fast runs take about 1.4 s longer. Five par times were raised: 3-4 and
+  5-1 to 18 s, 7-1, 7-3 and 9-3 to 16 s.
+- 1-5 and 2-6: running off the edge no longer reaches the lower convoy; it now takes a running
+  jump. The demonstrations jump.
+- 7-6: the melt comes after 20 s, not 18 s, and par is 20 s. With the slower sprint there was not
+  time to get far enough up the convoy past two sets of presses.
+- The scripted players that changed lane or convoy by timing ("push sideways for 0.6 s") were
+  rewritten to steer onto the truck they are aiming for. A bug in their press check was found
+  on the way: it treated every lane as being under every press.
+- The all-round scripted player now beats par on 36 of 54 levels (was 38); 4-2 and 7-6 moved
+  to the list it cannot do.
+
 ## What to adjust if it feels wrong
 
 | Feels like                                    | Change                                                                |
@@ -554,7 +603,7 @@ so these levels paid less than intended.
 | Starts and stops feel sluggish / twitchy      | `player.groundAccel`, `player.groundDecel`                            |
 | Jump too floaty / too heavy                   | `player.gravity` (and `jumpVelocity` to keep the height)              |
 | Jump too short to reach the next truck        | `player.jumpVelocity`                                                 |
-| Tapping jump is not low enough                | `player.jumpCutMultiplier`                                            |
+| Holding jump adds too little / too much       | `player.jumpHoldAccel`, `player.jumpHoldTime`                         |
 | Jumps at edges get eaten                      | `player.coyoteTime`, `player.jumpBuffer`                              |
 | Too little / too much steering in the air     | `player.airAccel`                                                     |
 | Strafing too weak                             | `player.strafeMultiplier`                                             |
@@ -586,3 +635,5 @@ so these levels paid less than intended.
 | Trucks fall short of / overshoot a roof gap   | `power` on the plate before it (and its distance from the edge)       |
 | The moving gate is too hard to catch          | `speed` on the goal in the level file                                 |
 | Avalanche too fast / too slow                 | `speed` and `stages` on the slide in the level file                   |
+| Too fast / slow on a roof compared to the air | `player.roofSpeedFactor`                                              |
+| Climbing a truck side too slow / too fast     | `player.clingAccel` (minus gravity), `player.clingMaxRise`            |

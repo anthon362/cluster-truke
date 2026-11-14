@@ -15,6 +15,7 @@ import {
   hopTo,
   play,
   ride,
+  runBetweenPresses,
   runCareful,
   runForward,
   runWhenChased,
@@ -56,8 +57,8 @@ const CASES: Case[] = [
   { id: '2-5', demo: hopBars, demoName: 'riding, jumping the signs', minWins: 4 },
   {
     id: '2-6',
-    demo: either(dropTo('lower', 9, -1, false), hopBars),
-    demoName: 'jumping signs, then dropping to the lower convoy',
+    demo: either(dropTo('lower', 9, -1, true, true), hopBars),
+    demoName: 'jumping signs, then a running jump down to the lower convoy',
     minWins: 3,
   },
   { id: '3-1', demo: ride, demoName: 'riding one truck', minWins: 4 },
@@ -78,7 +79,7 @@ const CASES: Case[] = [
   { id: '4-5', demo: hopBeams, demoName: 'riding, jumping the turning beams', minWins: 3 },
   {
     id: '4-6',
-    demo: either(hopTo('side', 18, 1, false, true), hopBeams, dodgeBeams),
+    demo: holdLine(either(hopTo('side', 18, 1, false, true), hopBeams, dodgeBeams)),
     demoName: 'jumping and dodging beams, then hopping to the side convoy',
     minWins: 3,
   },
@@ -163,8 +164,8 @@ const CASES: Case[] = [
   },
   {
     id: '7-6',
-    demo: either(dodgeBeams, runCareful),
-    demoName: 'running up the convoy, changing lane for the presses',
+    demo: either(dodgeBeams, runBetweenPresses()),
+    demoName: 'running up the convoy between the presses, changing lane under them',
     minWins: 3,
     fast: true,
   },

@@ -2,7 +2,7 @@
   "id": "9-3",
   "name": "First Slide",
   "world": "summit",
-  "parTime": 15,
+  "parTime": 16,
   "killY": -5,
   "palette": {
     "sky": "#b9cfe6",

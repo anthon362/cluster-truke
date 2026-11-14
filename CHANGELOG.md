@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.1.0 — Movement rework
+
+- The player's movement retuned: a long, flat jump; instant response on the ground; small
+  corrections only in the air; running diagonally is faster than straight ahead.
+- Holding jump adds a little height instead of a tap cutting the jump short, and hops again on
+  every landing.
+- A jump taken late while falling off an edge is lower.
+- Slightly slower on a roof than in the air; climbing a truck side is a steady push upward.
+- Wider default field of view (95).
+- Par times raised on five levels, and 7-6 gets two more seconds before the melt. The values and
+  the reasons are in `TUNING.md`.
+
 ## 1.0.0 (M10) — Release
 
 - Fixed: pressing Enter (or gamepad A) on the win screen or the main menu froze the game when it

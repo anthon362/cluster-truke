@@ -80,7 +80,7 @@ function combine(...pieces) {
 const levels = [];
 
 // 7-1 Fast Lane: boost belts. The front rows pull away, then the convoy closes up again.
-levels.push(['fast-lane', level(1, 'Fast Lane', 15, 20, combine(belt(150), belt(290)))]);
+levels.push(['fast-lane', level(1, 'Fast Lane', 16, 20, combine(belt(150), belt(290)))]);
 
 // 7-2 Stamping Line: presses over the lanes, one at a time. Be in a lane that is open.
 levels.push([
@@ -89,7 +89,7 @@ levels.push([
 ]);
 
 // 7-3 Meltdown: the floor floods. Ride and you sink with the trucks; run up the convoy.
-levels.push(['meltdown', level(3, 'Meltdown', 15, 20, combine(melt(17)))]);
+levels.push(['meltdown', level(3, 'Meltdown', 16, 20, combine(melt(17)))]);
 
 // 7-4 Hot Press: a belt throws the convoy at a gantry.
 levels.push([
@@ -112,9 +112,9 @@ levels.push([
   level(
     6,
     'Furnace Line',
-    18,
+    20,
     12,
-    combine(melt(18), presses(250, 6), presses(380, 5.4, [0, 1, 2], 0.5)),
+    combine(melt(20), presses(250, 6), presses(380, 5.4, [0, 1, 2], 0.5)),
   ),
 ]);
 
