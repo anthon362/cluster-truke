@@ -1,0 +1,122 @@
+{
+  "id": "5-5",
+  "name": "Quarry Run",
+  "world": "quarry",
+  "parTime": 17,
+  "killY": -5,
+  "palette": {
+    "sky": "#e6d2ae",
+    "ground": "#a8875c",
+    "fog": "#dcc8a2",
+    "fogFar": 420,
+    "road": "#6e5d49"
+  },
+  "player": {
+    "convoy": "main",
+    "row": 1,
+    "lane": 1
+  },
+  "paths": [
+    {
+      "id": "road",
+      "width": 14,
+      "lanes": 3,
+      "points": [
+        [0, 0, -40],
+        [0, 0, 640]
+      ]
+    }
+  ],
+  "convoys": [
+    {
+      "id": "main",
+      "path": "road",
+      "rows": 8,
+      "lanesUsed": [0, 1, 2],
+      "startAt": 50,
+      "wobble": 0.06
+    }
+  ],
+  "scenery": [
+    {
+      "type": "box",
+      "pos": [0, 0.6, 188.9],
+      "size": [18, 1.2, 0.8],
+      "lethal": true,
+      "color": "#7d6a55"
+    },
+    {
+      "type": "box",
+      "pos": [-13, 9.5, 275],
+      "size": [1.6, 19, 1.6],
+      "lethal": true,
+      "color": "#e0a526"
+    },
+    {
+      "type": "box",
+      "pos": [-6, 18.6, 275],
+      "size": [15.6, 1.2, 1.2],
+      "lethal": true,
+      "color": "#e0a526"
+    },
+    {
+      "type": "box",
+      "pos": [0, 0.6, 368.9],
+      "size": [18, 1.2, 0.8],
+      "lethal": true,
+      "color": "#7d6a55"
+    },
+    {
+      "type": "box",
+      "pos": [-12, 1.2, 110],
+      "size": [3, 3, 3],
+      "rot": [0, 25, 0],
+      "lethal": true,
+      "color": "#7d6a55"
+    },
+    {
+      "type": "box",
+      "pos": [14, 1.7, 230],
+      "size": [4, 4, 4],
+      "rot": [0, 42, 0],
+      "lethal": true,
+      "color": "#7d6a55"
+    },
+    {
+      "type": "box",
+      "pos": [-12, 2.2, 420],
+      "size": [5, 5, 5],
+      "rot": [0, 59, 0],
+      "lethal": true,
+      "color": "#7d6a55"
+    }
+  ],
+  "hazards": [
+    {
+      "type": "plate",
+      "pos": [0, 0, 180],
+      "size": [14, 4],
+      "power": 10
+    },
+    {
+      "type": "pendulum",
+      "pos": [0, 18, 275],
+      "length": 12.5,
+      "swing": 28,
+      "period": 5,
+      "phase": 0.2,
+      "size": 2.4
+    },
+    {
+      "type": "plate",
+      "pos": [0, 0, 360],
+      "size": [14, 4],
+      "power": 10
+    }
+  ],
+  "goal": {
+    "pos": [0, 0, 443],
+    "width": 16,
+    "height": 12
+  }
+}

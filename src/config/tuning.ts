@@ -268,6 +268,79 @@ export const TUNING = {
     /** Rotor (vertical spoked wheel) spoke cross-section and hub size (m). */
     rotorThickness: 0.7,
     rotorHub: 1.6,
+    /** Blast plate: how long it glows before it can fire again, and the forward share of its kick. */
+    plateRearm: 0.8,
+    plateForward: 0.15,
+    plateThickness: 0.12,
+    /** Light beams: default thickness, and how long before switching on a beam flashes a warning (s). */
+    beamThickness: 0.35,
+    beamWarning: 0.8,
+    beamWarningHz: 7,
+    /**
+     * Wind: share of its push that reaches someone standing on a roof and a truck, how high it
+     * reaches (m), and how long before a gust its streaks appear (s).
+     */
+    windGroundShare: 0.3,
+    windTruckShare: 0.04,
+    windHeight: 40,
+    windWarning: 0.9,
+    /** Wind streaks: how many per zone, their size (m), speed (m/s) and how high they fly (m). */
+    windStreaks: 30,
+    windStreakLength: 6,
+    windStreakThickness: 0.13,
+    windStreakSpeed: 38,
+    windStreakTop: 8,
+    /** Streaks are drawn within this many metres ahead of and behind the player, and this far to each side. */
+    windStreakSpan: 110,
+    windStreakSide: 22,
+    /** Boost belt: number of moving stripes, their length (m) and speed (m/s). */
+    beltStripes: 6,
+    beltStripeLength: 1.2,
+    beltStripeSpeed: 14,
+    /** Lit corner posts: height and how far outside the belt's edge they stand (m). */
+    beltPostHeight: 5,
+    beltPostOut: 1.4,
+    /**
+     * Press: height of the block's underside when up and when down (m), block height, how fast it
+     * slams and rises (s), how long its lamp flashes first (s), and below which height it crushes
+     * a truck under it, reaching this far past its own footprint (m).
+     */
+    pressTop: 10,
+    pressBottom: 0.6,
+    pressBlock: 7,
+    pressSlam: 0.18,
+    pressRise: 1.1,
+    pressWarning: 1.1,
+    pressCrushBelow: 3.6,
+    pressReach: 1.5,
+    /**
+     * Melt: it destroys trucks once it is this deep (m), a truck whose centre is less than this
+     * above the surface is gone, the slab that draws it, and the HUD bar starts filling this many
+     * seconds before the trucks go.
+     */
+    meltTruckHeight: 1.2,
+    meltTruckClear: 1.6,
+    meltSize: 1400,
+    meltDepth: 4,
+    meltCountdown: 20,
+    /**
+     * Avalanche: the wall's height and depth (m), how far ahead of its front it buries trucks,
+     * and the snow blocks tumbling in front of it (how many, how far they roll out).
+     */
+    slideHeight: 16,
+    slideDepth: 14,
+    slideReach: 3,
+    slideChunks: 14,
+    slideChunkReach: 9,
+    /** Lightning: lethal radius (m), column height, how long the bolt stays (s), mark width and flicker. */
+    strikeRadius: 1.5,
+    strikeHeight: 70,
+    strikeBoltTime: 0.2,
+    strikeMarkWidth: 0.22,
+    /** The four warning columns stand this far out from the marked truck's centre (m). */
+    strikeMarkSide: 1.7,
+    strikeMarkAlong: 5.6,
+    strikeFlickerHz: 5,
   },
 
   goal: {
@@ -323,6 +396,11 @@ export const TUNING = {
   ui: {
     /** Fresh key presses are ignored this long after failing, so a late jump press does not skip the overlay. */
     failInputDelay: 0.15,
+    /** A chasing hazard is shown on the HUD inside this distance (m), and in red inside the danger distance. */
+    chaseWarnRange: 80,
+    chaseDangerRange: 22,
+    /** Camera shake (0 to 1) when the chaser is touching distance; it fades to none at the danger distance. */
+    chaseShake: 0.5,
   },
 
   music: {

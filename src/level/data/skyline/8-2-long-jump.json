@@ -1,0 +1,119 @@
+{
+  "id": "8-2",
+  "name": "Long Jump",
+  "world": "skyline",
+  "parTime": 16,
+  "killY": -45,
+  "ground": "none",
+  "palette": {
+    "sky": "#f3b27a",
+    "ground": "#3b3f52",
+    "fog": "#eeb98c",
+    "fogFar": 520,
+    "road": "#5b6070"
+  },
+  "player": {
+    "convoy": "main",
+    "row": 1,
+    "lane": 1
+  },
+  "paths": [
+    {
+      "id": "road",
+      "width": 14,
+      "lanes": 3,
+      "points": [
+        [0, 0, -40],
+        [0, 0, 640]
+      ],
+      "visible": false
+    }
+  ],
+  "convoys": [
+    {
+      "id": "main",
+      "path": "road",
+      "rows": 8,
+      "lanesUsed": [0, 1, 2],
+      "startAt": 50,
+      "wobble": 0.05
+    }
+  ],
+  "scenery": [
+    {
+      "type": "box",
+      "pos": [0, -23, 60],
+      "size": [20, 46, 240],
+      "lethal": true,
+      "color": "#6f8791"
+    },
+    {
+      "type": "box",
+      "pos": [0, -23, 248],
+      "size": [20, 46, 124],
+      "lethal": true,
+      "color": "#90887c"
+    },
+    {
+      "type": "box",
+      "pos": [0, -23, 509.5],
+      "size": [20, 46, 381],
+      "lethal": true,
+      "color": "#7c8496"
+    },
+    {
+      "type": "box",
+      "pos": [-34, -28.5, 40],
+      "size": [22, 33, 30],
+      "lethal": true,
+      "color": "#565c70"
+    },
+    {
+      "type": "box",
+      "pos": [40, -19.5, 130],
+      "size": [22, 51, 44],
+      "lethal": true,
+      "color": "#6a6278"
+    },
+    {
+      "type": "box",
+      "pos": [-46, -10.5, 240],
+      "size": [22, 69, 30],
+      "lethal": true,
+      "color": "#4f6470"
+    },
+    {
+      "type": "box",
+      "pos": [34, -24, 330],
+      "size": [22, 42, 44],
+      "lethal": true,
+      "color": "#565c70"
+    },
+    {
+      "type": "box",
+      "pos": [-40, -15, 420],
+      "size": [22, 60, 30],
+      "lethal": true,
+      "color": "#6a6278"
+    }
+  ],
+  "hazards": [
+    {
+      "type": "plate",
+      "pos": [0, 0, 177],
+      "size": [14, 4],
+      "power": 10
+    },
+    {
+      "type": "plate",
+      "pos": [0, 0, 307],
+      "size": [14, 4],
+      "power": 10
+    }
+  ],
+  "goal": {
+    "pos": [0, 0, 443],
+    "width": 16,
+    "height": 12
+  }
+}

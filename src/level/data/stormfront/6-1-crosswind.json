@@ -1,0 +1,107 @@
+{
+  "id": "6-1",
+  "name": "Crosswind",
+  "world": "stormfront",
+  "parTime": 16,
+  "killY": -5,
+  "palette": {
+    "sky": "#4d5d69",
+    "ground": "#2c363c",
+    "fog": "#56666f",
+    "fogFar": 360,
+    "road": "#39434a"
+  },
+  "player": {
+    "convoy": "main",
+    "row": 1,
+    "lane": 1
+  },
+  "paths": [
+    {
+      "id": "road",
+      "width": 14,
+      "lanes": 3,
+      "points": [
+        [0, 0, -40],
+        [0, 0, 640]
+      ]
+    }
+  ],
+  "convoys": [
+    {
+      "id": "main",
+      "path": "road",
+      "rows": 20,
+      "lanesUsed": [0, 1, 2],
+      "startAt": 50,
+      "wobble": 0.06
+    }
+  ],
+  "scenery": [
+    {
+      "type": "box",
+      "pos": [-10, 4, 130],
+      "size": [0.4, 8, 0.4],
+      "lethal": true,
+      "color": "#6b5a48"
+    },
+    {
+      "type": "box",
+      "pos": [-8.6, 7.6, 130],
+      "size": [2.4, 0.7, 0.7],
+      "lethal": true,
+      "color": "#ff7a1a"
+    },
+    {
+      "type": "box",
+      "pos": [-8.5, 3.5, 220],
+      "size": [0.6, 7, 0.6],
+      "lethal": true,
+      "color": "#6b5a48"
+    },
+    {
+      "type": "box",
+      "pos": [8.5, 3.5, 220],
+      "size": [0.6, 7, 0.6],
+      "lethal": true,
+      "color": "#6b5a48"
+    },
+    {
+      "type": "box",
+      "pos": [-8.5, 3.5, 330],
+      "size": [0.6, 7, 0.6],
+      "lethal": true,
+      "color": "#6b5a48"
+    },
+    {
+      "type": "box",
+      "pos": [8.5, 3.5, 330],
+      "size": [0.6, 7, 0.6],
+      "lethal": true,
+      "color": "#6b5a48"
+    }
+  ],
+  "hazards": [
+    {
+      "type": "wind",
+      "pos": [0, 0, 275],
+      "size": [60, 290],
+      "force": 6
+    },
+    {
+      "type": "beam",
+      "pos": [0, 4.3, 220],
+      "length": 16
+    },
+    {
+      "type": "beam",
+      "pos": [0, 4.3, 330],
+      "length": 16
+    }
+  ],
+  "goal": {
+    "pos": [0, 0, 443],
+    "width": 16,
+    "height": 12
+  }
+}

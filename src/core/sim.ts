@@ -3,6 +3,7 @@ import { TUNING } from '../config/tuning';
 import { AbilityManager } from '../abilities/manager';
 import type { AbilityId } from '../config/abilities';
 import { type Hazard, createHazard } from '../level/hazards';
+import type { Chase } from '../level/hazards/hazard';
 import { TEST_LEVELS } from '../level/levels';
 import { Goal } from '../level/goal';
 import type { LevelDef } from '../level/schema';
@@ -116,6 +117,11 @@ export class Sim {
       trucks: this.pool.trucks,
       player: this.player,
       rng: () => this.rng,
+      time: () => this.clock,
+      path: (id: string) => this.pool.paths.get(id),
+      wreck: (truck: Truck, quiet = false) => {
+        if (truck.state === 'alive') this.explode(truck, quiet);
+      },
       registerPusher: (handle: number) => void this.pushers.add(handle),
     };
     for (const h of this.level.hazards) this.hazards.push(createHazard(h, ctx));
@@ -138,6 +144,7 @@ export class Sim {
     this.rng = new Rng(this.fixedSeed ?? Rng.randomSeed());
     this.time = 0;
     this.clock = 0;
+    this.goal.moveTo(0);
     this.stepCount = 0;
     this.state = 'playing';
     this.failReason = null;
@@ -176,6 +183,16 @@ export class Sim {
   }
 
   /** Free the physics world when switching level. */
+  /** The nearest thing chasing the player, if this level has one. */
+  chase(): Chase | null {
+    let nearest: Chase | null = null;
+    for (const h of this.hazards) {
+      const c = h.chase?.();
+      if (c && (!nearest || c.gap < nearest.gap)) nearest = c;
+    }
+    return nearest;
+  }
+
   dispose(): void {
     this.physics.dispose();
   }
@@ -209,6 +226,7 @@ export class Sim {
     this.trackStyle();
 
     // Goal first: reaching it wins even if the same step would have killed.
+    this.goal.moveTo(this.time);
     if (this.goal.crossed(this.player.prevPos, this.player.pos)) {
       this.state = 'won';
       this.emit(this.score.finished(this.time, this.firstTry));
@@ -286,12 +304,15 @@ export class Sim {
     return hit;
   }
 
-  private explode(truck: Truck): void {
+  /** `quiet`: the truck is destroyed without a blast wave (nothing nearby is thrown). */
+  private explode(truck: Truck, quiet = false): void {
     const com = truck.body.worldCom();
     const origin = new Vector3(com.x, com.y, com.z);
     truck.explode(this.rng);
-    for (const other of this.trucks) if (other !== truck) other.blast(origin, this.rng);
-    this.player.blast(origin);
+    if (!quiet) {
+      for (const other of this.trucks) if (other !== truck) other.blast(origin, this.rng);
+      this.player.blast(origin);
+    }
     this.explosions++;
     this.events.push({ type: 'explosion', pos: origin });
   }

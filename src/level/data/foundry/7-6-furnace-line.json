@@ -1,0 +1,143 @@
+{
+  "id": "7-6",
+  "name": "Furnace Line",
+  "world": "foundry",
+  "parTime": 14,
+  "killY": -5,
+  "palette": {
+    "sky": "#2a1d1a",
+    "ground": "#3a2620",
+    "fog": "#3d2a22",
+    "fogFar": 340,
+    "road": "#2e2a2a"
+  },
+  "player": {
+    "convoy": "main",
+    "row": 1,
+    "lane": 1
+  },
+  "paths": [
+    {
+      "id": "road",
+      "width": 14,
+      "lanes": 3,
+      "points": [
+        [0, 0, -40],
+        [0, 0, 640]
+      ]
+    }
+  ],
+  "convoys": [
+    {
+      "id": "main",
+      "path": "road",
+      "rows": 12,
+      "lanesUsed": [0, 1, 2],
+      "startAt": 50,
+      "wobble": 0.06
+    }
+  ],
+  "scenery": [
+    {
+      "type": "box",
+      "pos": [-8, 9, 250],
+      "size": [1.2, 18, 1.2],
+      "lethal": true,
+      "color": "#4a4f57"
+    },
+    {
+      "type": "box",
+      "pos": [8, 9, 250],
+      "size": [1.2, 18, 1.2],
+      "lethal": true,
+      "color": "#4a4f57"
+    },
+    {
+      "type": "box",
+      "pos": [0, 18.4, 250],
+      "size": [17.2, 1.2, 9],
+      "lethal": true,
+      "color": "#4a4f57"
+    },
+    {
+      "type": "box",
+      "pos": [-8, 9, 380],
+      "size": [1.2, 18, 1.2],
+      "lethal": true,
+      "color": "#4a4f57"
+    },
+    {
+      "type": "box",
+      "pos": [8, 9, 380],
+      "size": [1.2, 18, 1.2],
+      "lethal": true,
+      "color": "#4a4f57"
+    },
+    {
+      "type": "box",
+      "pos": [0, 18.4, 380],
+      "size": [17.2, 1.2, 9],
+      "lethal": true,
+      "color": "#4a4f57"
+    }
+  ],
+  "hazards": [
+    {
+      "type": "melt",
+      "rise": 0.0667
+    },
+    {
+      "type": "press",
+      "pos": [-3.4, 0, 250],
+      "size": [3, 8],
+      "period": 6,
+      "down": 1,
+      "phase": 0
+    },
+    {
+      "type": "press",
+      "pos": [0, 0, 250],
+      "size": [3, 8],
+      "period": 6,
+      "down": 1,
+      "phase": 0.333
+    },
+    {
+      "type": "press",
+      "pos": [3.4, 0, 250],
+      "size": [3, 8],
+      "period": 6,
+      "down": 1,
+      "phase": 0.667
+    },
+    {
+      "type": "press",
+      "pos": [-3.4, 0, 380],
+      "size": [3, 8],
+      "period": 5.4,
+      "down": 1,
+      "phase": 0.5
+    },
+    {
+      "type": "press",
+      "pos": [0, 0, 380],
+      "size": [3, 8],
+      "period": 5.4,
+      "down": 1,
+      "phase": 0.833
+    },
+    {
+      "type": "press",
+      "pos": [3.4, 0, 380],
+      "size": [3, 8],
+      "period": 5.4,
+      "down": 1,
+      "phase": 0.167
+    }
+  ],
+  "goal": {
+    "pos": [0, 0, 443],
+    "width": 16,
+    "height": 12
+  }
+}

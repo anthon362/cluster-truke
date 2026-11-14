@@ -1,0 +1,52 @@
+{
+  "id": "7-3",
+  "name": "Meltdown",
+  "world": "foundry",
+  "parTime": 14,
+  "killY": -5,
+  "palette": {
+    "sky": "#2a1d1a",
+    "ground": "#3a2620",
+    "fog": "#3d2a22",
+    "fogFar": 340,
+    "road": "#2e2a2a"
+  },
+  "player": {
+    "convoy": "main",
+    "row": 1,
+    "lane": 1
+  },
+  "paths": [
+    {
+      "id": "road",
+      "width": 14,
+      "lanes": 3,
+      "points": [
+        [0, 0, -40],
+        [0, 0, 640]
+      ]
+    }
+  ],
+  "convoys": [
+    {
+      "id": "main",
+      "path": "road",
+      "rows": 20,
+      "lanesUsed": [0, 1, 2],
+      "startAt": 50,
+      "wobble": 0.06
+    }
+  ],
+  "scenery": [],
+  "hazards": [
+    {
+      "type": "melt",
+      "rise": 0.0706
+    }
+  ],
+  "goal": {
+    "pos": [0, 0, 443],
+    "width": 16,
+    "height": 12
+  }
+}

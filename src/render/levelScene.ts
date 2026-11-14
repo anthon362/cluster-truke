@@ -33,8 +33,11 @@ export class LevelScene {
   private readonly ground: Mesh;
   private readonly roadColor: Color;
   private readonly hazardMeshes: { part: HazardPart; mesh: Mesh }[] = [];
+  private readonly goal: Goal;
+  private goalGroup: Mesh | null = null;
 
   constructor(level: LevelDef, paths: Iterable<Path>, goal: Goal, hazards: readonly Hazard[]) {
+    this.goal = goal;
     const s = this.scene;
     const pal = level.palette;
     this.roadColor = new Color(pal.road ?? PALETTE.road);
@@ -76,7 +79,7 @@ export class LevelScene {
 
     // Hazards: one box mesh per part, sharing geometry and material where possible.
     const geos = new Map<string, BoxGeometry>();
-    const hazardMats = new Map<number, MeshLambertMaterial>();
+    const hazardMats = new Map<string, MeshLambertMaterial | MeshBasicMaterial>();
     for (const hazard of hazards) {
       for (const part of hazard.parts) {
         const gk = `${part.size.x},${part.size.y},${part.size.z}`;
@@ -85,10 +88,13 @@ export class LevelScene {
           geo = new BoxGeometry(part.size.x, part.size.y, part.size.z);
           geos.set(gk, geo);
         }
-        let mat = hazardMats.get(part.color);
+        const mk = `${part.color}${part.glow ? 'g' : ''}`;
+        let mat = hazardMats.get(mk);
         if (!mat) {
-          mat = new MeshLambertMaterial({ color: part.color, flatShading: true });
-          hazardMats.set(part.color, mat);
+          mat = part.glow
+            ? new MeshBasicMaterial({ color: part.color, fog: false })
+            : new MeshLambertMaterial({ color: part.color, flatShading: true });
+          hazardMats.set(mk, mat);
         }
         const mesh = new Mesh(geo, mat);
         s.add(mesh);
@@ -114,6 +120,7 @@ export class LevelScene {
       this.ground.position.x = view.x;
       this.ground.position.z = view.z;
     }
+    this.goalGroup?.position.lerpVectors(this.goal.prevCentre, this.goal.centre, alpha);
     for (const { part, mesh } of this.hazardMeshes) {
       mesh.visible = part.visible;
       if (!part.visible) continue;
@@ -153,6 +160,7 @@ export class LevelScene {
     group.position.copy(goal.centre);
     group.rotation.y = yaw;
     this.scene.add(group);
+    this.goalGroup = group;
   }
 
   private addRoad(path: Path): void {

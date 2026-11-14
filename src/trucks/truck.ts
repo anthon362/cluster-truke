@@ -97,6 +97,10 @@ export class Truck {
   private panicSwerve: number = T.panicSwerve;
   private boostLeft = 0;
   private boostFactor = 1;
+  private surgeLeft = 0;
+  private surgeFactor = 1;
+  /** Metres its formation slot has moved forward from surging. */
+  private slotShift = 0;
   /** A spare truck stays out of play until an ability calls it in. */
   spare = false;
   private slotFree = false;
@@ -174,6 +178,8 @@ export class Truck {
     this.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
     this.panicSwerve = T.panicSwerve;
     this.boostLeft = 0;
+    this.surgeLeft = 0;
+    this.slotShift = 0;
     this.slotFree = false;
     this.setState(this.spare ? 'gone' : a.spawnDelay > 0 ? 'waiting' : 'alive');
     this.setFriction(T.friction);
@@ -212,6 +218,10 @@ export class Truck {
 
       // Forward: accelerate toward cruise speed (or the truck just ahead).
       if (this.boostLeft > 0) this.boostLeft -= dt;
+      if (this.surgeLeft > 0) {
+        this.surgeLeft -= dt;
+        this.slotShift += a.speed * (this.surgeFactor - 1) * dt;
+      }
       // A boosted driver stops minding the gap and leans on the truck ahead.
       const boosted = this.boostLeft > 0;
       const want = boosted
@@ -265,13 +275,14 @@ export class Truck {
   private wantedSpeed(time: number): number {
     const a = this.assignment;
     const wander = this.speedAmp * Math.sin(time * this.speedHz * Math.PI * 2 + this.speedPhase);
-    const slotS = a.startS + a.dir * a.speed * Math.max(0, time - a.spawnDelay);
+    const slotS = a.startS + a.dir * (a.speed * Math.max(0, time - a.spawnDelay) + this.slotShift);
     const behind = (slotS - this.s) * a.dir;
     const limit = a.speedVariance * T.slotCatchUp;
     const catchUp = this.slotFree
       ? 0
       : Math.min(Math.max((behind * T.slotGain) / a.speed, -limit), limit);
-    return a.speed * (1 + wander + catchUp) * (this.boostLeft > 0 ? this.boostFactor : 1);
+    const boost = this.boostLeft > 0 ? this.boostFactor : 1;
+    return a.speed * (1 + wander + catchUp) * boost * (this.surgeLeft > 0 ? this.surgeFactor : 1);
   }
 
   /** The truck is on ice for the next couple of steps. */
@@ -401,6 +412,16 @@ export class Truck {
   boost(factor: number, seconds: number): void {
     this.boostFactor = factor;
     this.boostLeft = seconds;
+  }
+
+  /**
+   * Drive faster for a while and keep the ground gained (boost belt): the
+   * truck's place in the formation moves forward with it, and it still minds
+   * the truck ahead.
+   */
+  surge(factor: number, seconds: number): void {
+    this.surgeFactor = factor;
+    this.surgeLeft = seconds;
   }
 
   /** Bring a spare truck into play at a pose, already rolling along its path. */

@@ -199,7 +199,7 @@ describe('ghost', () => {
 
 describe('music', () => {
   it('has a loop for each world between 140 and 170 BPM, with 16 steps', () => {
-    for (const world of ['dockyard', 'overpass', 'whiteout']) {
+    for (const world of ['dockyard', 'overpass', 'whiteout', 'nightfreight']) {
       const t = trackFor(world);
       expect(t).not.toBe(TRACKS.default);
       expect(t.bpm).toBeGreaterThanOrEqual(140);

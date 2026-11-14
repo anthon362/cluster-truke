@@ -2,6 +2,7 @@ import type { Quaternion, Vector3 } from 'three';
 import type { Rng } from '../../core/rng';
 import type { PhysicsWorld } from '../../physics/world';
 import type { PlayerController } from '../../player/controller';
+import type { Path } from '../../trucks/path';
 import type { Truck } from '../../trucks/truck';
 
 /** What a hazard may touch. */
@@ -10,6 +11,12 @@ export interface HazardContext {
   trucks: readonly Truck[];
   player: PlayerController;
   rng(): Rng;
+  /** Seconds since the attempt started (keeps running after it ends). */
+  time(): number;
+  /** A path of the level by id. */
+  path(id: string): Path | undefined;
+  /** Destroy a truck outright (it explodes). `quiet`: without a blast wave that throws what is nearby. */
+  wreck(truck: Truck, quiet?: boolean): void;
   /**
    * Mark a collider as a pusher: trucks hit by it are shoved around instead of
    * exploding from the impact.
@@ -21,6 +28,8 @@ export interface HazardContext {
 export interface HazardPart {
   size: Vector3;
   color: number;
+  /** Drawn unlit and unfogged, so it reads as a light source. */
+  glow?: boolean;
   visible: boolean;
   prevPos: Vector3;
   prevRot: Quaternion;
@@ -40,4 +49,19 @@ export interface Hazard {
   afterStep(dt: number): void;
   reset(): void;
   dispose(): void;
+  /**
+   * For things that chase the player (a boulder, a slide): what it is called
+   * and how many metres it is from the player right now. The player often
+   * cannot see it, so the HUD shows this.
+   */
+  chase?(): Chase | null;
+}
+
+export interface Chase {
+  label: string;
+  /** Metres to the player; the nearest one is shown. */
+  gap: number;
+  /** For warnings that are not a distance (lightning): the text to show and how full the bar is, 0 to 1. */
+  text?: string;
+  fill?: number;
 }

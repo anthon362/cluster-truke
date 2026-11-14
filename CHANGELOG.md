@@ -1,5 +1,68 @@
 # Changelog
 
+## M8 (part 6) — World 9: THE SUMMIT and the finale
+
+- New hazard `slide`: an avalanche that follows the road, buries the trucks it reaches and can
+  change speed at set points.
+- Six mountain levels: Foothills, Ridge Wind, First Slide, Cornice, Thin Air and the finale,
+  The Avalanche: three stages with one avalanche behind you all the way, finished in under a
+  minute.
+- Lightning can be limited to a stretch of a level.
+- An ending on the result screen after the last level.
+- The campaign is complete: 9 worlds, 54 levels, each completed without abilities by a
+  scripted player.
+
+## M8 (part 5) — World 8: SKYLINE
+
+- Six rooftop levels: Rooftops, Long Jump, Runaway Gate, Crane Line, Leapfrog, Last Roof, with
+  their own palette and music loop. Blast plates throw the convoy across the gaps between
+  buildings; a line of crane-carried trucks takes over where the roofs end.
+- The goal can move: a gate with `speed` travels away along the road.
+- Every level is completed without abilities.
+
+## M8 (part 4) — World 7: FOUNDRY
+
+- New hazards: `belt` (a boost belt: trucks speed up and keep the ground gained), `press`
+  (comes down on one lane and flattens the truck under it) and `melt` (the floor floods on a
+  countdown).
+- Six foundry levels: Fast Lane, Stamping Line, Meltdown, Hot Press, Overflow, Furnace Line,
+  with their own palette and music loop.
+- Trucks can `surge`: a speed-up that moves their place in the formation forward.
+- Scripted players change lane for presses and wait out stretched gaps; every level is
+  completed without abilities.
+
+## M8 (part 3) — World 6: STORMFRONT
+
+- New hazards: `wind` (a crosswind, steady or in gusts, that carries jumps sideways) and
+  `strike` (lightning that marks the truck you are on, then destroys it).
+- Six storm levels: Crosswind, Gusts, Lightning, Squall, Thunderhead, Eye of the Storm, with
+  their own palette and music loop.
+- The HUD warning bar now also counts down to a lightning strike.
+- Scripted players steer into the wind and leave marked trucks; every level is completed
+  without abilities.
+
+## M8 (part 2) — World 5: QUARRY
+
+- New hazards: `pendulum` (a swinging wrecking weight, lethal to the player), `plate` (a blast
+  plate that throws every truck that crosses it) and `boulder` (rolls after the convoy and
+  wrecks what it reaches).
+- Six quarry levels: Blast Plate, Kerb Jump, Swing, Rockfall, Quarry Run, Deep Cut, with their
+  own palette and music loop. Rockfall and Deep Cut are the first levels that cannot be
+  finished by standing still.
+- A chase gauge on the HUD shows how far behind the boulder is, with camera shake when it is
+  close.
+- Scripted players dodge the weights with the same maths as the game; every level is completed
+  without abilities.
+
+## M8 (part 1) — World 4: NIGHT FREIGHT
+
+- New hazard `beam`: light beams that are fixed, sweeping, spinning or blinking, lethal to
+  the player only, drawn as glowing bars.
+- Six night levels: Tripwire, High Beams, Sweep, Shutter, Turnstile, Night Shift, with their
+  own palette and music loop.
+- Scripted players for beams (jump, change lane, ride on the cab) that share the game's beam
+  timing; every level is completed without abilities.
+
 ## Smaller download: physics WebAssembly as its own file
 
 - Switched from `@dimforge/rapier3d-compat` (WebAssembly embedded in the JavaScript as text)

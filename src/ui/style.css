@@ -679,6 +679,38 @@ button.go {
   text-align: center;
   z-index: 2;
 }
+.chase {
+  position: absolute;
+  bottom: 56px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 240px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+  z-index: 2;
+}
+.chase-track {
+  height: 6px;
+  margin-top: 5px;
+  border-radius: 3px;
+  background: rgba(16, 20, 26, 0.55);
+  overflow: hidden;
+}
+.chase-fill {
+  height: 100%;
+  background: #ffc247;
+}
+.chase.danger {
+  color: #ff5a4d;
+}
+.chase.danger .chase-fill {
+  background: #ff5a4d;
+}
+.chase.hidden,
 .speed.hidden,
 .tutorial.hidden {
   display: none;
@@ -693,6 +725,7 @@ button.go {
 #ui:not(.in-game) .ability-bar,
 #ui:not(.in-game) .popups,
 #ui:not(.in-game) .crosshair,
+#ui:not(.in-game) .chase,
 #ui:not(.in-game) .speed {
   display: none;
 }

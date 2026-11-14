@@ -3,10 +3,16 @@
  * They are deliberately simple: each one does what a careful human would do
  * for one kind of obstacle.
  */
+import { Vector3 } from 'three';
 import { TUNING } from '../src/config/tuning';
 import { Sim } from '../src/core/sim';
-import type { LevelDef, RotorDef } from '../src/level/schema';
+import { type BeamState, beamHalfExtents, beamStateAt } from '../src/level/hazards/beam';
+import { pendulumAt } from '../src/level/hazards/pendulum';
+import { type PressState, pressStateAt, underPress } from '../src/level/hazards/press';
+import { Strike } from '../src/level/hazards/strike';
+import type { BeamDef, LevelDef, PendulumDef, RotorDef } from '../src/level/schema';
 import { NO_INPUT, type MoveInput } from '../src/player/movement';
+import type { Truck } from '../src/trucks/truck';
 import { bot } from './helpers';
 
 const HZ = 1 / TUNING.loop.fixedStep;
@@ -69,12 +75,54 @@ export function either(...makers: (() => Script)[]): () => Script {
 
 export const ride = (): Script => () => null;
 
+/**
+ * Wrap a script so that, in the air, it steers back toward the sideways
+ * position it took off from. This is what a player does in a crosswind.
+ */
+export function holdLine(maker: () => Script): () => Script {
+  return () => {
+    const inner = maker();
+    let x0 = 0;
+    return (sim, t) => {
+      const p = sim.player;
+      const out = inner(sim, t);
+      if (p.grounded) {
+        x0 = p.pos.x;
+        return out;
+      }
+      // The inner script is steering somewhere on purpose (a lane change): leave it alone.
+      if (out && (out.moveS !== 0 || out.moveF !== 0)) return out;
+      const truckVx = (p.lastTruck ?? p.groundTruck)?.body.linvel().x ?? 0;
+      // Looking down +Z (yaw = pi), "right" is -X.
+      const steer = Math.max(-1, Math.min(1, 1.2 * (p.pos.x - x0) + 0.35 * (p.vel.x - truckVx)));
+      return { ...(out ?? { ...NO_INPUT, yaw: Math.PI }), moveS: steer };
+    };
+  };
+}
+
+/** A row gap this much longer than normal (m) is not worth jumping. */
+const STRETCH_LIMIT = 2;
+
 /** Run the convoy forward; once on the lead row there is nothing to hop to, so ride. */
 export const runForward = (): Script => (sim) => {
   const here = sim.player.groundTruck ?? sim.player.lastTruck!;
   const a = here.assignment;
   const hasNext = !!sim.pool.find(a.convoy, a.row + 1, a.lane);
   return hasNext || !sim.player.grounded ? bot(sim, 1) : null;
+};
+
+/**
+ * Run the convoy forward, but wait when the rows have been pulled apart (by a
+ * boost belt) until the gap closes again.
+ */
+export const runCareful = (): Script => (sim) => {
+  const here = sim.player.groundTruck ?? sim.player.lastTruck!;
+  const a = here.assignment;
+  const next = sim.pool.find(a.convoy, a.row + 1, a.lane);
+  if (!sim.player.grounded) return bot(sim, 1);
+  if (!next?.driving) return null;
+  if (next.pos.distanceTo(here.pos) > T.rowSpacing + STRETCH_LIMIT) return null;
+  return bot(sim, 1);
 };
 
 /** One sideways hop to the next lane at time `at` (+1 = toward +X). */
@@ -91,15 +139,17 @@ export const hopLane =
 /**
  * Hop sideways onto another convoy running alongside at the same height.
  * Waits (from `after`) until one of its trailers is right beside the player,
- * the way a person would look before jumping. With `fullJump` it is a held
- * jump that pushes off for the first half and steers back for the second, so
- * it covers about 6.7 m and lands without sliding off the far side.
+ * the way a person would look before jumping. If the player is not in the
+ * lane next to it, it first hops one lane closer. With `fullJump` it takes a
+ * short run-up, holds the jump, pushes off for the first half and steers back
+ * for the second, so it covers about 7 m and lands without sliding off.
  */
 export const hopTo =
   (convoy: string, after: number, side: 1 | -1, sprint = false, fullJump = false) =>
   (): Script => {
-    let start = -1;
-    let jumped = false;
+    /** What is being done right now, and when it started. */
+    let move: { kind: 'lane' | 'cross'; start: number; jumped: boolean } | null = null;
+    const RUN_UP = 0.14;
     return (sim, t) => {
       const p = sim.player;
       const truck = p.groundTruck ?? p.lastTruck;
@@ -108,35 +158,51 @@ export const hopTo =
         const slide = (p.vel.x - truck.body.linvel().x) * side;
         return slide > 1.5 ? toward(-side, 0) : null;
       }
-      if (start >= 0) {
-        const dt = t - start;
-        if (!fullJump) {
-          if (dt > 0.6) return null;
-          const first = !jumped && p.grounded;
-          jumped = jumped || first;
-          return toward(side, 0, { sprint, jumpPressed: first });
+      if (move) {
+        const dt = t - move.start;
+        if (move.kind === 'lane' || !fullJump) {
+          // A tapped jump: about one lane at a walk, more when sprinting.
+          if (dt > 0.6) {
+            move = null;
+            return null;
+          }
+          const first = !move.jumped && p.grounded;
+          move.jumped = move.jumped || first;
+          return toward(side, 0, { sprint: move.kind === 'cross' && sprint, jumpPressed: first });
         }
-        if (dt > 1.2) return null;
-        const first = !jumped && p.grounded;
-        jumped = jumped || first;
-        const pushing = dt < 0.6;
+        if (dt > RUN_UP + 1.2) {
+          move = null;
+          return null;
+        }
+        if (dt < RUN_UP) return toward(side, 0, { sprint });
+        const first = !move.jumped && (p.grounded || p.timeSinceGrounded < P.coyoteTime * 0.6);
+        move.jumped = move.jumped || first;
+        const pushing = dt < RUN_UP + 0.6;
         return toward(pushing ? side : -side, 0, {
           sprint: pushing && sprint,
           jumpPressed: first,
           jumpHeld: true,
         });
       }
-      if (t < after || !p.grounded) return null;
+      if (t < after || !p.grounded || !truck) return null;
+      // Nearest trailer of the target convoy, sideways distance and where it will be when a hop lands.
+      const air = fullJump ? 0.9 + RUN_UP : 0.45;
       for (const other of sim.trucks) {
         if (other.assignment.convoy !== convoy || !other.isSolid) continue;
-        // Trailer centre is 1.4 m behind the truck's middle.
         const dx = (other.pos.x - p.pos.x) * side;
-        // Where that trailer will be, relative to us, when the hop lands.
-        const air = fullJump ? 0.9 : 0.45;
+        // Trailer centre is 1.4 m behind the truck's middle.
         const dz = other.pos.z - 1.4 - p.pos.z + (other.body.linvel().z - p.vel.z) * air;
-        if (Math.abs(dz) < 1.5 && dx > 2 && dx < 10) {
-          start = t;
+        if (Math.abs(dz) > 1.5 || dx < 2) continue;
+        const reach = fullJump ? 8.6 : sprint ? 7.2 : 5;
+        if (dx <= reach) {
+          move = { kind: 'cross', start: t, jumped: false };
           return toward(side, 0, { sprint });
+        }
+        // Too far: move one lane closer first, if our own convoy has a truck there.
+        const a = truck.assignment;
+        if (sim.pool.find(a.convoy, a.row, a.lane + side)) {
+          move = { kind: 'lane', start: t, jumped: false };
+          return toward(side, 0);
         }
       }
       return null;
@@ -279,5 +345,208 @@ export const dodgeRotors = (): Script => {
       }
     });
     return null;
+  };
+};
+
+const beamState: BeamState = { x: 0, y: 0, z: 0, yaw: 0, on: true, warning: false };
+
+/**
+ * Would someone standing with their feet at (x, feet, z) be inside a lit beam
+ * at time `at`? Uses the same beam maths as the game.
+ */
+export function inBeam(def: BeamDef, x: number, feet: number, z: number, at: number): boolean {
+  const s = beamStateAt(def, at, beamState);
+  if (!s.on) return false;
+  const half = beamHalfExtents(def);
+  const dx = x - s.x;
+  const dz = z - s.z;
+  const lx = dx * Math.cos(s.yaw) - dz * Math.sin(s.yaw);
+  const lz = dx * Math.sin(s.yaw) + dz * Math.cos(s.yaw);
+  const margin = P.radius + 0.1;
+  return (
+    Math.abs(lx) <= half.x + margin &&
+    Math.abs(lz) <= half.z + margin &&
+    feet + P.height + 0.05 >= s.y - half.y &&
+    feet - 0.05 <= s.y + half.y
+  );
+}
+
+const weightPos = new Vector3();
+const pressState: PressState = { bottom: 0, warning: false };
+/** Stay this far clear of a press's footprint: it reaches past its block for trucks (m). */
+const PRESS_MARGIN = 2.5;
+
+/** Would someone standing with their feet at (x, feet, z) be hit by a swinging weight at time `at`? */
+export function inPendulum(
+  def: PendulumDef,
+  x: number,
+  feet: number,
+  z: number,
+  at: number,
+): boolean {
+  const c = pendulumAt(def, at, weightPos);
+  const half = def.size / 2 + P.radius + 0.25;
+  return (
+    Math.abs(x - c.x) <= half &&
+    Math.abs(z - c.z) <= half &&
+    feet + P.height + 0.1 >= c.y - def.size / 2 &&
+    feet - 0.1 <= c.y + def.size / 2
+  );
+}
+
+const pendulumsOf = (sim: Sim): PendulumDef[] =>
+  sim.level.hazards.filter((h): h is PendulumDef => h.type === 'pendulum');
+
+const beamsOf = (sim: Sim): BeamDef[] =>
+  sim.level.hazards.filter((h): h is BeamDef => h.type === 'beam');
+
+/** Height a full jump adds at its top. */
+const JUMP_RISE = (P.jumpVelocity * P.jumpVelocity) / (2 * P.gravity);
+
+/**
+ * Jump over beams: if staying on the roof would put the rider in a beam about
+ * half a second from now, but being at the top of a jump would not, jump now.
+ */
+export const hopBeams = (): Script => {
+  let holdUntil = -1;
+  return (sim, t) => {
+    const p = sim.player;
+    if (t < holdUntil) return { ...NO_INPUT, yaw: Math.PI, jumpHeld: true };
+    if (!p.grounded) return null;
+    const beams = beamsOf(sim);
+    // The top of a jump is 0.45 s after take-off.
+    for (const lead of [0.38, 0.45, 0.52]) {
+      const x = p.pos.x + p.vel.x * lead;
+      const z = p.pos.z + p.vel.z * lead;
+      const hit = beams.some((b) => inBeam(b, x, p.feetY, z, t + lead));
+      if (!hit) continue;
+      const clear = !beams.some((b) => inBeam(b, x, p.feetY + JUMP_RISE - 0.5, z, t + lead));
+      if (clear) {
+        holdUntil = t + 0.75;
+        return { ...NO_INPUT, yaw: Math.PI, jumpPressed: true, jumpHeld: true };
+      }
+    }
+    return null;
+  };
+};
+
+/**
+ * Things that cannot be jumped (standing columns of light, swinging weights): look a couple of seconds
+ * ahead, and if this lane will be in one when we get there, hop to a
+ * neighbouring lane that will not.
+ */
+export const dodgeBeams = (): Script => {
+  let hop: { until: number; to: Truck; started: boolean; along?: 1 | -1 } | null = null;
+  let quietUntil = 0;
+  /** Will a rider at sideways position x run into a beam they cannot jump, between `from` and `to` seconds ahead? */
+  const blocked = (sim: Sim, x: number, t: number, from: number, to: number): boolean => {
+    const p = sim.player;
+    for (let lead = from; lead <= to; lead += 0.1) {
+      const z = p.pos.z + p.vel.z * lead;
+      for (const b of beamsOf(sim)) {
+        if (
+          inBeam(b, x, p.feetY, z, t + lead) &&
+          inBeam(b, x, p.feetY + JUMP_RISE - 0.5, z, t + lead)
+        ) {
+          return true;
+        }
+      }
+      // A truck marked by lightning: anywhere on or near it is about to be hit.
+      for (const h of sim.hazards) {
+        if (!(h instanceof Strike) || !h.target) continue;
+        const target = h.target.pos;
+        if (Math.abs(x - target.x) < T.laneSpacing / 2 && Math.abs(p.pos.z - target.z) < 9) {
+          return true;
+        }
+      }
+      // A press that will be low enough to hit when this lane gets under it.
+      for (const h of sim.level.hazards) {
+        if (h.type !== 'press' || !underPress(h, x, z, PRESS_MARGIN)) continue;
+        if (pressStateAt(h, t + lead, pressState).bottom < p.feetY + P.height + 2.5) return true;
+      }
+      // A swinging weight is too big to jump.
+      for (const w of pendulumsOf(sim)) {
+        if (inPendulum(w, x, p.feetY, z, t + lead)) return true;
+      }
+    }
+    return false;
+  };
+  return (sim, t) => {
+    const p = sim.player;
+    if (hop) {
+      const err = p.pos.x - hop.to.pos.x;
+      const landed = hop.started && p.groundTruck === hop.to && Math.abs(err) < 0.6;
+      if (t > hop.until || landed || !hop.to.isSolid) hop = null;
+      else {
+        if (hop.along) {
+          // Another row: run and jump, as when moving along the convoy.
+          hop.started = hop.started || !p.grounded;
+          return bot(sim, hop.along);
+        }
+        const first = !hop.started && p.grounded;
+        hop.started = hop.started || first;
+        // Looking down +Z (yaw = pi), "right" is -X: steer onto the middle of the truck aimed for.
+        const closing = p.vel.x - hop.to.body.linvel().x;
+        const steer = Math.max(-1, Math.min(1, 1.4 * err + 0.35 * closing));
+        return { ...NO_INPUT, yaw: Math.PI, moveS: steer, jumpPressed: first, jumpHeld: true };
+      }
+    }
+    if (!p.grounded || t < quietUntil || p.vel.z < 1 || !p.groundTruck) return null;
+    if (!blocked(sim, p.pos.x, t, 0.5, 1.6)) return null;
+    const here = p.groundTruck.assignment;
+    for (const side of [1, -1] as const) {
+      const to = sim.pool.find(here.convoy, here.row, here.lane + side);
+      if (to?.driving && !blocked(sim, to.pos.x, t, 0.4, 2.0)) {
+        hop = { until: t + 1.2, to, started: false };
+        quietUntil = t + 1.3;
+        return null;
+      }
+    }
+    // No lane to move to (it is gone, or no better): go to the next row instead, or the one behind.
+    if (struck(sim, p.groundTruck)) {
+      for (const along of [1, -1] as const) {
+        const to = sim.pool.find(here.convoy, here.row + along, here.lane);
+        if (!to?.driving) continue;
+        hop = { until: t + 3, to, started: false, along };
+        quietUntil = t + 3;
+        break;
+      }
+    }
+    return null;
+  };
+};
+
+/** Is this truck the one lightning has marked? */
+function struck(sim: Sim, truck: Truck): boolean {
+  return sim.hazards.some((h) => h instanceof Strike && h.target === truck);
+}
+
+/**
+ * Move up the convoy only while whatever is chasing is closer than `limit`
+ * metres; otherwise ride. Staying in the middle of the convoy keeps trucks
+ * on every side to escape to.
+ */
+export const runWhenChased = (limit: number) => (): Script => {
+  const run = runCareful();
+  return (sim, t) => {
+    const chase = sim.chase();
+    const near = !!chase && chase.fill === undefined && chase.gap < limit;
+    return near || !sim.player.grounded ? run(sim, t) : null;
+  };
+};
+
+/** Walk forward off the trailer onto the truck's cab, which is lower, and stay there. */
+export const toCab = (): Script => {
+  let step = 0;
+  return (sim) => {
+    const p = sim.player;
+    const truck = p.groundTruck ?? p.lastTruck;
+    if (!truck) return null;
+    const onCab = p.grounded && p.feetY < truck.pos.y + (T.trailerRoof + T.cabRoof) / 2;
+    if (onCab) return null;
+    // Short taps: slow enough to drop onto the cab instead of overshooting it.
+    step++;
+    const fwd = truck.body.linvel();
+    return { ...NO_INPUT, yaw: Math.atan2(-fwd.x, -fwd.z), moveF: step % 6 < 2 ? 1 : 0 };
   };
 };

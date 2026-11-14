@@ -1,0 +1,129 @@
+{
+  "id": "4-3",
+  "name": "Sweep",
+  "world": "nightfreight",
+  "parTime": 16,
+  "killY": -5,
+  "palette": {
+    "sky": "#0b1020",
+    "ground": "#111a2c",
+    "fog": "#0b1020",
+    "fogFar": 380,
+    "road": "#262c3a"
+  },
+  "player": {
+    "convoy": "main",
+    "row": 1,
+    "lane": 1
+  },
+  "paths": [
+    {
+      "id": "road",
+      "width": 14,
+      "lanes": 3,
+      "points": [
+        [0, 0, -40],
+        [0, 0, 640]
+      ]
+    }
+  ],
+  "convoys": [
+    {
+      "id": "main",
+      "path": "road",
+      "rows": 20,
+      "lanesUsed": [0, 1, 2],
+      "startAt": 50,
+      "wobble": 0.06
+    }
+  ],
+  "scenery": [
+    {
+      "type": "box",
+      "pos": [-9.5, 6.5, 220],
+      "size": [0.6, 13, 0.6],
+      "lethal": true,
+      "color": "#3a4358"
+    },
+    {
+      "type": "box",
+      "pos": [-9.5, 13.3, 220],
+      "size": [0.9, 0.6, 0.9],
+      "lethal": true,
+      "color": "#ffd166"
+    },
+    {
+      "type": "box",
+      "pos": [9.5, 6.5, 220],
+      "size": [0.6, 13, 0.6],
+      "lethal": true,
+      "color": "#3a4358"
+    },
+    {
+      "type": "box",
+      "pos": [9.5, 13.3, 220],
+      "size": [0.9, 0.6, 0.9],
+      "lethal": true,
+      "color": "#ffd166"
+    },
+    {
+      "type": "box",
+      "pos": [-9.5, 6.5, 340],
+      "size": [0.6, 13, 0.6],
+      "lethal": true,
+      "color": "#3a4358"
+    },
+    {
+      "type": "box",
+      "pos": [-9.5, 13.3, 340],
+      "size": [0.9, 0.6, 0.9],
+      "lethal": true,
+      "color": "#ffd166"
+    },
+    {
+      "type": "box",
+      "pos": [9.5, 6.5, 340],
+      "size": [0.6, 13, 0.6],
+      "lethal": true,
+      "color": "#3a4358"
+    },
+    {
+      "type": "box",
+      "pos": [9.5, 13.3, 340],
+      "size": [0.9, 0.6, 0.9],
+      "lethal": true,
+      "color": "#ffd166"
+    }
+  ],
+  "hazards": [
+    {
+      "type": "beam",
+      "pos": [-5.2, 6, 220],
+      "length": 12,
+      "vertical": true,
+      "thickness": 0.6,
+      "sweep": {
+        "to": [5.2, 6, 220],
+        "period": 7,
+        "phase": 0
+      }
+    },
+    {
+      "type": "beam",
+      "pos": [-5.2, 6, 340],
+      "length": 12,
+      "vertical": true,
+      "thickness": 0.6,
+      "sweep": {
+        "to": [5.2, 6, 340],
+        "period": 6,
+        "phase": 0.4
+      }
+    }
+  ],
+  "goal": {
+    "pos": [0, 0, 443],
+    "width": 16,
+    "height": 12
+  }
+}

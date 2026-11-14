@@ -290,32 +290,241 @@ the JavaScript as text, which made the download about a quarter larger. This nee
 build-time plugin (`vite-plugin-wasm`); nothing is fetched from any server at run time and the
 build is still a plain static site. No gameplay values changed.
 
+## M8 (part 1: world 4, NIGHT FREIGHT)
+
+M8 is being built one world at a time. The six remaining worlds and the finale are original
+(decided by me, as asked): 4 NIGHT FREIGHT (light beams), 5 QUARRY (wrecking weights, blast
+plates, a boulder chase), 6 STORMFRONT (wind, tilted roads), 7 FOUNDRY (boost belts, presses,
+rising melt), 8 SKYLINE (a magnet crane, see-saws, a moving goal), 9 THE SUMMIT with the
+finale THE AVALANCHE (a slide chases you through three stages, under 90 s, on trucks throughout).
+
+**Values changed from the design document:** none.
+
+**Values the document did not give (added):** `hazards.beamThickness` 0.35 m,
+`hazards.beamWarning` 0.8 s (a switched-off beam flashes this long before it returns),
+`hazards.beamWarningHz` 7.
+
+**Notes on beams:**
+
+- One hazard type, `beam`, covers every kind: lying across the road or standing upright,
+  fixed, sliding back and forth (`sweep`), turning (`spin`) and switching on and off (`blink`).
+- A beam only affects the player; trucks pass through light.
+- Heights used in world 4: a low beam is centred 4.3 m up and must be jumped; a high beam is
+  centred 5.25 m up, which hits someone standing on a trailer but passes over someone on a cab.
+  This is the first world that uses the lower cab.
+- The "visible countdown" for timed barriers is a warning flash instead of numbers.
+- Blinking walls in 4-4 and 4-6 are timed so that a rider who does nothing arrives while they
+  are off. A player who runs ahead arrives at a different time and has to read the flashes.
+
+## M8 (part 2: world 5, QUARRY)
+
+**Values changed from the design document:** none.
+
+**Values the document did not give (added):** `hazards.plateRearm` 0.8 s, `hazards.plateForward`
+0.15 (share of the kick that goes forward), `hazards.plateThickness` 0.12 m. Per-level values
+live in the level files: plate `power`, weight `length` / `swing` / `period`, boulder `speed`.
+
+**Measured before building the levels:**
+
+- A blast plate across all three lanes is stable at power 6 to 10 (0 explosions, 60 of 60
+  trucks drive on, a rider stays on). Power 12 is not. The levels use 9 and 10.
+- A convoy thrown at power 10 clears a rock kerb up to 1.2 m high placed 8.9 m past the plate.
+  A 2.5 m wall is too high. The levels use 1.2 m.
+
+**Notes:**
+
+- `pendulum`: a wrecking weight on a cable. It swings across the lanes at roof height: it
+  passes over trucks and kills a rider. Each one is timed so it sweeps through the starting
+  lane exactly when a rider who never moved arrives, so standing still does not work, but one
+  lane change does.
+- `plate`: throws every truck that drives over it, once each. Riders are carried along.
+- `boulder`: rolls along the road behind the convoy, faster than the trucks, wrecking each one
+  it reaches. The only way through is to keep moving up the rows. A rider who stays put dies
+  after about 11 s in 5-4; running up the convoy finishes in about 13 s.
+- The boulder comes from behind, where the player is not looking, so the HUD shows a gauge
+  ("BOULDER 34 m") inside `ui.chaseWarnRange` (80 m). It turns red and the camera starts to
+  shake inside `ui.chaseDangerRange` (22 m, shake up to `ui.chaseShake` 0.5). Added values.
+- Convoys in this world are shorter (8 to 12 rows) on levels with plates and kerbs. A convoy
+  must not start on top of something that acts on trucks; the first version did, and the lead
+  rows blew up on the kerb at the start.
+- 5-4 and 5-6 are the first levels where riding one truck to the goal is not enough. They
+  still need no abilities: the demonstration only runs forward and jumps between rows.
+
+## M8 (part 3: world 6, STORMFRONT)
+
+**Values changed from the design document:** none.
+
+**Changed from my own plan:** world 6 was announced as "wind, tilted roads". Tilted roads are
+out and lightning is in. A banked road needs trucks to drive over a tilted edge, which the
+truck physics turns into explosions; lightning gives the world a second idea that works with
+the trucks instead of against them.
+
+**Values the document did not give (added):** `hazards.windGroundShare` 0.3,
+`hazards.windTruckShare` 0.04, `hazards.windHeight` 40 m, `hazards.windWarning` 0.9 s, the
+`hazards.windStreak*` drawing values, `hazards.strikeRadius` 1.5 m, `hazards.strikeHeight` 70 m,
+`hazards.strikeBoltTime` 0.2 s, `hazards.strikeMark*` and `hazards.strikeFlickerHz`. Per-level
+values live in the level files: wind `force` and `gust`, lightning `period` and `warning`.
+
+**Measured:**
+
+- Wind does not move someone standing on a roof (their grip cancels it) and does not move the
+  trucks enough to matter. It only matters in the air: one full jump drifts 2.6 m at force 6
+  and 4.3 m at force 10 (a lane is 3.4 m). The levels use 6 to 9.
+- A scripted player who jumps the power lines without steering wins 2 of 6 runs of 6-1; one
+  that steers back toward where it took off wins 6 of 6.
+
+**Notes:**
+
+- `wind`: a zone with a sideways push, steady or in gusts. White streaks show where and which
+  way; a few appear 0.9 s before a gust. MAGNET BOOTS ignore it while standing.
+- `strike`: lightning. It always picks the truck the player is on (or last stood on), frames it
+  with four flickering columns for the warning time, then destroys it. A bar on the HUD counts
+  down. The first version picked random trucks near the player and threw the player with the
+  blast; trucks hit ahead left wrecks the player's truck then drove into, and nobody survived.
+  Now the hit has no blast wave and the wreck is always behind the player.
+- The power lines are the `beam` hazard from world 4 at jumping height.
+- The scripted lane change now steers onto the middle of the truck it is aiming for and, when
+  the lane beside is gone, runs forward to the next row instead.
+
+## M8 (part 4: world 7, FOUNDRY)
+
+**Values changed from the design document:** none.
+
+**Values the document did not give (added):** `hazards.beltStripes` / `beltStripeLength` /
+`beltStripeSpeed` / `beltPostHeight` / `beltPostOut` (drawing), `hazards.pressTop` 10 m,
+`pressBottom` 0.6 m, `pressBlock` 7 m, `pressSlam` 0.18 s, `pressRise` 1.1 s, `pressWarning`
+1.1 s, `pressCrushBelow` 3.6 m, `pressReach` 1.5 m, `hazards.meltTruckHeight` 1.2 m,
+`meltTruckClear` 1.6 m, `meltSize`, `meltDepth`, `meltCountdown` 20 s. Per-level values live in
+the level files: belt `factor` and `seconds`, press `period` and `down`, melt `rise`.
+
+**Measured:**
+
+- The first belt used the existing truck boost (the one TAILWIND uses). The convoy was no
+  faster at the goal (23.3 s against 23.4 s): each truck is pulled back to its place in the
+  formation when the boost ends. Belts now use a new `surge`, which moves the truck's place
+  forward with it. Two belts at 1.35 x for 3 s take a ride from 23.4 s to 21.3 s.
+- Rows cross a belt one after another, so the gap between two rows opens by about 4.5 m for a
+  moment. The scripted runner fell into it; it now waits when a gap is more than 2 m longer
+  than normal, as a player would.
+- A gantry of three presses (period about 6 s, down 1 s) crushes roughly 4 of every 10 trucks
+  that pass under it.
+
+**Notes:**
+
+- `belt`: speeds up every truck that crosses it, and they keep the ground gained.
+- `press`: a block over one lane. Touching it kills; when it comes down it flattens the truck
+  under it, which is removed at once so the next truck does not drive into a wreck. Its lamp
+  flashes for 1.1 s first. Gantries bring their presses down one after another, so one lane is
+  always open.
+- `melt`: the floor floods. When it is 1.2 m deep every truck sinks. The HUD counts down. 7-3,
+  7-5 and 7-6 cannot be finished by riding (a ride takes 23 s, the melt allows 15 to 18 s); the
+  demonstration runs up the convoy and finishes in about 13 to 17 s.
+- Crushed and sunk trucks are destroyed without a blast wave and count as explosions in the
+  statistics.
+
+## M8 (part 5: world 8, SKYLINE)
+
+**Values changed from the design document:** none. **Values added:** none in `tuning.ts`; the
+goal in a level file can now have `speed` (m/s, at most 16 so the trucks always catch it) and
+`travel` (m).
+
+**Changed from my own plan:** world 8 was announced as "a magnet crane, see-saws, a moving
+goal". The crane is the line of carried trucks that already exists (world 2 used it once), the
+moving goal is in, and see-saws are out: a tilting platform under driving trucks is the same
+problem as the banked roads of world 6. Rooftop gaps crossed with blast plates take their place.
+
+**Measured:**
+
+- A blast plate (power 9 or 10) 3 m before the edge throws the whole convoy across a gap
+  between two roofs of up to 10 m with no losses (24 of 24 trucks, a rider stays on). 5 m
+  before the edge with power 9 fails at 10 m. The levels use power 10, 3 m, gaps of 6 to 9 m.
+- 8-3: riding catches the gate after 22.9 s; running up the convoy reaches it in 9.5 s.
+
+**Notes:**
+
+- The world has no ground: the roofs are scenery, the street is 45 m down, and falling is the
+  "fell" ending. Roads are not drawn, since the ribbon would hang over the gaps.
+- A moving gate travels along the direction it faces. The crossing test compares the player's
+  movement with the gate's movement in the same step, so a gate cannot slip past unnoticed.
+- 8-4 and 8-6 end on the crane line: the roofs run out and the gate is on the carried trucks.
+
+## M8 (part 6: world 9, THE SUMMIT, and the finale)
+
+**Values changed from the design document:** none.
+
+**Values the document did not give (added):** `hazards.slideHeight` 16 m, `slideDepth` 14 m,
+`slideReach` 3 m, `slideChunks` 14, `slideChunkReach` 9 m. Per-level values live in the level
+files: the avalanche's `speed`, `startAt` and `stages`; lightning can be limited to a stretch
+of a level with `between`.
+
+**The finale, 9-6 THE AVALANCHE** (my own design, as agreed: no vehicle-giant boss). One
+avalanche comes down the road behind the convoy for the whole level, 980 m, on trucks
+throughout:
+
+| Stage         | Road (z)    | Avalanche | What is in the way                             |
+| ------------- | ----------- | --------- | ---------------------------------------------- |
+| 1, tree line  | up to 330   | 19.5 m/s  | two swinging cableway weights                  |
+| 2, the ridge  | 330 to 660  | 20.5 m/s  | gusting crosswind, two kerbs to be thrown over |
+| 3, the summit | 660 to goal | 22 m/s    | lightning on the truck you stand on            |
+
+The convoy drives 18 m/s, so the avalanche gains all the time and faster in each stage. It
+starts 70 m behind the rear row.
+
+**Measured on the finale:**
+
+- A rider who never moves is caught by a weight after 7 s. Nobody finishes by standing still.
+- The scripted player that dodges and only moves up the convoy when the avalanche is within
+  90 m wins 5 of 6 runs in 46 s. One that sprints to the front row wins 3 of 6 in 38.8 s: the
+  front row has no row ahead to escape to when lightning marks it. Both are well under the 90 s
+  the design asks for. Par is 42 s.
+- Lightning in the finale first struck at 4 s, in stage 1, because it had no notion of place.
+  It is now limited to stage 3.
+
+**Notes:**
+
+- `slide`: a 44 m wide wall of snow following the road. It buries (removes) every truck it
+  reaches and is lethal to touch. The HUD gauge shows the distance, as for the boulder.
+- The finale has 24 rows (72 trucks), the largest convoy in the game. Frame rate with that
+  many trucks has not been measured on a real graphics card.
+- After the last level the result screen reads SUMMIT REACHED and Next is greyed out.
+
 ## What to adjust if it feels wrong
 
-| Feels like                                    | Change                                                               |
-| --------------------------------------------- | -------------------------------------------------------------------- |
-| Running is too slow / too fast                | `player.sprintSpeed`, `player.walkSpeed`                             |
-| Starts and stops feel sluggish / twitchy      | `player.groundAccel`, `player.groundDecel`                           |
-| Jump too floaty / too heavy                   | `player.gravity` (and `jumpVelocity` to keep the height)             |
-| Jump too short to reach the next truck        | `player.jumpVelocity`                                                |
-| Tapping jump is not low enough                | `player.jumpCutMultiplier`                                           |
-| Jumps at edges get eaten                      | `player.coyoteTime`, `player.jumpBuffer`                             |
-| Too little / too much steering in the air     | `player.airAccel`                                                    |
-| Strafing too weak                             | `player.strafeMultiplier`                                            |
-| Mouse too fast / slow                         | `camera.sensitivityDefault`                                          |
-| View too narrow / fish-eyed                   | `camera.fovDefault`, `camera.sprintFovKick`                          |
-| Truck too slow / fast                         | `truck.cruiseSpeed`                                                  |
-| Convoy too tidy / too chaotic                 | `truck.wobbleAmplitude`, `truck.speedVariance`, `truck.leadRowCalm`  |
-| Rows too far apart to jump                    | `truck.rowSpacing`, `truck.slotGain`                                 |
-| Trucks explode too easily / not enough        | `truck.explodeDeltaV`                                                |
-| Explosions throw things too hard / too little | `truck.blastSpeed`, `player.blastSpeed`                              |
-| Climbing a truck side too slow / too easy     | `player.clingAccel`, `player.clingMaxRise`, `player.clingCatchAccel` |
-| Side kick-off too weak                        | `player.clingTapUp`, `player.clingTapAway`                           |
-| Camera shake too strong                       | `camera.shakeMaxAngle`                                               |
-| Wall bricks fly too wildly / too little       | `hazards.wallFling`, `hazards.wallScatter`                           |
-| Bricks shove you too hard                     | `hazards.debrisKnock`                                                |
-| Pile-ups spread too far back                  | `truck.brakeAccel`, `truck.panicDistance`                            |
-| Points come too fast / too slowly             | `score.*` (each bonus has its own value)                             |
-| An ability is too strong / weak               | `abilities.<name>.*`                                                 |
-| Prices                                        | `src/config/abilities.ts`                                            |
-| Ice too slippery / not slippery enough        | `truck.lateralGripIce`                                               |
+| Feels like                                    | Change                                                                |
+| --------------------------------------------- | --------------------------------------------------------------------- |
+| Running is too slow / too fast                | `player.sprintSpeed`, `player.walkSpeed`                              |
+| Starts and stops feel sluggish / twitchy      | `player.groundAccel`, `player.groundDecel`                            |
+| Jump too floaty / too heavy                   | `player.gravity` (and `jumpVelocity` to keep the height)              |
+| Jump too short to reach the next truck        | `player.jumpVelocity`                                                 |
+| Tapping jump is not low enough                | `player.jumpCutMultiplier`                                            |
+| Jumps at edges get eaten                      | `player.coyoteTime`, `player.jumpBuffer`                              |
+| Too little / too much steering in the air     | `player.airAccel`                                                     |
+| Strafing too weak                             | `player.strafeMultiplier`                                             |
+| Mouse too fast / slow                         | `camera.sensitivityDefault`                                           |
+| View too narrow / fish-eyed                   | `camera.fovDefault`, `camera.sprintFovKick`                           |
+| Truck too slow / fast                         | `truck.cruiseSpeed`                                                   |
+| Convoy too tidy / too chaotic                 | `truck.wobbleAmplitude`, `truck.speedVariance`, `truck.leadRowCalm`   |
+| Rows too far apart to jump                    | `truck.rowSpacing`, `truck.slotGain`                                  |
+| Trucks explode too easily / not enough        | `truck.explodeDeltaV`                                                 |
+| Explosions throw things too hard / too little | `truck.blastSpeed`, `player.blastSpeed`                               |
+| Climbing a truck side too slow / too easy     | `player.clingAccel`, `player.clingMaxRise`, `player.clingCatchAccel`  |
+| Side kick-off too weak                        | `player.clingTapUp`, `player.clingTapAway`                            |
+| Camera shake too strong                       | `camera.shakeMaxAngle`                                                |
+| Wall bricks fly too wildly / too little       | `hazards.wallFling`, `hazards.wallScatter`                            |
+| Bricks shove you too hard                     | `hazards.debrisKnock`                                                 |
+| Pile-ups spread too far back                  | `truck.brakeAccel`, `truck.panicDistance`                             |
+| Points come too fast / too slowly             | `score.*` (each bonus has its own value)                              |
+| An ability is too strong / weak               | `abilities.<name>.*`                                                  |
+| Prices                                        | `src/config/abilities.ts`                                             |
+| Ice too slippery / not slippery enough        | `truck.lateralGripIce`                                                |
+| Blast plates throw trucks too high / too low  | `power` on the plate in the level file (stable range 6 to 10)         |
+| Wrecking weights too fast / too slow          | `period` on the pendulum in the level file                            |
+| Boulder catches up too fast / too slowly      | `speed` and `startAt` on the boulder in the level file                |
+| Wind too strong / too weak                    | `force` on the wind in the level file (a jump drifts 0.43 m per unit) |
+| Lightning leaves too little time              | `warning` and `period` on the strike in the level file                |
+| Belts give too little / too much              | `factor` and `seconds` on the belt in the level file                  |
+| Presses too fast / too slow                   | `period` and `down` on the press in the level file                    |
+| Melt leaves too little time                   | `rise` on the melt in the level file (deadline = 1.2 / rise seconds)  |
+| Trucks fall short of / overshoot a roof gap   | `power` on the plate before it (and its distance from the edge)       |
+| The moving gate is too hard to catch          | `speed` on the goal in the level file                                 |
+| Avalanche too fast / too slow                 | `speed` and `stages` on the slide in the level file                   |

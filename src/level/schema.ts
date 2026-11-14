@@ -105,8 +105,159 @@ export interface RotorDef {
   yaw?: number;
 }
 
-export type HazardDef = BreakableWallDef | SpinnerDef | IceDef | RotorDef;
-export const HAZARD_TYPES = ['breakableWall', 'spinner', 'ice', 'rotor'] as const;
+export interface BeamDef {
+  type: 'beam';
+  /** Centre of the beam. */
+  pos: Vec3;
+  length: number;
+  /** A vertical beam is a standing column; otherwise it lies across the road. */
+  vertical?: boolean;
+  /** Degrees around Y (0 = lying along X, across a road that runs along Z). */
+  yaw?: number;
+  thickness?: number;
+  /** Slides back and forth between `pos` and `to`, one full trip there and back per `period` seconds. */
+  sweep?: { to: Vec3; period: number; phase?: number };
+  /** Turns around its centre, degrees per second. */
+  spin?: number;
+  /** Switches on for `on` seconds, then off for `off` seconds, repeating. */
+  blink?: { on: number; off: number; phase?: number };
+}
+
+export interface PendulumDef {
+  type: 'pendulum';
+  /** The point the weight hangs from. */
+  pos: Vec3;
+  /** Length of the cable. */
+  length: number;
+  /** How far it swings to each side, in degrees. */
+  swing: number;
+  /** Seconds for one full swing there and back. */
+  period: number;
+  phase?: number;
+  /** Size of the weight (a cube). */
+  size: number;
+  /** Direction of the swing, degrees around Y (0 = across a road that runs along Z). */
+  yaw?: number;
+}
+
+export interface PlateDef {
+  type: 'plate';
+  /** Centre of the plate on the road surface. */
+  pos: Vec3;
+  /** Width (x) and length (z). */
+  size: readonly [number, number];
+  /** Upward speed it gives a truck, m/s. */
+  power: number;
+  yaw?: number;
+}
+
+export interface BoulderDef {
+  type: 'boulder';
+  /** Path it rolls along, and where on it it starts. */
+  path: string;
+  startAt: number;
+  speed: number;
+  radius: number;
+}
+
+export interface WindDef {
+  type: 'wind';
+  /** Centre of the zone, on the ground. */
+  pos: Vec3;
+  /** [width across the road (X), length along it (Z)]. */
+  size: [number, number];
+  /** Sideways push in m/s² on someone in the air; positive blows toward +X. */
+  force: number;
+  /** Blows for `on` seconds, rests for `off` seconds, repeating. Without it the wind never stops. */
+  gust?: { on: number; off: number; phase?: number };
+}
+
+export interface StrikeDef {
+  type: 'strike';
+  /** Seconds between strikes, and how long before each one its target is marked. */
+  period: number;
+  warning: number;
+  /** Where in the cycle it starts, 0 to 1. */
+  phase?: number;
+  radius?: number;
+  /** Only strikes while the player is between these two Z positions (a stretch of a level). */
+  between?: readonly [number, number];
+}
+
+export interface BeltDef {
+  type: 'belt';
+  /** Centre of the belt, on the road. */
+  pos: Vec3;
+  /** [width across the road (X), length along it (Z)]. */
+  size: [number, number];
+  /** Trucks that cross it drive this many times their speed for `seconds`. */
+  factor: number;
+  seconds: number;
+}
+
+export interface PressDef {
+  type: 'press';
+  /** Centre of the block's footprint, on the road. */
+  pos: Vec3;
+  /** [width across the road (X), length along it (Z)]. */
+  size: [number, number];
+  /** Seconds for one full cycle, and how long of it the block stays down. */
+  period: number;
+  down: number;
+  /** Where in the cycle it starts, 0 to 1. */
+  phase?: number;
+}
+
+export interface MeltDef {
+  type: 'melt';
+  /** Metres per second the surface rises, after `delay` seconds. */
+  rise: number;
+  delay?: number;
+}
+
+export interface SlideDef {
+  type: 'slide';
+  /** Path it comes down, where on it its front starts, and its speed (m/s). */
+  path: string;
+  startAt: number;
+  speed: number;
+  /** [distance along the path, speed from there on], in order: it changes pace as it goes. */
+  stages?: readonly (readonly [number, number])[];
+  /** Width across the road (m). */
+  width: number;
+}
+
+export type HazardDef =
+  | BreakableWallDef
+  | SpinnerDef
+  | IceDef
+  | RotorDef
+  | BeamDef
+  | PendulumDef
+  | PlateDef
+  | BoulderDef
+  | WindDef
+  | StrikeDef
+  | BeltDef
+  | PressDef
+  | MeltDef
+  | SlideDef;
+export const HAZARD_TYPES = [
+  'breakableWall',
+  'spinner',
+  'ice',
+  'rotor',
+  'beam',
+  'pendulum',
+  'plate',
+  'boulder',
+  'wind',
+  'strike',
+  'belt',
+  'press',
+  'melt',
+  'slide',
+] as const;
 
 export interface GoalDef {
   /** Centre of the gate's base. */
@@ -115,6 +266,10 @@ export interface GoalDef {
   height: number;
   /** Direction the gate faces, degrees around Y (0 = +Z). Default: along the nearest path. */
   yaw?: number;
+  /** A moving gate: it travels away along the direction it faces at this speed (m/s)... */
+  speed?: number;
+  /** ...and stops after this many metres (default: never). */
+  travel?: number;
 }
 
 export interface LevelDef {
@@ -461,6 +616,171 @@ export function validateLevel(raw: unknown, source = 'level'): LevelDef {
         c.fail(`${at}.size`, `expected [width, length] larger than 0, got ${describe(size)}`);
       }
       c.num(ho, 'yaw', at, { optional: true });
+    } else if (ho.type === 'beam') {
+      c.unknownKeys(
+        ho,
+        ['type', 'pos', 'length', 'vertical', 'yaw', 'thickness', 'sweep', 'spin', 'blink'],
+        at,
+      );
+      c.vec3(ho, 'pos', at);
+      c.num(ho, 'length', at, { min: 0.5, max: 80 });
+      c.bool(ho, 'vertical', at, true);
+      c.num(ho, 'yaw', at, { optional: true });
+      c.num(ho, 'thickness', at, { min: 0.1, max: 3, optional: true });
+      c.num(ho, 'spin', at, { min: -360, max: 360, optional: true });
+      if (ho.sweep !== undefined) {
+        const sw = c.obj(ho.sweep, `${at}.sweep`);
+        if (sw) {
+          c.unknownKeys(sw, ['to', 'period', 'phase'], `${at}.sweep`);
+          c.vec3(sw, 'to', `${at}.sweep`);
+          c.num(sw, 'period', `${at}.sweep`, { min: 0.5 });
+          c.num(sw, 'phase', `${at}.sweep`, { optional: true });
+        }
+      }
+      if (ho.blink !== undefined) {
+        const bl = c.obj(ho.blink, `${at}.blink`);
+        if (bl) {
+          c.unknownKeys(bl, ['on', 'off', 'phase'], `${at}.blink`);
+          c.num(bl, 'on', `${at}.blink`, { min: 0.1 });
+          c.num(bl, 'off', `${at}.blink`, { min: 0.1 });
+          c.num(bl, 'phase', `${at}.blink`, { optional: true });
+        }
+      }
+    } else if (ho.type === 'pendulum') {
+      c.unknownKeys(ho, ['type', 'pos', 'length', 'swing', 'period', 'phase', 'size', 'yaw'], at);
+      c.vec3(ho, 'pos', at);
+      c.num(ho, 'length', at, { min: 1, max: 60 });
+      c.num(ho, 'swing', at, { min: 1, max: 85 });
+      c.num(ho, 'period', at, { min: 0.5 });
+      c.num(ho, 'phase', at, { optional: true });
+      c.num(ho, 'size', at, { min: 0.5, max: 10 });
+      c.num(ho, 'yaw', at, { optional: true });
+    } else if (ho.type === 'plate') {
+      c.unknownKeys(ho, ['type', 'pos', 'size', 'power', 'yaw'], at);
+      c.vec3(ho, 'pos', at);
+      const size = ho.size;
+      if (
+        !Array.isArray(size) ||
+        size.length !== 2 ||
+        size.some((n) => typeof n !== 'number' || !(n > 0))
+      ) {
+        c.fail(`${at}.size`, `expected [width, length] larger than 0, got ${describe(size)}`);
+      }
+      c.num(ho, 'power', at, { min: 1, max: 25 });
+      c.num(ho, 'yaw', at, { optional: true });
+    } else if (ho.type === 'boulder') {
+      c.unknownKeys(ho, ['type', 'path', 'startAt', 'speed', 'radius'], at);
+      const path = c.str(ho, 'path', at);
+      if (path && !lanesByPath.has(path)) {
+        c.fail(
+          `${at}.path`,
+          `no path called "${path}" (paths: ${[...lanesByPath.keys()].join(', ') || 'none'})`,
+        );
+      }
+      c.num(ho, 'startAt', at);
+      c.num(ho, 'speed', at, { min: 1, max: 60 });
+      c.num(ho, 'radius', at, { min: 1, max: 20 });
+    } else if (ho.type === 'wind') {
+      c.unknownKeys(ho, ['type', 'pos', 'size', 'force', 'gust'], at);
+      c.vec3(ho, 'pos', at);
+      const size = ho.size;
+      if (
+        !Array.isArray(size) ||
+        size.length !== 2 ||
+        size.some((n) => typeof n !== 'number' || !(n > 0))
+      ) {
+        c.fail(`${at}.size`, `expected [width, length] larger than 0, got ${describe(size)}`);
+      }
+      const force = c.num(ho, 'force', at, { min: -40, max: 40 });
+      if (force === 0) c.fail(`${at}.force`, 'must not be 0');
+      if (ho.gust !== undefined) {
+        const g = c.obj(ho.gust, `${at}.gust`);
+        if (g) {
+          c.unknownKeys(g, ['on', 'off', 'phase'], `${at}.gust`);
+          c.num(g, 'on', `${at}.gust`, { min: 0.1 });
+          c.num(g, 'off', `${at}.gust`, { min: 0.1 });
+          c.num(g, 'phase', `${at}.gust`, { optional: true });
+        }
+      }
+    } else if (ho.type === 'belt' || ho.type === 'press') {
+      c.unknownKeys(
+        ho,
+        ho.type === 'belt'
+          ? ['type', 'pos', 'size', 'factor', 'seconds']
+          : ['type', 'pos', 'size', 'period', 'down', 'phase'],
+        at,
+      );
+      c.vec3(ho, 'pos', at);
+      const size = ho.size;
+      if (
+        !Array.isArray(size) ||
+        size.length !== 2 ||
+        size.some((n) => typeof n !== 'number' || !(n > 0))
+      ) {
+        c.fail(`${at}.size`, `expected [width, length] larger than 0, got ${describe(size)}`);
+      }
+      if (ho.type === 'belt') {
+        c.num(ho, 'factor', at, { min: 1.05, max: 2.5 });
+        c.num(ho, 'seconds', at, { min: 0.2, max: 20 });
+      } else {
+        const period = c.num(ho, 'period', at, { min: 3 });
+        const down = c.num(ho, 'down', at, { min: 0.1 });
+        if (down > period - 2.5) {
+          c.fail(`${at}.down`, `must leave 2.5 s of the period (${period}) for moving and waiting`);
+        }
+        c.num(ho, 'phase', at, { optional: true });
+      }
+    } else if (ho.type === 'slide') {
+      c.unknownKeys(ho, ['type', 'path', 'startAt', 'speed', 'stages', 'width'], at);
+      const path = c.str(ho, 'path', at);
+      if (path && !lanesByPath.has(path)) {
+        c.fail(
+          `${at}.path`,
+          `no path called "${path}" (paths: ${[...lanesByPath.keys()].join(', ') || 'none'})`,
+        );
+      }
+      c.num(ho, 'startAt', at);
+      c.num(ho, 'speed', at, { min: 1, max: 60 });
+      c.num(ho, 'width', at, { min: 4, max: 200 });
+      if (ho.stages !== undefined) {
+        let last = -Infinity;
+        c.arr(ho.stages, `${at}.stages`).forEach((st, k) => {
+          const ok =
+            Array.isArray(st) &&
+            st.length === 2 &&
+            st.every((n) => typeof n === 'number' && Number.isFinite(n)) &&
+            st[1] >= 1 &&
+            st[1] <= 60;
+          if (!ok) {
+            c.fail(`${at}.stages[${k}]`, `expected [distance, speed 1 to 60], got ${describe(st)}`);
+          } else if (st[0] <= last) {
+            c.fail(`${at}.stages[${k}]`, 'distances must increase');
+          } else {
+            last = st[0];
+          }
+        });
+      }
+    } else if (ho.type === 'melt') {
+      c.unknownKeys(ho, ['type', 'rise', 'delay'], at);
+      c.num(ho, 'rise', at, { min: 0.01, max: 5 });
+      c.num(ho, 'delay', at, { optional: true, min: 0 });
+    } else if (ho.type === 'strike') {
+      c.unknownKeys(ho, ['type', 'period', 'warning', 'phase', 'radius', 'between'], at);
+      if (ho.between !== undefined) {
+        const b = ho.between;
+        const ok =
+          Array.isArray(b) &&
+          b.length === 2 &&
+          b.every((n) => typeof n === 'number' && Number.isFinite(n)) &&
+          b[0] < b[1];
+        if (!ok)
+          c.fail(`${at}.between`, `expected [from, to] with from below to, got ${describe(b)}`);
+      }
+      const period = c.num(ho, 'period', at, { min: 1 });
+      const warning = c.num(ho, 'warning', at, { min: 0.3 });
+      if (warning >= period) c.fail(`${at}.warning`, `must be shorter than the period (${period})`);
+      c.num(ho, 'phase', at, { optional: true, min: 0, max: 1 });
+      c.num(ho, 'radius', at, { optional: true, min: 0.5, max: 10 });
     } else if (ho.type === 'rotor') {
       c.unknownKeys(ho, ['type', 'pos', 'radius', 'spokes', 'speed', 'phase', 'yaw'], at);
       c.vec3(ho, 'pos', at);
@@ -480,7 +800,9 @@ export function validateLevel(raw: unknown, source = 'level'): LevelDef {
   // Goal.
   const g = c.obj(o.goal, 'goal');
   if (g) {
-    c.unknownKeys(g, ['pos', 'width', 'height', 'yaw'], 'goal');
+    c.unknownKeys(g, ['pos', 'width', 'height', 'yaw', 'speed', 'travel'], 'goal');
+    c.num(g, 'speed', 'goal', { optional: true, min: 0.5, max: 16 });
+    c.num(g, 'travel', 'goal', { optional: true, min: 1 });
     c.vec3(g, 'pos', 'goal');
     c.num(g, 'width', 'goal', { min: 2 });
     c.num(g, 'height', 'goal', { min: 2 });
