@@ -57,6 +57,8 @@ export class GameLoop {
   start(): void {
     this.last = performance.now();
     const frame = (now: number) => {
+      // Ask for the next frame first: an error in this one must not stop the game for good.
+      requestAnimationFrame(frame);
       const dt = (now - this.last) / 1000;
       this.last = now;
       if (dt > 0) this.fps += (1 / dt - this.fps) * 0.1;
@@ -72,7 +74,6 @@ export class GameLoop {
         }
       }
       this.cb.render(running ? this.accumulator.alpha : 1, dt);
-      requestAnimationFrame(frame);
     };
     requestAnimationFrame(frame);
   }

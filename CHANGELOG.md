@@ -2,6 +2,18 @@
 
 ## 1.0.0 (M10) — Release
 
+- Fixed: pressing Enter (or gamepad A) on the win screen or the main menu froze the game when it
+  switched level. The frame went on using the level that had just been freed. The game loop
+  also now keeps running if a frame ever throws.
+- Fixed: test levels showed in the level list and paid points. They are now only listed in
+  development, and like editor levels they pay no points and save no times.
+- Escape leaves the Levels, Abilities, Settings and Best Times screens.
+- The view no longer swings when the mouse is first captured: a browser can report one huge
+  movement at that moment, which is now ignored.
+- A stand-alone build, `npm run standalone`: the whole game in one HTML file that runs when
+  opened straight from disk, on Windows and macOS, with no server.
+- Tests get 60 s each before timing out; two took more than the default 5 s on a slower machine.
+
 - Par times corrected on 16 levels. On levels with a short convoy the old par could not be
   reached without abilities (nobody can get ahead of the front row), and five pars were below
   the 15 s the design sets as the minimum.

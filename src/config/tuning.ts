@@ -103,6 +103,10 @@ export const TUNING = {
     shakeHz: 28,
     /** Radians of rotation per pixel of mouse movement at sensitivity 1. */
     mouseRadPerPixel: 0.0022,
+    /** Mouse movement is ignored this long after the mouse is captured (ms). */
+    mouseSettleMs: 60,
+    /** A single mouse event moving further than this (pixels) is a browser glitch, not a hand. */
+    mouseMaxJump: 400,
     sensitivityDefault: 1,
     near: 0.05,
     far: 900,

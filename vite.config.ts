@@ -15,6 +15,9 @@ export default defineConfig({
   // being embedded in the JavaScript as text.
   plugins: [wasm()],
   test: {
+    // Many tests run whole levels of physics. On a slower or busy machine the default 5 s is
+    // too tight for some of them; a real hang still fails, just later.
+    testTimeout: 60000,
     // The physics package ships as ES modules with a .wasm import: run it through
     // the same build pipeline in tests instead of loading it with plain Node.
     server: { deps: { inline: [/@dimforge/] } },

@@ -65,6 +65,16 @@ everything by relative path, so it can be unpacked into any folder of a static w
 uploaded as it is to a web game portal. There is no server part. The version on the menu comes
 from `package.json`.
 
+```bash
+npm run standalone
+```
+
+`standalone` writes `release/standalone/index.html`: the whole game in one 5 MB file, physics
+included, that runs when opened by double-clicking it (no server, no install). This is the file
+to send to someone to try. It uses the edition of the physics engine that carries its
+WebAssembly inside the JavaScript, because browsers refuse to load a separate WebAssembly file
+from disk.
+
 The tests also write three reports (not committed): `dockyard-report.txt` and
 `worlds-report.txt` (each level finished without abilities), `campaign-report.txt` (par time
 against the fastest scripted run) and `performance-report.txt` (simulation cost of the largest
