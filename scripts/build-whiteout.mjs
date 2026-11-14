@@ -144,7 +144,7 @@ const levels = [];
   const rampLen = Math.hypot(32, 2);
   levels.push([
     'ice-shelf',
-    level(4, 'Ice Shelf', 16, {
+    level(4, 'Ice Shelf', 18, {
       paths: [{ id: 'road', width: 14, lanes: 3, points: pts }],
       convoys: [{ id: 'main', path: 'road', rows: 14, lanesUsed: [0, 1, 2], startAt: START }],
       scenery: [

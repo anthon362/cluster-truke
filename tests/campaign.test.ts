@@ -61,11 +61,13 @@ describe('par times can be beaten without abilities', () => {
     '2-4',
     '2-6',
     '3-6',
+    '4-2',
     '4-4',
     '4-6',
     '5-5',
     '7-2',
     '7-4',
+    '7-6',
     '8-2',
     '8-4',
     '8-6',
@@ -90,7 +92,7 @@ describe('par times can be beaten without abilities', () => {
     lines.sort((a, b) => a.localeCompare(b, 'en', { numeric: true }));
     writeFileSync('campaign-report.txt', lines.join('\n') + '\n');
     expect(lines.length).toBe(campaign.length);
-    expect(campaign.length - NOT_CHECKED.size).toBe(38);
+    expect(campaign.length - NOT_CHECKED.size).toBe(36);
   });
 });
 

@@ -139,7 +139,7 @@ const levels = [];
 // 5-1 Blast Plate: plates in the road throw every truck into the air. Hold on.
 levels.push([
   'blast-plate',
-  level(1, 'Blast Plate', 17, 12, {
+  level(1, 'Blast Plate', 18, 12, {
     hazards: [plate(220, 9), plate(340, 10)],
     scenery: rocks([90, 170, 280, 400]),
   }),
