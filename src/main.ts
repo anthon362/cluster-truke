@@ -1,4 +1,4 @@
-import { WebGLRenderer } from 'three';
+import { Vector3, WebGLRenderer } from 'three';
 import { GAME_TITLE } from './config/meta';
 import { TUNING } from './config/tuning';
 import { Input } from './core/input';
@@ -7,13 +7,12 @@ import { Sim } from './core/sim';
 import { initPhysics } from './physics/world';
 import { CameraRig } from './player/camera';
 import type { MoveInput } from './player/movement';
-import { TestScene } from './render/scene';
-import { createTruckMesh, syncTruckMesh } from './render/truckMesh';
+import { Particles } from './fx/particles';
+import { convoyTestLevel, singleTruckLevel } from './level/testLevels';
+import { LevelScene } from './render/levelScene';
+import { TruckRenderer } from './render/truckMesh';
 import { DebugOverlay } from './ui/debugOverlay';
 import { StartScreen } from './ui/startScreen';
-
-/** Truck forward is +Z; camera yaw PI looks that way. */
-const START_YAW = Math.PI;
 
 async function boot(): Promise<void> {
   document.title = GAME_TITLE;
@@ -24,24 +23,33 @@ async function boot(): Promise<void> {
   const seed = seedParam !== null && seedParam !== '' ? Number(seedParam) >>> 0 : undefined;
   const autostart = params.get('autostart') === '1';
 
+  // Until the level select exists (M4): ?level=single | convoy | block.
+  const levelParam = params.get('level') ?? 'convoy';
+  const level =
+    levelParam === 'single' ? singleTruckLevel() : convoyTestLevel(levelParam === 'block');
+
   await initPhysics();
-  const sim = new Sim({ seed, god: params.get('god') === '1' });
+  const sim = new Sim({ seed, god: params.get('god') === '1', level });
 
   const canvas = document.getElementById('game') as HTMLCanvasElement;
   const ui = document.getElementById('ui') as HTMLElement;
   const renderer = new WebGLRenderer({ canvas, antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-  const scene = new TestScene();
-  const truckMeshes = sim.trucks.map((t) => {
-    const mesh = createTruckMesh();
-    scene.scene.add(mesh);
-    return { truck: t, mesh };
-  });
+  const scene = new LevelScene(sim.level, sim.pool.paths.values());
+  const truckRenderer = new TruckRenderer(scene.scene, sim.trucks.length);
+  const particles = new Particles(scene.scene);
 
   const rig = new CameraRig(window.innerWidth / window.innerHeight);
   const input = new Input(canvas);
-  input.yaw = START_YAW;
+  /** Face the way the truck under the player is heading. */
+  const faceForward = () => {
+    const t = sim.player.groundTruck ?? sim.trucks[0];
+    const fwd = new Vector3(0, 0, 1).applyQuaternion(t.rot);
+    input.yaw = Math.atan2(-fwd.x, -fwd.z);
+    input.pitch = 0;
+  };
+  faceForward();
 
   const crosshair = document.createElement('div');
   crosshair.className = 'crosshair';
@@ -64,8 +72,7 @@ async function boot(): Promise<void> {
 
   const restart = () => {
     sim.reset();
-    input.yaw = START_YAW;
-    input.pitch = 0;
+    faceForward();
     wasGrounded = true;
   };
 
@@ -77,13 +84,18 @@ async function boot(): Promise<void> {
       sim.step(lastInput);
       if (sim.falls !== fallsBefore) {
         // Fell off: M1 simply puts you back on the truck (fail screen arrives in M3).
-        input.yaw = START_YAW;
-        input.pitch = 0;
+        faceForward();
         wasGrounded = true;
       } else if (sim.player.grounded && !wasGrounded) {
         rig.onLanding(sim.player.landingImpact);
       }
       wasGrounded = sim.player.grounded;
+      for (const e of sim.events) {
+        if (e.type === 'explosion') {
+          particles.burst(e.pos);
+          rig.onExplosion(e.pos.distanceTo(sim.player.pos));
+        }
+      }
     },
     render: (alpha, dt) => {
       if (input.consume('debug')) debug.toggle();
@@ -93,8 +105,9 @@ async function boot(): Promise<void> {
       // Mouse look stays real-time even between physics steps.
       const view: MoveInput = { ...lastInput, yaw: input.yaw, pitch: input.pitch };
       rig.update(sim.player, view, alpha, Math.min(dt, TUNING.loop.maxFrameTime));
-      for (const { truck, mesh } of truckMeshes) syncTruckMesh(mesh, truck, alpha);
-      scene.update(rig.camera.position.z);
+      truckRenderer.update(sim.trucks, alpha);
+      if (isRunning()) particles.update(Math.min(dt, TUNING.loop.maxFrameTime));
+      scene.update(rig.camera.position);
       renderer.render(scene.scene, rig.camera);
       debug.update(sim, loop);
     },

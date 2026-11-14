@@ -49,8 +49,12 @@ export const TUNING = {
     /** Side-of-truck climbing (M2). */
     clingAccel: 30,
     clingMaxRise: 6,
+    /** Stronger upward acceleration while still falling, so grabbing a side catches you. */
+    clingCatchAccel: 70,
     clingTapUp: 10,
     clingTapAway: 3,
+    /** While clinging with no direction held, speed relative to the truck fades at this rate. */
+    clingGrip: 20,
     /** Surfaces steeper than this are not standable; the player slides. */
     slideAngle: 35 * DEG,
     /** Gap kept between the capsule and trucks. */
@@ -64,6 +68,14 @@ export const TUNING = {
     slideIterations: 4,
     depenetrationIterations: 3,
     /** Lethal test capsule is this fraction of the collision capsule (M3). */
+    /** A truck face this close counts as touched for side clinging. */
+    clingReach: 0.15,
+    /** Contact normals flatter than this (|y|) count as a truck side. */
+    sideNormalMaxY: 0.5,
+    /** Speed an explosion at point-blank range adds to the player. */
+    blastSpeed: 14,
+    /** Upward share added to the blast direction. */
+    blastUp: 0.6,
     lethalCapsuleScale: 0.9,
     /** Grace before a lethal overlap counts while sliding off a wreck (M3). */
     lethalGrace: 0.05,
@@ -82,6 +94,11 @@ export const TUNING = {
     strafeRoll: 2 * DEG,
     strafeRollTime: 0.15,
     pitchLimit: 89 * DEG,
+    /** Camera shake from explosions: peak angle, fade time, audible radius. */
+    shakeMaxAngle: 2.5 * DEG,
+    shakeTime: 0.45,
+    shakeRadius: 45,
+    shakeHz: 28,
     /** Radians of rotation per pixel of mouse movement at sensitivity 1. */
     mouseRadPerPixel: 0.0022,
     sensitivityDefault: 1,
@@ -118,8 +135,33 @@ export const TUNING = {
     groundRayLength: 0.3,
     /** Rays start this far above the truck's base. */
     groundRayLift: 0.5,
+    /** Contact friction while the drive model is in control (it supplies grip itself). */
     friction: 0,
+    /** Contact friction once a truck is tumbling debris. */
+    debrisFriction: 0.6,
     restitution: 0.1,
+    /** Trucks look ahead for trouble every this many steps (staggered). */
+    senseInterval: 6,
+    /** Height of the forward sensing ray above the truck base. */
+    senseHeight: 1.5,
+    /** Closer than this to a driving truck ahead: match its speed. */
+    followDistance: 4,
+    panicTime: 1.2,
+    /** Sideways dodge when panicking (m). */
+    panicSwerve: 3.4,
+    /** Driver noise multiplier for the front row (rear row is always 1). */
+    leadRowCalm: 0.4,
+    /** Velocity change within one step that blows a truck up (m/s). */
+    explodeDeltaV: 9,
+    /** Up-vector Y below this counts as tipped for the timed explosion. */
+    tippedDot: 0.2,
+    /** Speed an explosion adds to a truck at point-blank range. */
+    blastSpeed: 9,
+    blastUp: 0.7,
+    blastSpin: 2.5,
+    /** Upward hop of the exploding truck itself. */
+    wreckPop: 5,
+    maxAngularSpeed: 8,
     laneSpacing: 3.4,
     rowSpacing: 13,
     convoyRowsMin: 8,
@@ -129,12 +171,28 @@ export const TUNING = {
     wobbleHzMin: 0.2,
     wobbleHzMax: 0.5,
     speedVariance: 0.1,
+    /** How fast each driver's speed wanders within the variance (Hz). */
+    speedWanderHzMin: 0.08,
+    speedWanderHzMax: 0.2,
+    /** Speed correction per metre a truck is away from its formation slot (1/s). */
+    slotGain: 0.5,
+    /** Slot catch-up is limited to this multiple of the speed variance. */
+    slotCatchUp: 2,
     panicDistance: 15,
     explodeClosingSpeed: 25,
     explodeUpsideDownTime: 2,
     explosionRadius: 8,
     wreckLifetime: 4,
     despawnBehind: 60,
+  },
+
+  fx: {
+    explosionParticles: 28,
+    maxParticles: 320,
+    particleLife: 1.1,
+    particleSpeed: 13,
+    particleSize: 0.45,
+    particleGravity: 18,
   },
 
   /** Stand-in for level data until M4. */

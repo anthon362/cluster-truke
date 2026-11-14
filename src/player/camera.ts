@@ -14,6 +14,10 @@ export class CameraRig {
   private dip = 0;
   private dipVel = 0;
   private roll = 0;
+  private shake = 0;
+  private shakeClock = 0;
+  /** Setting: camera shake on/off. */
+  shakeEnabled = true;
 
   constructor(aspect: number) {
     this.camera = new PerspectiveCamera(C.fovDefault, aspect, C.near, C.far);
@@ -25,6 +29,12 @@ export class CameraRig {
     const k = Math.min(1, impact / C.landingDipFullSpeed);
     // Start a dip that reaches `landingDip * k` and recovers.
     this.dipVel = (-C.landingDip * k * 2) / C.landingDipTime;
+  }
+
+  /** An explosion went off `distance` metres away. */
+  onExplosion(distance: number): void {
+    const k = 1 - distance / C.shakeRadius;
+    if (k > 0) this.shake = Math.max(this.shake, k * k);
   }
 
   update(player: PlayerController, input: MoveInput, alpha: number, dt: number): void {
@@ -59,7 +69,15 @@ export class CameraRig {
     // Interpolate between the last two physics states; look is always real-time.
     eye.lerpVectors(player.prevPos, player.pos, alpha);
     this.camera.position.set(eye.x, eye.y + player.eyeOffset + this.dip, eye.z);
-    this.camera.rotation.set(input.pitch, input.yaw, this.roll);
+    // Explosion shake: a quick fading wobble of the view, never of the aim itself.
+    this.shake = Math.max(0, this.shake - dt / C.shakeTime);
+    this.shakeClock += dt * C.shakeHz;
+    const amp = this.shakeEnabled ? this.shake * C.shakeMaxAngle : 0;
+    this.camera.rotation.set(
+      input.pitch + Math.sin(this.shakeClock * 6.3) * amp,
+      input.yaw + Math.sin(this.shakeClock * 4.1 + 1.7) * amp,
+      this.roll + Math.sin(this.shakeClock * 5.3 + 0.4) * amp,
+    );
   }
 }
 
