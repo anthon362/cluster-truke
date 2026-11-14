@@ -170,7 +170,7 @@ async function boot(): Promise<void> {
     const ghostMesh = new Mesh(ghostGeo, ghostMat);
     ghostMesh.visible = false;
     scene.scene.add(ghostMesh);
-    hud.setLevel(level.id, level.name);
+    hud.setLevel(isCustom(level.id) ? '' : level.id, level.name);
     music.setWorld(level.world);
     const particles = new Particles(scene.scene);
     particles.density = settings.quality === 'low' ? TUNING.quality.lowParticles : 1;
@@ -190,6 +190,8 @@ async function boot(): Promise<void> {
   /** Where a sub-screen goes back to. */
   let returnTo: AppState = 'menu';
   let lockWaitUntil = 0;
+  /** The game asked for the mouse and has not got it yet. */
+  let lockPending = false;
   let failedAt = 0;
   let wasGrounded = true;
   let lastRestartMs = 0;
@@ -232,9 +234,11 @@ async function boot(): Promise<void> {
     // With a gamepad there is no mouse to capture.
     if (autostart || input.locked || input.padActive) return;
     lockWaitUntil = performance.now() + LOCK_WAIT_MS;
+    lockPending = true;
     input.requestLock();
   };
   const releaseMouse = () => {
+    lockPending = false;
     if (input.locked) document.exitPointerLock();
   };
 
@@ -343,7 +347,10 @@ async function boot(): Promise<void> {
 
   const levelSelect = new LevelSelect(
     ui,
-    LEVEL_ENTRIES,
+    // Test levels are for development: players only see the campaign (and files that failed to load).
+    LEVEL_ENTRIES.filter(
+      (e) => !e.level || import.meta.env.DEV || campaignLevels([e.level]).length > 0,
+    ),
     (id) => {
       const level = findLevel(id);
       if (!level || !unlocked(id)) return;
@@ -451,8 +458,8 @@ async function boot(): Promise<void> {
           state = 'won';
           winSlowLeft = J.winSlowTime;
           sfx.win();
-          if (isCustom(sim.level.id)) {
-            // A level from the editor: nothing is saved and no points are earned.
+          if (campaignLevels([sim.level]).length === 0) {
+            // A level from the editor or a test level: nothing is saved and no points are earned.
             overlays.setWinPoints([], 0, save.points);
             overlays.setWinResult(e.time, e.time, false, false);
             releaseMouse();
@@ -494,6 +501,12 @@ async function boot(): Promise<void> {
       if (input.consume('mute')) audio.toggleMusicMute();
 
       // Losing the mouse during play (Esc, alt-tab) pauses. A gamepad needs no mouse.
+      // A slow browser can grant the mouse after the wait above and the game has already shown
+      // Paused: the mouse arriving is the player's go-ahead, so carry on.
+      if (lockPending && input.locked) {
+        lockPending = false;
+        if (state === 'paused') state = 'playing';
+      }
       const waitingForLock = performance.now() < lockWaitUntil;
       const needsMouse = !autostart && !input.padActive;
       if (state === 'playing' && needsMouse && !input.locked && !waitingForLock) state = 'paused';
@@ -501,6 +514,7 @@ async function boot(): Promise<void> {
       const restartKey = input.consume('restart');
       const confirm = input.consume('confirm');
       const pauseKey = input.consume('pause');
+      const backKey = input.consume('back');
       if (state === 'failed') {
         const ready = performance.now() - failedAt >= TUNING.ui.failInputDelay * 1000;
         const any = input.consumeAnyPress();
@@ -525,7 +539,18 @@ async function boot(): Promise<void> {
         } else if (restartKey) restart();
       } else if (state === 'menu') {
         if (confirm) play();
+      } else if (
+        state === 'levels' ||
+        state === 'shop' ||
+        state === 'settings' ||
+        state === 'times'
+      ) {
+        // Esc leaves a sub-screen, the same as its Back button.
+        if (backKey || pauseKey) back();
       }
+      // A key just switched level: everything taken from `game` above belongs to the level that
+      // was freed. Draw the new one from the next frame.
+      if (game.sim !== sim) return;
 
       overlays.show(
         state === 'menu' || state === 'paused' || state === 'failed' || state === 'won'

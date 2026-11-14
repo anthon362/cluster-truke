@@ -1,4 +1,4 @@
-import { GAME_TITLE } from '../config/meta';
+import { GAME_TITLE, GAME_VERSION } from '../config/meta';
 import type { Bonus } from '../score/score';
 import { formatTime } from './format';
 
@@ -66,9 +66,11 @@ export class Overlays {
          <button type="button" data-do="settings">Settings</button>
          <button type="button" data-do="editor">Level Editor</button>
        </div>
-       <div class="hint">Mouse and keyboard, or a gamepad (press A to play)</div>`,
+       <div class="hint">Mouse and keyboard, or a gamepad (press A to play)</div>
+       <div class="version"></div>`,
     );
     this.menu.querySelector('h1')!.textContent = GAME_TITLE;
+    this.menu.querySelector('.version')!.textContent = `v${GAME_VERSION}`;
     this.playButton = this.menu.querySelector('[data-do="play"]')!;
 
     this.paused = el(

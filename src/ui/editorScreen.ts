@@ -176,7 +176,10 @@ export class EditorScreen {
       void f.text().then((text) => {
         const { draft, problems } = parse(text);
         if (draft) this.replace(draft);
-        else this.problems.textContent = `${f.name} was not opened:\n- ${problems.join('\n- ')}`;
+        else {
+          this.problems.textContent = `${f.name} was not opened:\n- ${problems.join('\n- ')}`;
+          this.problems.classList.add('bad');
+        }
       });
     });
 

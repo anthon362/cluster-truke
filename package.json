@@ -1,7 +1,7 @@
 {
   "name": "righop",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,13 +9,17 @@
     "preview": "vite preview",
     "test": "vitest run",
     "lint": "eslint src tests",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "check": "prettier --check . && tsc --noEmit && eslint . && vitest run",
+    "package": "node scripts/package.mjs",
+    "standalone": "tsc --noEmit && vite build --config vite.standalone.config.ts"
   },
   "dependencies": {
     "@dimforge/rapier3d": "^0.21.0",
     "three": "^0.187.0"
   },
   "devDependencies": {
+    "@dimforge/rapier3d-compat": "^0.21.0",
     "@types/node": "^26.6.6",
     "@types/three": "^0.187.0",
     "eslint": "^10.14.0",
@@ -23,6 +27,7 @@
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.72.2",
     "vite": "^8.3.7",
+    "vite-plugin-singlefile": "^2.3.4",
     "vite-plugin-wasm": "^3.6.0",
     "vitest": "^5.1.0"
   }

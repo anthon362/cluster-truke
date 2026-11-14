@@ -52,6 +52,34 @@ select screen together with what is wrong in it.
 
 The player looks up the map, so their left is on the map's right.
 
+## Release
+
+```bash
+npm run check
+npm run package
+```
+
+`check` runs formatting, type check, lint and every test. `package` builds the game and writes
+`release/righop-<version>-web.zip` (about 1.4 MB). The zip has `index.html` at its top and loads
+everything by relative path, so it can be unpacked into any folder of a static web host or
+uploaded as it is to a web game portal. There is no server part. The version on the menu comes
+from `package.json`.
+
+```bash
+npm run standalone
+```
+
+`standalone` writes `release/standalone/index.html`: the whole game in one 5 MB file, physics
+included, that runs when opened by double-clicking it (no server, no install). This is the file
+to send to someone to try. It uses the edition of the physics engine that carries its
+WebAssembly inside the JavaScript, because browsers refuse to load a separate WebAssembly file
+from disk.
+
+The tests also write three reports (not committed): `dockyard-report.txt` and
+`worlds-report.txt` (each level finished without abilities), `campaign-report.txt` (par time
+against the fastest scripted run) and `performance-report.txt` (simulation cost of the largest
+level).
+
 ## Other commands
 
 ```bash

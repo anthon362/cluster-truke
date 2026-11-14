@@ -154,7 +154,7 @@ const levels = [];
 // 8-1 Rooftops: the roof ends. A blast plate throws every truck across to the next building.
 levels.push([
   'rooftops',
-  level(1, 'Rooftops', 16, 8, combine(roofs([[200, 6]]), towers([60, 150, 260, 350, 430]))),
+  level(1, 'Rooftops', 20, 8, combine(roofs([[200, 6]]), towers([60, 150, 260, 350, 430]))),
 ]);
 
 // 8-2 Long Jump: two gaps, the second wider.
@@ -163,7 +163,7 @@ levels.push([
   level(
     2,
     'Long Jump',
-    16,
+    20,
     8,
     combine(
       roofs([
@@ -178,7 +178,7 @@ levels.push([
 // 8-3 Runaway Gate: the gate is being carried off. Riding catches it eventually; running catches it sooner.
 levels.push([
   'runaway-gate',
-  level(3, 'Runaway Gate', 12, 20, {
+  level(3, 'Runaway Gate', 15, 20, {
     ...combine(roofs([], 900), towers([80, 200, 320, 440, 560])),
     goal: { pos: [0, 0, 250], width: 16, height: 12, speed: 8, travel: 400 },
   }),
@@ -211,7 +211,7 @@ levels.push([
   level(
     5,
     'Leapfrog',
-    17,
+    20,
     8,
     combine(
       roofs([

@@ -117,7 +117,7 @@ export class Hud {
   }
 
   setLevel(id: string, name: string): void {
-    this.levelName.textContent = `${id}  ${name}`;
+    this.levelName.textContent = id ? `${id}  ${name}` : name;
   }
 
   setTime(seconds: number): void {

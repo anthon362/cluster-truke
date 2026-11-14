@@ -510,6 +510,42 @@ is opened, 60 undo steps).
 - Heights are typed in the panel (the middle number of `pos`); the map only moves things
   sideways and along the road.
 
+## M10 (release)
+
+M10 is not in the design document either. I took it to be what stands between "all milestones
+built" and "can be put on a web page": a check of the whole campaign against the document's own
+numbers, a measurement of the largest level, and packaging.
+
+**Values changed (par times, in the level files):**
+
+| Level                                  | Par before | Par now | Why                                              |
+| -------------------------------------- | ---------- | ------- | ------------------------------------------------ |
+| 5-2, 5-5, 7-2, 7-4, 8-1, 8-2, 8-5, 9-1 | 16 or 17   | 20      | 8-row convoy: the fastest possible run is 19.0 s |
+| 5-6, 9-4                               | 17, 16     | 19      | 10-row convoy: fastest 17.4 s                    |
+| 5-1                                    | 16         | 17      | 12-row convoy: fastest 16.0 s                    |
+| 7-6                                    | 14         | 18      | 12-row convoy: fastest 16.8 s                    |
+| 7-1, 7-3, 7-5                          | 14, 14, 13 | 15      | below the 15 s minimum of section 5.3            |
+| 8-3                                    | 12         | 15      | below the 15 s minimum                           |
+
+The cause of the first group: a player cannot get ahead of the front row, so on a short convoy
+the best time is the front row's own arrival. Short convoys exist because blast plates and
+presses must stand ahead of where the trucks start. I had set those pars by habit from the
+20-row levels and never checked them against a fast run. The SPEED bonus is scored against par,
+so these levels paid less than intended.
+
+**Measured:**
+
+- An all-round scripted player without abilities beats par on 38 of the 54 levels. The other
+  16 are not failures: that player cannot change convoys and its lane changes are crude. Each
+  of those levels is finished by its own demonstration, but whether their par can be beaten
+  without abilities has not been checked by machine. They are 1-2, 1-3 (which the DOCKYARD test
+  does check), 1-4, 1-5, 2-3, 2-4, 2-6, 3-6, 4-4, 4-6, 5-5, 7-2, 7-4, 8-2, 8-4, 8-6.
+- The finale (72 trucks) costs 0.81 ms per simulation step out of a 16.7 ms frame on this
+  machine, and a restart takes 0.4 ms (the design asks for under 300 ms). This is the physics
+  and game logic only. Drawing speed on a real graphics card has still not been measured.
+- The packed game is 1.35 MB as a zip, 3.97 MB unpacked, six files. From a local server the
+  menu is up in under a second.
+
 ## What to adjust if it feels wrong
 
 | Feels like                                    | Change                                                                |

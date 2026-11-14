@@ -72,7 +72,7 @@ export class LevelSelect {
       if (!this.unlocked(level.id)) {
         tile.disabled = true;
         tile.classList.add('locked');
-        time.textContent = 'locked: finish the level before it';
+        time.textContent = 'locked';
       }
       tile.addEventListener('click', () => this.onPick(level.id));
       this.list.appendChild(tile);

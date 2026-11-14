@@ -896,3 +896,11 @@ button.go {
   opacity: 0.6;
   background: rgba(255, 255, 255, 0.05);
 }
+
+.version {
+  position: absolute;
+  right: 14px;
+  bottom: 10px;
+  font-size: 13px;
+  opacity: 0.55;
+}

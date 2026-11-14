@@ -2,7 +2,7 @@
   "id": "5-5",
   "name": "Quarry Run",
   "world": "quarry",
-  "parTime": 17,
+  "parTime": 20,
   "killY": -5,
   "palette": {
     "sky": "#e6d2ae",

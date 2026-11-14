@@ -4,3 +4,6 @@ dist
 .DS_Store
 dockyard-report.txt
 worlds-report.txt
+campaign-report.txt
+performance-report.txt
+release

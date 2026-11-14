@@ -8,7 +8,8 @@ const C = TUNING.camera;
 const S = TUNING.settings;
 
 /** Things a single press asks for, read once by the app. */
-export type OneShot = 'restart' | 'debug' | 'mute' | 'pause' | 'confirm';
+/** `back`: Escape, which leaves a menu screen (during play the browser uses it to free the mouse). */
+export type OneShot = 'restart' | 'debug' | 'mute' | 'pause' | 'confirm' | 'back';
 
 /**
  * Stick response: nothing inside the dead zone, then a curve so small
@@ -43,6 +44,8 @@ export class Input {
   private jumpQueued = false;
   private readonly oneShot = new Set<OneShot>();
   private anyPress = false;
+  /** When the mouse was last captured (ms). */
+  private lockedAt = 0;
   primary = false;
   secondary = false;
   private padMoveF = 0;
@@ -76,12 +79,18 @@ export class Input {
         }
       }
       if (e.code === 'Enter') this.oneShot.add('confirm');
+      if (e.code === 'Escape') this.oneShot.add('back');
       if (!system) this.anyPress = true;
     });
     window.addEventListener('keyup', (e) => this.down.delete(e.code));
     window.addEventListener('blur', () => this.down.clear());
     document.addEventListener('mousemove', (e) => {
       if (!this.locked) return;
+      // Some browsers report one huge jump just after the mouse is captured (the cursor's
+      // distance from where it was): ignore movement in that moment, and any single jump no
+      // hand could make, so the view does not swing on starting a level.
+      if (performance.now() - this.lockedAt < C.mouseSettleMs) return;
+      if (Math.abs(e.movementX) > C.mouseMaxJump || Math.abs(e.movementY) > C.mouseMaxJump) return;
       // Raw pointer-lock deltas, no acceleration or smoothing.
       const k = C.mouseRadPerPixel * this.sensitivity;
       this.yaw -= e.movementX * k;
@@ -102,6 +111,7 @@ export class Input {
     // Right mouse is the utility ability, not a menu.
     this.lockTarget.addEventListener('contextmenu', (e) => e.preventDefault());
     document.addEventListener('pointerlockchange', () => {
+      if (this.locked) this.lockedAt = performance.now();
       if (!this.locked) {
         this.primary = false;
         this.secondary = false;
