@@ -1,0 +1,152 @@
+{
+  "id": "1-4",
+  "name": "Rush Hour",
+  "world": "dockyard",
+  "parTime": 16,
+  "killY": -5,
+  "ground": "none",
+  "palette": {
+    "sky": "#f3d9b8",
+    "ground": "#17545c",
+    "fog": "#ecd3b4",
+    "fogFar": 460,
+    "road": "#565b63"
+  },
+  "player": {
+    "convoy": "left",
+    "row": 1,
+    "lane": 0
+  },
+  "hazards": [],
+  "paths": [
+    {
+      "id": "road",
+      "width": 14,
+      "lanes": 3,
+      "points": [
+        [0, 0, -40],
+        [0, 0, 640]
+      ]
+    }
+  ],
+  "convoys": [
+    {
+      "id": "main",
+      "path": "road",
+      "rows": 20,
+      "lanesUsed": [1, 2],
+      "startAt": 50
+    },
+    {
+      "id": "left",
+      "path": "road",
+      "rows": 6,
+      "lanesUsed": [0],
+      "startAt": 50
+    },
+    {
+      "id": "oncoming",
+      "path": "road",
+      "rows": 8,
+      "lanesUsed": [0],
+      "startAt": 380,
+      "reverse": true,
+      "speed": 16,
+      "rowSpacing": 17
+    }
+  ],
+  "scenery": [
+    {
+      "type": "box",
+      "pos": [0, -1, 240],
+      "size": [28, 2, 600],
+      "lethal": true,
+      "color": "#8d9299"
+    },
+    {
+      "type": "box",
+      "pos": [11.5, 1.45, 30],
+      "size": [2.6, 2.9, 12],
+      "rot": [0, 0, 0],
+      "lethal": true,
+      "color": "#d9772b"
+    },
+    {
+      "type": "box",
+      "pos": [-11.5, 2.9, 120],
+      "size": [2.6, 5.8, 12],
+      "rot": [0, 0, 0],
+      "lethal": true,
+      "color": "#2f6f9f"
+    },
+    {
+      "type": "box",
+      "pos": [11.5, 4.35, 200],
+      "size": [2.6, 8.7, 12],
+      "rot": [0, 0, 0],
+      "lethal": true,
+      "color": "#c8b23a"
+    },
+    {
+      "type": "box",
+      "pos": [-11.5, 1.45, 210],
+      "size": [2.6, 2.9, 12],
+      "rot": [0, 0, 0],
+      "lethal": true,
+      "color": "#a33b32"
+    },
+    {
+      "type": "box",
+      "pos": [11.5, 1.45, 300],
+      "size": [2.6, 2.9, 12],
+      "rot": [0, 0, 0],
+      "lethal": true,
+      "color": "#3f8f6b"
+    },
+    {
+      "type": "box",
+      "pos": [-11.5, 2.9, 380],
+      "size": [2.6, 5.8, 12],
+      "rot": [0, 0, 0],
+      "lethal": true,
+      "color": "#d9772b"
+    },
+    {
+      "type": "box",
+      "pos": [11.5, 2.9, 450],
+      "size": [2.6, 5.8, 12],
+      "rot": [0, 0, 0],
+      "lethal": true,
+      "color": "#2f6f9f"
+    },
+    {
+      "type": "box",
+      "pos": [-15, 8.5, 240],
+      "size": [1.6, 17, 1.6],
+      "rot": [0, 0, 0],
+      "lethal": true,
+      "color": "#e0a526"
+    },
+    {
+      "type": "box",
+      "pos": [15, 8.5, 240],
+      "size": [1.6, 17, 1.6],
+      "rot": [0, 0, 0],
+      "lethal": true,
+      "color": "#e0a526"
+    },
+    {
+      "type": "box",
+      "pos": [0, 17, 240],
+      "size": [34, 2, 2.4],
+      "rot": [0, 0, 0],
+      "lethal": true,
+      "color": "#e0a526"
+    }
+  ],
+  "goal": {
+    "pos": [0, 0, 443],
+    "width": 16,
+    "height": 12
+  }
+}

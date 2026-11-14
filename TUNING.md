@@ -105,6 +105,67 @@ interpretation that affects feel.
   After winning the player keeps moving and can no longer fail.
 - **The 0.05 s grace applies to every lethal touch**, not only when sliding off a wreck.
 
+## M4 (engine part; the six levels follow after the theme is approved)
+
+**Values changed from the design document:** none.
+
+**Own earlier values changed:**
+
+| Key                     | Old | New | Why                                                                                                                                                                                                                |
+| ----------------------- | --- | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `player.sideNormalMaxY` | 0.5 | 0.8 | Bug fix. Hanging at the top edge of a truck's back, the grip switched on and off every other step and the player hovered there forever. Contacts now count as a side until the surface is flat enough to stand on. |
+
+**Values the document did not give (added):**
+
+| Key                                                     | Value                     | Why                                                                                                                                  |
+| ------------------------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `truck.brakeAccel`                                      | 20 m/s^2                  | Trucks brake hard when a wreck or obstacle is ahead. Without it one wreck set off a chain of explosions back through the whole lane. |
+| `hazards.brick*`                                        | 1.5 x 1.25 x 0.6 m, 18 kg | Breakable wall bricks. Light, so trucks plough through.                                                                              |
+| `hazards.wallTrigger`                                   | 1.2 m                     | A wall shatters just before a truck touches it, so the truck never hits a solid wall.                                                |
+| `hazards.wallFling` / `wallScatter` / `wallFlingRadius` | 0.7 / 5 / 3               | How bricks fly.                                                                                                                      |
+| `hazards.debrisLife`                                    | 5 s                       | Bricks disappear after this.                                                                                                         |
+| `hazards.debrisKnock*`                                  | 3 m/s, 0.35, 0.9 m        | Flying bricks nudge the player (never lethal).                                                                                       |
+| `hazards.spinnerThickness` / `spinnerHub`               | 1 / 1.4 m                 | Spinning pusher size.                                                                                                                |
+
+**Interpretations:**
+
+- **Pushers shove, they do not detonate.** A truck hit by a spinning arm is pushed around
+  rather than exploding from the impact itself. It can still explode from what happens next
+  (other trucks, tipping over).
+- **An intact breakable wall is lethal to the player; the flying bricks are not.**
+- **Ramps and gaps are built from rotated boxes** plus `"ground": "none"`, rather than a
+  special hazard type.
+
+## M4 (levels)
+
+Building real levels showed three truck behaviours that made neighbouring lanes unreliable,
+so these own earlier values and rules changed. None of them are design-document numbers.
+
+| Key                                | Old   | New           | Why                                                                                                                                                                                                                                                        |
+| ---------------------------------- | ----- | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `truck.explodeDeltaV`              | 9     | 13            | At 9 a truck running into a stopped truck exploded, and the jolt travelled through a bumper-to-bumper queue so the whole queue blew up in the same instant. At 13 rear-end hits shove; hitting scenery, a wedged wreck or oncoming traffic still explodes. |
+| `truck.panicSwerve`                | 3.4 m | 1.3 m         | A full-lane swerve was a lane change straight into the neighbours. Now a panicking driver jostles them instead.                                                                                                                                            |
+| `truck.senseLaneHalfWidth`         | -     | 1.6 m         | On bends the look-ahead ray swept across other lanes. Trucks now only react to things in their own lane.                                                                                                                                                   |
+| `truck.senseSide`                  | -     | 0.9 m         | The ray alternates left and right of centre so partly overlapping trucks are noticed.                                                                                                                                                                      |
+| `truck.followGain` / `brakeMargin` | -     | 1.5 / 4       | Following distance shrinks with the gap; hard braking only for a much slower truck ahead.                                                                                                                                                                  |
+| `truck.stuckTime` / `stuckSpeed`   | -     | 3 s / 1.5 m/s | A truck pinned against something while trying to drive gives up and explodes, so a blocked lane always clears.                                                                                                                                             |
+
+- **Trucks no longer brake for wrecks** (the M4 part 1 change is reverted). Braking made a
+  blocked lane queue up, squeeze sideways into the next lane, and grind for half a minute.
+  Now they plough in, as the design document describes (swerve only).
+- **Par times** are set from measurement: riding one truck takes about 1.45 x par, and a
+  scripted fast run beats par (1-1: 13.1 s against par 16; 1-3: 14.8 s against par 16).
+  They are lower than the numbers in the theme proposal (which were guesses).
+- **1-2 "Stacks" was redesigned.** With container stacks standing in a lane, the wrecks
+  bounced into the middle lane and wiped it out. Now the quay narrows: the outer lanes run
+  out of ground and their trucks drive into the water. Stacks mark where each lane ends.
+- **1-5 "Drawbridge" uses a height change, not a jump over a gap.** With gravity 22 a truck
+  at 18 m/s only flies about 5 m off a ramp, so a truck-jumping gap is not possible without
+  changing documented values. Instead the upper deck ends at a raised bridge leaf and you
+  drop to a second convoy on the lower quay.
+- **Slabs count as scenery, not ground.** On these levels the quay is built from boxes, so
+  the "standing on a truck forgives touching the ground" rule does not apply to it.
+
 ## What to adjust if it feels wrong
 
 | Feels like                                    | Change                                                               |
@@ -127,3 +188,6 @@ interpretation that affects feel.
 | Climbing a truck side too slow / too easy     | `player.clingAccel`, `player.clingMaxRise`, `player.clingCatchAccel` |
 | Side kick-off too weak                        | `player.clingTapUp`, `player.clingTapAway`                           |
 | Camera shake too strong                       | `camera.shakeMaxAngle`                                               |
+| Wall bricks fly too wildly / too little       | `hazards.wallFling`, `hazards.wallScatter`                           |
+| Bricks shove you too hard                     | `hazards.debrisKnock`                                                |
+| Pile-ups spread too far back                  | `truck.brakeAccel`, `truck.panicDistance`                            |

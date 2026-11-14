@@ -71,7 +71,7 @@ export const TUNING = {
     /** A truck face this close counts as touched for side clinging. */
     clingReach: 0.15,
     /** Contact normals flatter than this (|y|) count as a truck side. */
-    sideNormalMaxY: 0.5,
+    sideNormalMaxY: 0.8,
     /** Speed an explosion at point-blank range adds to the player. */
     blastSpeed: 14,
     /** Upward share added to the blast direction. */
@@ -144,15 +144,26 @@ export const TUNING = {
     senseInterval: 6,
     /** Height of the forward sensing ray above the truck base. */
     senseHeight: 1.5,
+    /** Things further than this from the lane centre are not "in my lane" (m). */
+    senseLaneHalfWidth: 1.6,
     /** Closer than this to a driving truck ahead: match its speed. */
     followDistance: 4,
+    /** Deceleration when the truck ahead is much slower (m/s^2). */
+    brakeAccel: 20,
+    /** Extra speed allowed per metre of gap beyond `followDistance` (1/s). */
+    followGain: 1.5,
+    /** Brake hard once this much faster than the following speed (m/s). */
+    brakeMargin: 4,
+    /** The sensing ray alternates between this far left and right of centre (m). */
+    senseSide: 0.9,
     panicTime: 1.2,
-    /** Sideways dodge when panicking (m). */
-    panicSwerve: 3.4,
+    /** Sideways dodge when panicking (m). Kept inside the lane's neighbourhood so a
+     *  panicking driver jostles neighbours rather than changing lane into them. */
+    panicSwerve: 1.3,
     /** Driver noise multiplier for the front row (rear row is always 1). */
     leadRowCalm: 0.4,
     /** Velocity change within one step that blows a truck up (m/s). */
-    explodeDeltaV: 9,
+    explodeDeltaV: 13,
     /** Up-vector Y below this counts as tipped for the timed explosion. */
     tippedDot: 0.2,
     /** Speed an explosion adds to a truck at point-blank range. */
@@ -181,6 +192,10 @@ export const TUNING = {
     panicDistance: 15,
     explodeClosingSpeed: 25,
     explodeUpsideDownTime: 2,
+    /** A truck that wants to drive but has been pinned below `stuckSpeed` this long gives up (explodes),
+     *  so a blocked lane always clears. Trucks queueing behind another truck are exempt. */
+    stuckTime: 3,
+    stuckSpeed: 1.5,
     explosionRadius: 8,
     wreckLifetime: 4,
     despawnBehind: 60,
@@ -193,6 +208,29 @@ export const TUNING = {
     particleSpeed: 13,
     particleSize: 0.45,
     particleGravity: 18,
+  },
+
+  hazards: {
+    /** Breakable wall bricks (m) and mass. */
+    brickWidth: 1.5,
+    brickHeight: 1.25,
+    brickDepth: 0.6,
+    brickMass: 18,
+    /** A truck this close to a wall (beyond its own half length) shatters it. */
+    wallTrigger: 1.2,
+    /** Share of the truck's velocity given to bricks in its way. */
+    wallFling: 0.7,
+    wallScatter: 5,
+    /** How wide around the truck bricks get flung (m). */
+    wallFlingRadius: 3,
+    debrisLife: 5,
+    /** Debris moving faster than this relative to the player knocks them. */
+    debrisKnockSpeed: 3,
+    debrisKnock: 0.35,
+    debrisReach: 0.9,
+    /** Spinning pusher arm cross-section and hub size (m). */
+    spinnerThickness: 1,
+    spinnerHub: 1.4,
   },
 
   goal: {

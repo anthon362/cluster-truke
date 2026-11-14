@@ -3,6 +3,7 @@ import { formatTime } from './format';
 /** Minimal in-game HUD: crosshair dot and the attempt timer. */
 export class Hud {
   private readonly timer: HTMLDivElement;
+  private readonly levelName: HTMLDivElement;
   private last = '';
 
   constructor(parent: HTMLElement) {
@@ -12,6 +13,13 @@ export class Hud {
     this.timer = document.createElement('div');
     this.timer.className = 'timer';
     parent.appendChild(this.timer);
+    this.levelName = document.createElement('div');
+    this.levelName.className = 'level-name';
+    parent.appendChild(this.levelName);
+  }
+
+  setLevel(id: string, name: string): void {
+    this.levelName.textContent = `${id}  ${name}`;
   }
 
   setTime(seconds: number): void {

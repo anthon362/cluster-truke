@@ -52,6 +52,11 @@ export class PhysicsWorld {
     this.world.step();
   }
 
+  /** Release the physics world's memory. The object must not be used afterwards. */
+  dispose(): void {
+    this.world.free();
+  }
+
   get bodyCount(): number {
     return this.world.bodies.len();
   }

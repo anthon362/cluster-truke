@@ -4,7 +4,7 @@ import { TUNING } from '../src/config/tuning';
 import { emptySave, loadSave, recordTime, SAVE_KEY, storeSave } from '../src/core/save';
 import { Sim } from '../src/core/sim';
 import { Goal } from '../src/level/goal';
-import { convoyTestLevel, singleTruckLevel } from '../src/level/testLevels';
+import { TEST_LEVELS } from '../src/level/levels';
 import { initPhysics } from '../src/physics/world';
 import { formatTime } from '../src/ui/format';
 import { input, run } from './helpers';
@@ -35,14 +35,14 @@ describe('Goal gate', () => {
   });
 
   it('faces along the nearest path when no yaw is given', () => {
-    const sim = new Sim({ seed: 1, level: singleTruckLevel() });
+    const sim = new Sim({ seed: 1, level: TEST_LEVELS.single });
     expect(sim.goal.normal.z).toBeCloseTo(1, 3);
   });
 });
 
 describe('winning', () => {
   it('riding the truck through the gate wins and stops the timer', () => {
-    const sim = new Sim({ seed: 1, level: singleTruckLevel() });
+    const sim = new Sim({ seed: 1, level: TEST_LEVELS.single });
     let wonEvents = 0;
     let guard = 0;
     while (sim.state === 'playing' && guard++ < 40 * HZ) {
@@ -61,7 +61,7 @@ describe('winning', () => {
   });
 
   it('counts when passing through airborne', () => {
-    const sim = new Sim({ seed: 1, level: singleTruckLevel() });
+    const sim = new Sim({ seed: 1, level: TEST_LEVELS.single });
     run(sim, 5, input());
     sim.player.placeInAir(new Vector3(0, 9, 399), new Vector3(0, 0, 20));
     run(sim, 6, input());
@@ -71,7 +71,7 @@ describe('winning', () => {
 
 describe('failing', () => {
   it('touching the ground fails; the player freezes while trucks drive on', () => {
-    const sim = new Sim({ seed: 1, level: singleTruckLevel() });
+    const sim = new Sim({ seed: 1, level: TEST_LEVELS.single });
     let failedEvents = 0;
     run(sim, 300, input({ moveS: 1, sprint: true }), () => {
       failedEvents += sim.events.filter((e) => e.type === 'failed').length;
@@ -90,13 +90,13 @@ describe('failing', () => {
   });
 
   it('standing on a truck never fails, even for a long ride', () => {
-    const sim = new Sim({ seed: 5, level: convoyTestLevel(false) });
+    const sim = new Sim({ seed: 5, level: TEST_LEVELS.convoy });
     run(sim, 20 * HZ, input());
     expect(sim.state).toBe('playing');
   });
 
   it('lethal scenery fails even while riding a truck', () => {
-    const sim = new Sim({ seed: 21, level: convoyTestLevel(true) });
+    const sim = new Sim({ seed: 21, level: TEST_LEVELS.block });
     run(sim, 3, input());
     // Drop the player into the block.
     sim.player.placeInAir(new Vector3(45, 1.75, 400), new Vector3());
@@ -106,7 +106,7 @@ describe('failing', () => {
   });
 
   it('a lethal touch shorter than the grace time is forgiven', () => {
-    const sim = new Sim({ seed: 21, level: convoyTestLevel(true) });
+    const sim = new Sim({ seed: 21, level: TEST_LEVELS.block });
     run(sim, 3, input());
     // Clip the block's top corner for a single step, then be gone.
     const graceSteps = Math.floor(P.lethalGrace * HZ);
@@ -116,7 +116,7 @@ describe('failing', () => {
   });
 
   it('falling below the kill height fails', () => {
-    const sim = new Sim({ seed: 1, level: singleTruckLevel() });
+    const sim = new Sim({ seed: 1, level: TEST_LEVELS.single });
     run(sim, 3, input());
     sim.player.placeInAir(new Vector3(0, -20, 50), new Vector3());
     run(sim, 2, input());
@@ -124,7 +124,7 @@ describe('failing', () => {
   });
 
   it('god mode never fails', () => {
-    const sim = new Sim({ seed: 1, god: true, level: singleTruckLevel() });
+    const sim = new Sim({ seed: 1, god: true, level: TEST_LEVELS.single });
     run(sim, 300, input({ moveS: 1, sprint: true }));
     expect(sim.state).toBe('playing');
   });
@@ -132,7 +132,7 @@ describe('failing', () => {
 
 describe('instant restart', () => {
   it('50 restarts leave bodies, colliders and state clean, and are fast', () => {
-    const sim = new Sim({ seed: 21, level: convoyTestLevel(true) });
+    const sim = new Sim({ seed: 21, level: TEST_LEVELS.block });
     const bodies = sim.physics.bodyCount;
     const colliders = sim.physics.world.colliders.len();
     let worst = 0;

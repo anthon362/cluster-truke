@@ -7,7 +7,8 @@ import { GameLoop } from './core/loop';
 import { loadSave, recordTime, storeSave } from './core/save';
 import { Sim } from './core/sim';
 import { Particles } from './fx/particles';
-import { convoyTestLevel, singleTruckLevel } from './level/testLevels';
+import { LEVELS, LEVEL_ENTRIES, findLevel } from './level/levels';
+import type { LevelDef } from './level/schema';
 import { initPhysics } from './physics/world';
 import { CameraRig } from './player/camera';
 import type { MoveInput } from './player/movement';
@@ -15,6 +16,7 @@ import { LevelScene } from './render/levelScene';
 import { TruckRenderer } from './render/truckMesh';
 import { DebugOverlay } from './ui/debugOverlay';
 import { Hud } from './ui/hud';
+import { LevelSelect } from './ui/levelSelect';
 import { Overlays } from './ui/overlays';
 
 /**
@@ -23,8 +25,17 @@ import { Overlays } from './ui/overlays';
  * paused:  mouse released mid-attempt; simulation frozen
  * failed:  attempt over, world keeps moving, any key restarts
  * won:     attempt over, result shown, mouse released for the buttons
+ * levels:  level list
  */
-type AppState = 'start' | 'playing' | 'paused' | 'failed' | 'won';
+type AppState = 'start' | 'playing' | 'paused' | 'failed' | 'won' | 'levels';
+
+/** Everything that belongs to one loaded level and is replaced when switching. */
+interface Loaded {
+  sim: Sim;
+  scene: LevelScene;
+  truckRenderer: TruckRenderer;
+  particles: Particles;
+}
 
 /** How long to wait for the browser to grant mouse capture before showing "paused". */
 const LOCK_WAIT_MS = 600;
@@ -37,13 +48,18 @@ async function boot(): Promise<void> {
   // ?autostart=1 runs without pointer lock (automated checks).
   const seed = seedParam !== null && seedParam !== '' ? Number(seedParam) >>> 0 : undefined;
   const autostart = params.get('autostart') === '1';
-  // Until the level select exists (M4): ?level=single | convoy | block.
-  const levelParam = params.get('level') ?? 'convoy';
-  const level =
-    levelParam === 'single' ? singleTruckLevel() : convoyTestLevel(levelParam === 'block');
+  const god = params.get('god') === '1';
+  // ?level=1-3 jumps straight to a level (test levels: single, convoy, block, hazards).
+  const levelParam = params.get('level');
+  const firstLevel =
+    (levelParam ? findLevel(levelParam) : undefined) ??
+    LEVELS.find((l) => /^\d+-\d+$/.test(l.id)) ??
+    findLevel('test-convoy') ??
+    LEVELS[0];
+  if (!firstLevel) throw new Error('No valid level files found');
+  if (levelParam && !findLevel(levelParam)) console.warn(`Unknown level "${levelParam}"`);
 
   await initPhysics();
-  const sim = new Sim({ seed, god: params.get('god') === '1', level });
   const storage = (() => {
     try {
       return window.localStorage;
@@ -58,12 +74,23 @@ async function boot(): Promise<void> {
   const renderer = new WebGLRenderer({ canvas, antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-  const scene = new LevelScene(sim.level, sim.pool.paths.values(), sim.goal);
-  const truckRenderer = new TruckRenderer(scene.scene, sim.trucks.length);
-  const particles = new Particles(scene.scene);
   const rig = new CameraRig(window.innerWidth / window.innerHeight);
   const input = new Input(canvas);
   const music = new Music();
+  const hud = new Hud(ui);
+
+  const build = (level: LevelDef): Loaded => {
+    const sim = new Sim({ seed, god, level });
+    const scene = new LevelScene(sim.level, sim.pool.paths.values(), sim.goal, sim.hazards);
+    hud.setLevel(level.id, level.name);
+    return {
+      sim,
+      scene,
+      truckRenderer: new TruckRenderer(scene.scene, sim.trucks.length),
+      particles: new Particles(scene.scene),
+    };
+  };
+  let game = build(firstLevel);
 
   let state: AppState = autostart ? 'playing' : 'start';
   let lockWaitUntil = 0;
@@ -75,7 +102,7 @@ async function boot(): Promise<void> {
 
   /** Face the way the truck under the player is heading. */
   const faceForward = () => {
-    const t = sim.player.groundTruck ?? sim.trucks[0];
+    const t = game.sim.player.groundTruck ?? game.sim.trucks[0];
     const fwd = new Vector3(0, 0, 1).applyQuaternion(t.rot);
     input.yaw = Math.atan2(-fwd.x, -fwd.z);
     input.pitch = 0;
@@ -91,7 +118,7 @@ async function boot(): Promise<void> {
   /** New attempt. Nothing is rebuilt or reloaded: pooled bodies are reset in place. */
   const restart = () => {
     const t0 = performance.now();
-    sim.reset();
+    game.sim.reset();
     lastRestartMs = performance.now() - t0;
     restarts++;
     faceForward();
@@ -101,7 +128,24 @@ async function boot(): Promise<void> {
     captureMouse();
   };
 
-  const hud = new Hud(ui);
+  /** Switch level: the old physics world and meshes are freed, then a new attempt starts. */
+  const loadLevel = (level: LevelDef) => {
+    game.scene.dispose();
+    game.sim.dispose();
+    game = build(level);
+    faceForward();
+    wasGrounded = true;
+    input.consumeAnyPress();
+    state = 'playing';
+    captureMouse();
+  };
+  const nextLevel = (): LevelDef | undefined => {
+    const i = LEVELS.findIndex((l) => l.id === game.sim.level.id);
+    const next = LEVELS[i + 1];
+    // Do not roll from the campaign into the test levels (or between worlds of tests).
+    return next && next.world === game.sim.level.world ? next : undefined;
+  };
+
   const debug = new DebugOverlay(ui);
   if (params.get('debug') === '1') debug.toggle(true);
   const overlays = new Overlays(ui, {
@@ -116,9 +160,28 @@ async function boot(): Promise<void> {
       music.start();
       restart();
     },
+    next: () => {
+      const next = nextLevel();
+      if (next) loadLevel(next);
+    },
+    levels: () => {
+      if (input.locked) document.exitPointerLock();
+      state = 'levels';
+      levelSelect.show(true, save, game.sim.level.id);
+    },
+  });
+  const levelSelect = new LevelSelect(ui, LEVEL_ENTRIES, (id) => {
+    music.start();
+    const level = findLevel(id);
+    if (!level) return;
+    levelSelect.show(false, save, id);
+    loadLevel(level);
   });
   window.addEventListener('keydown', (e) => {
-    if (e.code === 'Enter' && state === 'won') restart();
+    if (e.code !== 'Enter' || state !== 'won') return;
+    const next = nextLevel();
+    if (next) loadLevel(next);
+    else restart();
   });
 
   const resize = () => {
@@ -133,6 +196,7 @@ async function boot(): Promise<void> {
     // The world keeps moving behind the fail and win screens.
     isRunning: () => state === 'playing' || state === 'failed' || state === 'won',
     step: () => {
+      const { sim, particles } = game;
       lastInput = input.sample();
       sim.step(lastInput);
       if (sim.state === 'playing' && sim.player.grounded && !wasGrounded) {
@@ -150,13 +214,14 @@ async function boot(): Promise<void> {
           state = 'won';
           const newBest = recordTime(save, sim.level.id, e.time);
           if (newBest) storeSave(storage, save);
-          overlays.setWinResult(e.time, save.bestTimes[sim.level.id], newBest);
+          overlays.setWinResult(e.time, save.bestTimes[sim.level.id], newBest, !!nextLevel());
           // Free the mouse for the buttons.
           if (input.locked) document.exitPointerLock();
         }
       }
     },
     render: (alpha, dt) => {
+      const { sim, scene, truckRenderer, particles } = game;
       if (input.consume('debug')) debug.toggle();
       if (input.consume('mute')) music.toggleMute();
 
@@ -180,10 +245,10 @@ async function boot(): Promise<void> {
       const view: MoveInput = { ...lastInput, yaw: input.yaw, pitch: input.pitch };
       rig.update(sim.player, view, alpha, Math.min(dt, TUNING.loop.maxFrameTime));
       truckRenderer.update(sim.trucks, alpha);
-      if (state !== 'paused' && state !== 'start') {
+      if (state !== 'paused' && state !== 'start' && state !== 'levels') {
         particles.update(Math.min(dt, TUNING.loop.maxFrameTime));
       }
-      scene.update(rig.camera.position);
+      scene.update(rig.camera.position, alpha);
       renderer.render(scene.scene, rig.camera);
       debug.update(sim, loop, { lastRestartMs, restarts, musicStarts: music.starts });
     },
@@ -194,7 +259,13 @@ async function boot(): Promise<void> {
     // Handy in the browser console while tuning, and used by automated checks.
     Object.assign(window, {
       righop: {
-        sim,
+        get sim() {
+          return game.sim;
+        },
+        loadLevel: (id: string) => {
+          const level = findLevel(id);
+          if (level) loadLevel(level);
+        },
         input,
         rig,
         music,

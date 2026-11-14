@@ -3,6 +3,7 @@ import {
   BufferAttribute,
   BufferGeometry,
   Color,
+  Euler,
   DirectionalLight,
   Fog,
   HemisphereLight,
@@ -19,7 +20,8 @@ import {
 } from 'three';
 import { TUNING } from '../config/tuning';
 import type { Goal } from '../level/goal';
-import type { LevelDef } from '../level/types';
+import type { Hazard, HazardPart } from '../level/hazards';
+import type { LevelDef } from '../level/schema';
 import type { Path } from '../trucks/path';
 import { PALETTE, SCENE_DIMS as D } from './palette';
 
@@ -29,38 +31,95 @@ const UP = new Vector3(0, 1, 0);
 export class LevelScene {
   readonly scene = new Scene();
   private readonly ground: Mesh;
+  private readonly roadColor: Color;
+  private readonly hazardMeshes: { part: HazardPart; mesh: Mesh }[] = [];
 
-  constructor(level: LevelDef, paths: Iterable<Path>, goal: Goal) {
+  constructor(level: LevelDef, paths: Iterable<Path>, goal: Goal, hazards: readonly Hazard[]) {
     const s = this.scene;
-    s.background = new Color(PALETTE.sky);
-    s.fog = new Fog(PALETTE.fog, PALETTE.fogNear, PALETTE.fogFar);
+    const pal = level.palette;
+    this.roadColor = new Color(pal.road ?? PALETTE.road);
+    s.background = new Color(pal.sky);
+    s.fog = new Fog(pal.fog, PALETTE.fogNear, pal.fogFar);
     s.add(new HemisphereLight(PALETTE.hemiSky, PALETTE.hemiGround, 1.6));
     const sun = new DirectionalLight(PALETTE.sun, 2.2);
     sun.position.set(-0.5, 1, -0.35);
     s.add(sun);
 
+    // With no solid ground the same plane is drawn at the kill height (water, a pit floor).
     this.ground = new Mesh(
       new PlaneGeometry(D.groundSize, D.groundSize),
-      new MeshLambertMaterial({ color: PALETTE.ground }),
+      new MeshLambertMaterial({ color: pal.ground }),
     );
     this.ground.rotation.x = -Math.PI / 2;
+    this.ground.position.y = level.ground === 'none' ? level.killY : 0;
     s.add(this.ground);
 
-    for (const path of paths) this.addRoad(path);
+    for (const path of paths) if (path.visible) this.addRoad(path);
 
     this.addGoal(goal);
 
-    const blockMat = new MeshLambertMaterial({ color: PALETTE.block, flatShading: true });
+    const deg = Math.PI / 180;
+    const mats = new Map<string, MeshLambertMaterial>();
     for (const item of level.scenery) {
-      const mesh = new Mesh(new BoxGeometry(item.size[0], item.size[1], item.size[2]), blockMat);
+      const color = item.color ?? '#8a5a44';
+      let mat = mats.get(color);
+      if (!mat) {
+        mat = new MeshLambertMaterial({ color, flatShading: true });
+        mats.set(color, mat);
+      }
+      const mesh = new Mesh(new BoxGeometry(item.size[0], item.size[1], item.size[2]), mat);
       mesh.position.set(item.pos[0], item.pos[1], item.pos[2]);
+      const r = item.rot ?? [0, 0, 0];
+      mesh.rotation.copy(new Euler(r[0] * deg, r[1] * deg, r[2] * deg, 'XYZ'));
       s.add(mesh);
+    }
+
+    // Hazards: one box mesh per part, sharing geometry and material where possible.
+    const geos = new Map<string, BoxGeometry>();
+    const hazardMats = new Map<number, MeshLambertMaterial>();
+    for (const hazard of hazards) {
+      for (const part of hazard.parts) {
+        const gk = `${part.size.x},${part.size.y},${part.size.z}`;
+        let geo = geos.get(gk);
+        if (!geo) {
+          geo = new BoxGeometry(part.size.x, part.size.y, part.size.z);
+          geos.set(gk, geo);
+        }
+        let mat = hazardMats.get(part.color);
+        if (!mat) {
+          mat = new MeshLambertMaterial({ color: part.color, flatShading: true });
+          hazardMats.set(part.color, mat);
+        }
+        const mesh = new Mesh(geo, mat);
+        s.add(mesh);
+        this.hazardMeshes.push({ part, mesh });
+      }
     }
   }
 
+  /** Free GPU resources when switching level. */
+  dispose(): void {
+    this.scene.traverse((o) => {
+      const m = o as Mesh;
+      m.geometry?.dispose();
+      const mat = m.material;
+      if (Array.isArray(mat)) mat.forEach((x) => x.dispose());
+      else mat?.dispose();
+    });
+  }
+
   /** Keep the (featureless) ground plane under the viewer. */
-  update(view: Vector3): void {
-    this.ground.position.set(view.x, 0, view.z);
+  update(view: Vector3, alpha: number): void {
+    if (this.ground) {
+      this.ground.position.x = view.x;
+      this.ground.position.z = view.z;
+    }
+    for (const { part, mesh } of this.hazardMeshes) {
+      mesh.visible = part.visible;
+      if (!part.visible) continue;
+      mesh.position.lerpVectors(part.prevPos, part.pos, alpha);
+      mesh.quaternion.slerpQuaternions(part.prevRot, part.rot, alpha);
+    }
   }
 
   /** A bright gate that ignores fog, so it reads from far away. */
@@ -119,7 +178,7 @@ export class LevelScene {
     geo.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
     geo.setIndex(index);
     geo.computeVertexNormals();
-    this.scene.add(new Mesh(geo, new MeshLambertMaterial({ color: PALETTE.road })));
+    this.scene.add(new Mesh(geo, new MeshLambertMaterial({ color: this.roadColor })));
 
     // Lane dashes and roadside posts give speed and curve cues.
     const m = new Matrix4();

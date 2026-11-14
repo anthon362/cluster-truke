@@ -1,7 +1,7 @@
 import { GAME_TITLE } from '../config/meta';
 import { formatTime } from './format';
 
-export type OverlayKind = 'none' | 'start' | 'paused' | 'failed' | 'won';
+export type OverlayKind = 'none' | 'start' | 'paused' | 'failed' | 'won' | 'levels';
 
 const KEYS = `
   <div class="keys">
@@ -21,8 +21,21 @@ export class Overlays {
   private readonly startGo: HTMLElement;
   private kind: OverlayKind = 'none';
 
-  constructor(parent: HTMLElement, handlers: { play(): void; retry(): void }) {
-    this.start = el('start', `<h1></h1><div class="go"></div>${KEYS}`);
+  private readonly nextButton: HTMLButtonElement;
+
+  constructor(
+    parent: HTMLElement,
+    handlers: { play(): void; retry(): void; next(): void; levels(): void },
+  ) {
+    this.start = el(
+      'start',
+      `<h1></h1><div class="go"></div>${KEYS}
+       <div class="buttons"><button type="button" class="pick">Levels</button></div>`,
+    );
+    this.start.querySelector('.pick')!.addEventListener('click', (e) => {
+      e.stopPropagation();
+      handlers.levels();
+    });
     this.startTitle = this.start.querySelector('h1')!;
     this.startGo = this.start.querySelector('.go')!;
     this.start.addEventListener('click', handlers.play);
@@ -34,18 +47,26 @@ export class Overlays {
       `<h2>FINISHED</h2>
        <div class="result"><span class="label">Time</span><span class="time"></span></div>
        <div class="result small"><span class="label">Best</span><span class="best"></span></div>
-       <button class="go" type="button">Retry</button>
-       <div class="hint"><kbd>R</kbd> or <kbd>Enter</kbd> to retry</div>`,
+       <div class="buttons">
+         <button type="button" class="next primary">Next</button>
+         <button type="button" class="retry">Retry</button>
+         <button type="button" class="pick">Levels</button>
+       </div>
+       <div class="hint"><kbd>Enter</kbd> next &nbsp; <kbd>R</kbd> retry</div>`,
     );
     this.wonTime = this.won.querySelector('.time')!;
     this.wonBest = this.won.querySelector('.best')!;
-    this.won.querySelector('button')!.addEventListener('click', handlers.retry);
+    this.nextButton = this.won.querySelector('.next')!;
+    this.nextButton.addEventListener('click', handlers.next);
+    this.won.querySelector('.retry')!.addEventListener('click', handlers.retry);
+    this.won.querySelector('.pick')!.addEventListener('click', handlers.levels);
 
     parent.append(this.start, this.failed, this.won);
     this.show('start');
   }
 
-  setWinResult(time: number, best: number, newBest: boolean): void {
+  setWinResult(time: number, best: number, newBest: boolean, hasNext: boolean): void {
+    this.nextButton.disabled = !hasNext;
     this.wonTime.textContent = formatTime(time);
     this.wonBest.textContent = formatTime(best) + (newBest ? '  NEW BEST' : '');
     this.wonBest.classList.toggle('new', newBest);

@@ -1,6 +1,6 @@
 import { TUNING } from '../config/tuning';
 import type { Rng } from '../core/rng';
-import type { ConvoyDef, LevelDef } from '../level/types';
+import type { ConvoyDef, LevelDef } from '../level/schema';
 import type { PhysicsWorld } from '../physics/world';
 import { Path } from './path';
 import { Truck, TruckAssignment, TruckLookup } from './truck';
@@ -17,7 +17,8 @@ export class TruckPool implements TruckLookup {
   private readonly colliderMap = new Map<number, Truck>();
 
   constructor(physics: PhysicsWorld, level: LevelDef) {
-    for (const p of level.paths) this.paths.set(p.id, new Path(p.id, p.points, p.width, p.lanes));
+    for (const p of level.paths)
+      this.paths.set(p.id, new Path(p.id, p.points, p.width, p.lanes, p.visible ?? true));
     for (const c of level.convoys) {
       for (const a of this.formation(c)) {
         if (this.trucks.length >= T.maxActive) {

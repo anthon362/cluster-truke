@@ -104,6 +104,21 @@ export class PlayerController {
     this.timeSinceGrounded = P.coyoteTime + 1;
   }
 
+  /** Add velocity from something that hit the player (debris). Never lethal. */
+  push(dv: Vector3): void {
+    this.vel.add(dv);
+    if (this.grounded && dv.y > 0.5) {
+      this.grounded = false;
+      this.groundTruck = null;
+      this.jumpAvailable = false;
+      this.timeSinceGrounded = P.coyoteTime + 1;
+    } else if (this.grounded) {
+      // Standing: the shove becomes sliding speed on the truck.
+      this.rel.x += dv.x;
+      this.rel.z += dv.z;
+    }
+  }
+
   /** Shove from an explosion at `origin`. Never lethal. */
   blast(origin: Vector3): void {
     const d = tmpA.subVectors(this.pos, origin);

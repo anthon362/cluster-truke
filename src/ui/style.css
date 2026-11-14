@@ -153,3 +153,113 @@ button.go {
 .hidden {
   display: none;
 }
+
+.levels {
+  background: rgba(16, 20, 26, 0.9);
+  pointer-events: auto;
+  justify-content: flex-start;
+  padding-top: 5vh;
+  overflow-y: auto;
+}
+.levels h3 {
+  margin: 0;
+  font-size: 34px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+.level-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 10px;
+  width: min(900px, 92vw);
+  padding-bottom: 40px;
+}
+.level-world {
+  grid-column: 1 / -1;
+  margin-top: 12px;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  opacity: 0.75;
+  text-align: left;
+}
+.level-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: flex-start;
+  padding: 11px 13px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.level-tile:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+.level-tile.current {
+  border-color: #ff7a1a;
+}
+.level-tile .id {
+  font-size: 13px;
+  opacity: 0.7;
+}
+.level-tile .name {
+  font-size: 18px;
+  font-weight: 800;
+}
+.level-tile .best {
+  font-size: 13px;
+  opacity: 0.85;
+  font-variant-numeric: tabular-nums;
+}
+.level-tile.broken {
+  grid-column: 1 / -1;
+  cursor: default;
+  background: rgba(190, 40, 30, 0.35);
+}
+.level-tile.broken pre {
+  margin: 4px 0 0;
+  font:
+    12px/1.45 ui-monospace,
+    Menlo,
+    Consolas,
+    monospace;
+  white-space: pre-wrap;
+}
+.buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+.buttons button {
+  border: 0;
+  padding: 10px 22px;
+  border-radius: 6px;
+  font: 700 19px inherit;
+  font-family: inherit;
+  color: inherit;
+  background: rgba(255, 255, 255, 0.18);
+  cursor: pointer;
+}
+.buttons button.primary {
+  background: #ff7a1a;
+}
+.buttons button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.level-name {
+  position: absolute;
+  top: 52px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  opacity: 0.8;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}

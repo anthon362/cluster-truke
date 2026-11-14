@@ -1,0 +1,151 @@
+{
+  "id": "1-3",
+  "name": "Paper Wall",
+  "world": "dockyard",
+  "parTime": 16,
+  "killY": -5,
+  "ground": "none",
+  "palette": {
+    "sky": "#f3d9b8",
+    "ground": "#17545c",
+    "fog": "#ecd3b4",
+    "fogFar": 460,
+    "road": "#565b63"
+  },
+  "player": {
+    "convoy": "main",
+    "row": 1,
+    "lane": 1
+  },
+  "hazards": [
+    {
+      "type": "breakableWall",
+      "pos": [0.73, 0, 214.97],
+      "width": 14,
+      "height": 5,
+      "yaw": 3.34
+    },
+    {
+      "type": "breakableWall",
+      "pos": [9.98, 0, 329.45],
+      "width": 14,
+      "height": 5,
+      "yaw": 2.25
+    },
+    {
+      "type": "breakableWall",
+      "pos": [11.35, 0, 404.55],
+      "width": 14,
+      "height": 6.25,
+      "yaw": 0.24
+    }
+  ],
+  "paths": [
+    {
+      "id": "road",
+      "width": 14,
+      "lanes": 3,
+      "points": [
+        [0, 0, -40],
+        [0, 0, 200],
+        [10, 0, 330],
+        [10, 0, 640]
+      ]
+    }
+  ],
+  "convoys": [
+    {
+      "id": "main",
+      "path": "road",
+      "rows": 14,
+      "lanesUsed": [0, 1, 2],
+      "startAt": 50
+    }
+  ],
+  "scenery": [
+    {
+      "type": "box",
+      "pos": [5, -1, 240],
+      "size": [50, 2, 600],
+      "lethal": true,
+      "color": "#8d9299"
+    },
+    {
+      "type": "box",
+      "pos": [-12.94, 1.45, 79.9],
+      "size": [2.6, 2.9, 12],
+      "rot": [0, -0.48, 0],
+      "lethal": true,
+      "color": "#d9772b"
+    },
+    {
+      "type": "box",
+      "pos": [11.04, 2.9, 159.85],
+      "size": [2.6, 5.8, 12],
+      "rot": [0, 0.7, 0],
+      "lethal": true,
+      "color": "#2f6f9f"
+    },
+    {
+      "type": "box",
+      "pos": [-8.41, 2.9, 251.02],
+      "size": [2.6, 5.8, 12],
+      "rot": [0, 5.58, 0],
+      "lethal": true,
+      "color": "#c8b23a"
+    },
+    {
+      "type": "box",
+      "pos": [20.22, 1.45, 298.71],
+      "size": [2.6, 2.9, 12],
+      "rot": [0, 4.37, 0],
+      "lethal": true,
+      "color": "#a33b32"
+    },
+    {
+      "type": "box",
+      "pos": [-0.85, 4.35, 379.7],
+      "size": [2.6, 8.7, 12],
+      "rot": [0, 0.68, 0],
+      "lethal": true,
+      "color": "#3f8f6b"
+    },
+    {
+      "type": "box",
+      "pos": [23.38, 1.45, 429.57],
+      "size": [2.6, 2.9, 12],
+      "rot": [0, -0.06, 0],
+      "lethal": true,
+      "color": "#d9772b"
+    },
+    {
+      "type": "box",
+      "pos": [-19.15, 8.5, 119.97],
+      "size": [1.6, 17, 1.6],
+      "rot": [0, -0.09, 0],
+      "lethal": true,
+      "color": "#e0a526"
+    },
+    {
+      "type": "box",
+      "pos": [16.85, 8.5, 120.02],
+      "size": [1.6, 17, 1.6],
+      "rot": [0, -0.09, 0],
+      "lethal": true,
+      "color": "#e0a526"
+    },
+    {
+      "type": "box",
+      "pos": [-1.15, 17, 120],
+      "size": [40, 2, 2.4],
+      "rot": [0, -0.09, 0],
+      "lethal": true,
+      "color": "#e0a526"
+    }
+  ],
+  "goal": {
+    "pos": [11.35, 0, 442.55],
+    "width": 16,
+    "height": 12
+  }
+}

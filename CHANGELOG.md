@@ -1,5 +1,27 @@
 # Changelog
 
+## M4 (part 2) — World 1: DOCKYARD
+
+- Six levels in `src/level/data/dockyard/`: First Shift, Stacks, Paper Wall, Rush Hour,
+  Drawbridge, Crane Day. Container port at dawn; the quays stand in water.
+- `tests/dockyard.test.ts` plays every level with a scripted no-ability player on six seeds
+  and writes `dockyard-report.txt`.
+- `scripts/build-dockyard.mjs`: authoring helper that places things along a path.
+- Truck behaviour tuned for multi-lane fairness (see TUNING.md).
+
+## M4 (part 1) — Level data, loader, hazards, level select
+
+- Levels are JSON files in `src/level/data/`; `src/level/schema.ts` validates them and lists
+  every problem with its field path. Broken files show up in the level list with the reasons.
+- Loader support for palettes, rotated scenery (ramps), levels without flat ground (gaps),
+  hidden path ribbons, and hazards.
+- Hazards with a common interface: breakable wall, spinning pusher. Static blockers are
+  scenery boxes; oncoming traffic is a reversed convoy.
+- Level select stub, `?level=<id>`, Next / Retry / Levels on the win screen, level name in the HUD.
+- Switching level frees the old physics world and meshes.
+- Trucks brake for wrecks and obstacles; fixed a spot where the player could hang forever at
+  a roof edge.
+
 ## M3 — Win, lose, instant restart
 
 - Goal gate (`src/level/goal.ts`): passing through in any state wins; visible from far away.
