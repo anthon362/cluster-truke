@@ -30,6 +30,8 @@ export class Input {
   private jumpQueued = false;
   private readonly oneShot = new Set<Action>();
   private anyPress = false;
+  private primary = false;
+  private secondary = false;
 
   constructor(private readonly lockTarget: HTMLElement) {
     window.addEventListener('keydown', (e) => {
@@ -46,8 +48,23 @@ export class Input {
       }
       if (!system) this.anyPress = true;
     });
-    this.lockTarget.addEventListener('mousedown', () => {
-      if (this.locked) this.anyPress = true;
+    this.lockTarget.addEventListener('mousedown', (e) => {
+      if (!this.locked) return;
+      this.anyPress = true;
+      if (e.button === 0) this.primary = true;
+      if (e.button === 2) this.secondary = true;
+    });
+    window.addEventListener('mouseup', (e) => {
+      if (e.button === 0) this.primary = false;
+      if (e.button === 2) this.secondary = false;
+    });
+    // Right mouse is the utility ability, not a menu.
+    this.lockTarget.addEventListener('contextmenu', (e) => e.preventDefault());
+    document.addEventListener('pointerlockchange', () => {
+      if (!this.locked) {
+        this.primary = false;
+        this.secondary = false;
+      }
     });
     window.addEventListener('keyup', (e) => this.down.delete(e.code));
     window.addEventListener('blur', () => this.down.clear());
@@ -100,6 +117,8 @@ export class Input {
       jumpPressed,
       yaw: this.yaw,
       pitch: this.pitch,
+      primaryHeld: this.primary,
+      secondaryHeld: this.secondary,
     };
   }
 

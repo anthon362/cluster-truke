@@ -32,6 +32,28 @@ export class TruckPool implements TruckLookup {
     }
   }
 
+  /** Extra trucks kept out of play for abilities to call in. */
+  addSpares(physics: PhysicsWorld, count: number): Truck[] {
+    const template = this.trucks[0]?.assignment;
+    const out: Truck[] = [];
+    if (!template) return out;
+    for (let i = 0; i < count; i++) {
+      const truck = new Truck(physics, this.trucks.length, {
+        ...template,
+        convoy: 'spare',
+        row: i,
+        wobble: 0,
+        speedVariance: 0,
+        spawnDelay: 0,
+      });
+      truck.spare = true;
+      this.trucks.push(truck);
+      for (const col of truck.colliders) this.colliderMap.set(col.handle, truck);
+      out.push(truck);
+    }
+    return out;
+  }
+
   byCollider(handle: number): Truck | undefined {
     return this.colliderMap.get(handle);
   }

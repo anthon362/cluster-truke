@@ -1,11 +1,14 @@
 import { Euler, Quaternion, Vector3 } from 'three';
 import { TUNING } from '../config/tuning';
+import { AbilityManager } from '../abilities/manager';
+import type { AbilityId } from '../config/abilities';
 import { type Hazard, createHazard } from '../level/hazards';
 import { TEST_LEVELS } from '../level/levels';
 import { Goal } from '../level/goal';
 import type { LevelDef } from '../level/schema';
 import { GROUP, PhysicsWorld, RAPIER, groups } from '../physics/world';
 import { PlayerController } from '../player/controller';
+import { type Bonus, ScoreKeeper } from '../score/score';
 import type { MoveInput } from '../player/movement';
 import { TruckPool } from '../trucks/convoy';
 import { TRUCK_SHAPE, Truck } from '../trucks/truck';
@@ -18,10 +21,16 @@ export interface SimOptions {
   god?: boolean;
   /** Defaults to the one-truck test level. */
   level?: LevelDef;
+  /** Whether the first attempt on this Sim can earn the first-try bonus (default true). */
+  firstTry?: boolean;
+  /** Abilities in play. Levels never require any. */
+  movement?: AbilityId | null;
+  utility?: AbilityId | null;
 }
 
 export type SimEvent =
   | { type: 'explosion'; pos: Vector3 }
+  | { type: 'bonus'; bonus: Bonus }
   | { type: 'failed'; reason: FailReason }
   | { type: 'won'; time: number };
 
@@ -47,6 +56,18 @@ export class Sim {
   stepCount = 0;
   readonly goal: Goal;
   readonly hazards: Hazard[] = [];
+  readonly score: ScoreKeeper;
+  readonly abilities: AbilityManager;
+  /** World speed this step (1 = normal). Abilities lower it; it is reset every step. */
+  timeScale = 1;
+  /** The world speed the running step is actually being played at (last step's request). */
+  appliedTimeScale = 1;
+  /** A cinematic ability is running (letterbox in the UI). */
+  cinematic = false;
+  /** This attempt is the first try of the session on this level. */
+  firstTry: boolean;
+  private wasGrounded = true;
+  private takeoffTruck: Truck | null = null;
   state: SimState = 'playing';
   failReason: FailReason | null = null;
   /** Attempt timer in seconds; stops at the goal or on failing. */
@@ -71,6 +92,8 @@ export class Sim {
     this.fixedSeed = options.seed;
     this.rng = new Rng(options.seed ?? Rng.randomSeed());
     this.god = options.god ?? false;
+    this.score = new ScoreKeeper(this.level.parTime);
+    this.firstTry = options.firstTry ?? true;
     this.groundHandle = this.level.ground === 'none' ? null : this.physics.addTestGround().handle;
     const deg = Math.PI / 180;
     for (const s of this.level.scenery) {
@@ -96,6 +119,9 @@ export class Sim {
       registerPusher: (handle: number) => void this.pushers.add(handle),
     };
     for (const h of this.level.hazards) this.hazards.push(createHazard(h, ctx));
+    this.abilities = new AbilityManager(this);
+    this.abilities.equip('movement', options.movement ?? null);
+    this.abilities.equip('utility', options.utility ?? null);
     this.reset();
   }
 
@@ -117,7 +143,15 @@ export class Sim {
     this.failReason = null;
     this.lethalTime = 0;
     this.explosions = 0;
+    if (this.attempts > 0) this.firstTry = false;
     this.attempts++;
+    this.score.reset();
+    this.timeScale = 1;
+    this.appliedTimeScale = 1;
+    this.cinematic = false;
+    this.abilities?.reset();
+    this.wasGrounded = true;
+    this.takeoffTruck = null;
     this.events.length = 0;
     this.pool.reset(this.rng);
     for (const h of this.hazards) h.reset();
@@ -127,6 +161,18 @@ export class Sim {
       .applyQuaternion(truck.rot)
       .add(truck.pos);
     this.player.spawnOn(truck, feet);
+  }
+
+  /** Ask for slow motion this step; the slowest request wins. */
+  slowTime(scale: number): void {
+    this.timeScale = Math.min(this.timeScale, scale);
+  }
+
+  /** Make sure `count` spare trucks exist for abilities to call in. */
+  ensureSpares(count: number): void {
+    const have = this.trucks.filter((t) => t.spare).length;
+    if (have >= count) return;
+    for (const t of this.pool.addSpares(this.physics, count - have)) t.reset(this.rng);
   }
 
   /** Free the physics world when switching level. */
@@ -142,6 +188,9 @@ export class Sim {
   step(input: MoveInput): void {
     const dt = TUNING.loop.fixedStep;
     this.events.length = 0;
+    this.appliedTimeScale = this.timeScale;
+    this.timeScale = 1;
+    if (this.state === 'playing') this.abilities.step(dt, input);
     for (const t of this.trucks) t.drive(dt, this.clock, this.stepCount, this.pool);
     for (const h of this.hazards) h.update(dt);
     this.physics.step();
@@ -157,10 +206,12 @@ export class Sim {
     this.player.step(dt, input);
     if (this.state !== 'playing') return;
     this.time += dt;
+    this.trackStyle();
 
     // Goal first: reaching it wins even if the same step would have killed.
     if (this.goal.crossed(this.player.prevPos, this.player.pos)) {
       this.state = 'won';
+      this.emit(this.score.finished(this.time, this.firstTry));
       this.events.push({ type: 'won', time: this.time });
       return;
     }
@@ -173,6 +224,30 @@ export class Sim {
       this.player.prevPos.copy(this.player.pos);
       this.events.push({ type: 'failed', reason });
     }
+  }
+
+  private emit(bonuses: Bonus[]): void {
+    for (const bonus of bonuses) this.events.push({ type: 'bonus', bonus });
+  }
+
+  /** Turn what the player just did into scoring events. */
+  private trackStyle(): void {
+    const p = this.player;
+    if (this.wasGrounded && !p.grounded) {
+      const from = p.lastTruck;
+      this.takeoffTruck = from;
+      this.emit(this.score.leftGround(this.time, p.jumped, !!from && !from.onGround));
+    } else if (!this.wasGrounded && p.grounded) {
+      const from = this.takeoffTruck?.assignment;
+      const to = p.groundTruck?.assignment;
+      const skipped = from && to && from.convoy === to.convoy ? Math.abs(to.row - from.row) - 1 : 0;
+      this.emit(this.score.landed(this.time, Math.max(0, skipped)));
+    } else if (!p.grounded) {
+      p.lethalNearby((handle) => {
+        if (!this.harmless.has(handle)) this.score.passedClose();
+      });
+    }
+    this.wasGrounded = p.grounded;
   }
 
   /**

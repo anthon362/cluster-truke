@@ -1,5 +1,25 @@
 # Changelog
 
+## M5 (part 2) — Abilities and shop
+
+- Twelve original abilities in `src/abilities/` (one file each) behind a common base class
+  and a manager: one movement (left mouse or jump) and one utility (right mouse) at a time.
+- Shop screen with two columns, Buy / Equip, and the bank at the top; choices are saved and
+  apply immediately.
+- HUD energy bars in the bottom corners; tow line, thrown markers, flare, letterbox and
+  slow-motion tint.
+- Time scaling in the game loop (mouse look stays real-time).
+- `?abilities=all` and `?equip=a,b` for testing.
+
+## M5 (part 1) — Points and save
+
+- Event-driven scoring (`src/score/score.ts`): FINISH, ACE, SPEED, AIR TIME, ROW SKIP,
+  AIRBORNE HOP, CLOSE CALL, WORLD CLEAR. Each bonus pops up the moment it is earned.
+- Points are banked only on finishing; failing loses them. The win screen shows the breakdown
+  and the bank balance.
+- Save format version 2: points, owned and equipped abilities, best times, cleared worlds,
+  with an upgrade path from version 1 and tolerance for damaged data.
+
 ## M4 (part 2) — World 1: DOCKYARD
 
 - Six levels in `src/level/data/dockyard/`: First Shift, Stacks, Paper Wall, Rush Hour,

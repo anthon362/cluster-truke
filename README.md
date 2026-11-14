@@ -22,7 +22,8 @@ Open the printed localhost URL and click to play.
 | F3      | Debug overlay                                   |
 
 URL parameters: `?seed=123` fixed seed, `?god=1` no falling-off reset, `?debug=1` overlay open,
-`?level=<id>` (test levels: `convoy`, `block`, `hazards`, `single`).
+`?level=<id>` (test levels: `convoy`, `block`, `hazards`, `single`), `?abilities=all` (every
+ability unlocked for the session, nothing saved), `?equip=towLine,slowLane`.
 
 Levels are JSON files in `src/level/data/`. A file with mistakes is listed in the level
 select screen together with what is wrong in it.

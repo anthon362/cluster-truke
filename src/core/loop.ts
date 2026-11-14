@@ -40,6 +40,8 @@ export interface LoopCallbacks {
   render(alpha: number, dt: number): void;
   /** While false the simulation is frozen (paused / menu). */
   isRunning(): boolean;
+  /** World speed (1 = normal). Mouse look is unaffected. */
+  timeScale?(): number;
 }
 
 export class GameLoop {
@@ -62,7 +64,7 @@ export class GameLoop {
       if (running && !this.wasRunning) this.accumulator.reset();
       this.wasRunning = running;
       if (running) {
-        const steps = this.accumulator.advance(dt);
+        const steps = this.accumulator.advance(dt, this.cb.timeScale?.() ?? 1);
         if (steps > 0) {
           const t0 = performance.now();
           for (let i = 0; i < steps; i++) this.cb.step();

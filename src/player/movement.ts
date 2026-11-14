@@ -23,6 +23,10 @@ export interface MoveInput {
   /** Camera yaw in radians (three.js convention: 0 looks down -Z). */
   yaw: number;
   pitch: number;
+  /** Movement ability button (left mouse) held. */
+  primaryHeld?: boolean;
+  /** Utility ability button (right mouse) held. */
+  secondaryHeld?: boolean;
 }
 
 export const NO_INPUT: MoveInput = {

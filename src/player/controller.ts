@@ -57,6 +57,19 @@ export class PlayerController {
   private readonly sideNormal = new Vector3();
   /** True while holding on to a truck side. */
   clinging = false;
+  /** True on the step a jump (ground, coyote or side kick) fired. */
+  jumped = false;
+  /** True on the step the mid-air extra jump fired. */
+  airJumped = false;
+  /** Ability hooks. Zero / false means the ability is not in play. */
+  airJumpVelocity = 0;
+  airJumpReady = false;
+  /** Cancel gravity and settle vertical speed (hover). */
+  hover = false;
+  /** Stay locked to the truck stood on, whatever it does. */
+  magnet = false;
+  /** Fatter capsule for near-miss detection. */
+  private readonly nearShape: RAPIER.Capsule;
 
   constructor(
     private readonly physics: PhysicsWorld,
@@ -64,6 +77,10 @@ export class PlayerController {
   ) {
     this.shape = new RAPIER.Capsule(P.height / 2 - P.radius, P.radius);
     this.reachShape = new RAPIER.Capsule(P.height / 2 - P.radius, P.radius + P.clingReach);
+    this.nearShape = new RAPIER.Capsule(
+      P.height / 2 - P.radius,
+      P.radius + TUNING.score.closeCallDistance,
+    );
     const k = P.lethalCapsuleScale;
     this.lethalShape = new RAPIER.Capsule((P.height / 2 - P.radius) * k, P.radius * k);
   }
@@ -71,6 +88,21 @@ export class PlayerController {
   /** True while standing on or holding on to a truck. */
   get onTruck(): boolean {
     return this.grounded || this.clinging;
+  }
+
+  /** Report every lethal collider within near-miss distance of the player. */
+  lethalNearby(visit: (colliderHandle: number) => void): void {
+    this.physics.world.intersectionsWithShape(
+      this.pos,
+      IDENTITY,
+      this.nearShape,
+      (collider) => {
+        visit(collider.handle);
+        return true;
+      },
+      undefined,
+      this.lethalGroups,
+    );
   }
 
   /** Report every lethal collider the (shrunken) player capsule overlaps. */
@@ -121,6 +153,7 @@ export class PlayerController {
 
   /** Shove from an explosion at `origin`. Never lethal. */
   blast(origin: Vector3): void {
+    if (this.magnet && this.grounded) return;
     const d = tmpA.subVectors(this.pos, origin);
     const dist = d.length();
     const radius = TUNING.truck.explosionRadius;
@@ -169,11 +202,16 @@ export class PlayerController {
     this.jumpRising = false;
     this.sideTruck = null;
     this.clinging = false;
+    this.airJumpReady = true;
+    this.hover = false;
+    this.magnet = false;
     this.storeLocal();
   }
 
   step(dt: number, input: MoveInput): void {
     this.prevPos.copy(this.pos);
+    this.jumped = false;
+    this.airJumped = false;
 
     if (input.jumpPressed) this.jumpBufferLeft = P.jumpBuffer;
     else this.jumpBufferLeft = Math.max(0, this.jumpBufferLeft - dt);
@@ -196,6 +234,10 @@ export class PlayerController {
       carried = true;
       this.readFrameVelocity(t);
       groundMove(this.rel, wish, dt);
+      if (this.magnet) {
+        this.rel.x = 0;
+        this.rel.z = 0;
+      }
       this.vel.set(this.frameVel.x + this.rel.x, this.frameVel.y, this.frameVel.z + this.rel.z);
     } else {
       this.timeSinceGrounded += dt;
@@ -226,7 +268,17 @@ export class PlayerController {
       airMove(rel2, wish, dt);
       this.vel.x = this.frameVel.x + rel2.x;
       this.vel.z = this.frameVel.z + rel2.z;
-      this.vel.y -= P.gravity * dt;
+      if (this.hover) {
+        // Gravity off; vertical speed settles to the frame's.
+        const d = this.frameVel.y - this.vel.y;
+        const step = TUNING.abilities.hangTime.damping * dt;
+        this.vel.y += Math.max(-step, Math.min(step, d));
+        this.jumpRising = false;
+      } else {
+        this.vel.y -= P.gravity * dt;
+      }
+      // Recharge the mid-air jump while holding a truck.
+      if (this.clinging) this.airJumpReady = true;
       // Variable jump height: letting go while rising cuts the jump short.
       if (this.jumpRising) {
         if (this.vel.y <= this.frameVel.y) this.jumpRising = false;
@@ -249,6 +301,7 @@ export class PlayerController {
         this.vel.y = this.frameVel.y + P.jumpVelocity * P.jumpCutMultiplier;
       }
       this.jumpBufferLeft = 0;
+      this.jumped = true;
       this.timeSinceGrounded = P.coyoteTime + dt;
     } else if (this.jumpBufferLeft > 0 && !this.grounded && this.sideTruck?.isSolid) {
       // Tap jump on a truck side: kick up and away from it.
@@ -258,7 +311,23 @@ export class PlayerController {
       this.vel.z += this.sideNormal.z * P.clingTapAway;
       this.jumpBufferLeft = 0;
       this.jumpRising = false;
+      this.jumped = true;
+    } else if (
+      this.jumpBufferLeft > 0 &&
+      !this.grounded &&
+      this.airJumpVelocity > 0 &&
+      this.airJumpReady
+    ) {
+      // Mid-air extra jump (ability).
+      this.vel.y = this.frameVel.y + this.airJumpVelocity;
+      this.airJumpReady = false;
+      this.airJumped = true;
+      this.jumpBufferLeft = 0;
+      this.jumpRising = false;
     }
+
+    // Nothing may push the player past the speed clamp.
+    if (this.vel.lengthSq() > P.maxSpeed * P.maxSpeed) this.vel.setLength(P.maxSpeed);
 
     // A carried player already has the truck's motion; only add their own.
     if (carried && this.grounded) tmpA.set(this.rel.x * dt, 0, this.rel.z * dt);
@@ -380,6 +449,14 @@ export class PlayerController {
   /** Decide whether the player is standing on a truck, and stick to it if so. */
   private probeGround(dt: number): void {
     const wasGrounded = this.grounded;
+    if (this.magnet && wasGrounded && this.groundTruck?.isSolid) {
+      // Locked on: no probing, the stored spot on the truck carries us next step.
+      this.readFrameVelocity(this.groundTruck);
+      this.vel.copy(this.frameVel);
+      this.timeSinceGrounded = 0;
+      this.airJumpReady = true;
+      return;
+    }
     const reach = wasGrounded ? P.groundSnap : P.groundProbe;
     const hit = this.physics.world.castShape(
       this.pos,
@@ -417,6 +494,7 @@ export class PlayerController {
         this.timeSinceGrounded = 0;
         this.jumpAvailable = true;
         this.jumpRising = false;
+        this.airJumpReady = true;
       }
     }
     if (!standing && wasGrounded) {
