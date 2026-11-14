@@ -190,6 +190,8 @@ async function boot(): Promise<void> {
   /** Where a sub-screen goes back to. */
   let returnTo: AppState = 'menu';
   let lockWaitUntil = 0;
+  /** The game asked for the mouse and has not got it yet. */
+  let lockPending = false;
   let failedAt = 0;
   let wasGrounded = true;
   let lastRestartMs = 0;
@@ -232,9 +234,11 @@ async function boot(): Promise<void> {
     // With a gamepad there is no mouse to capture.
     if (autostart || input.locked || input.padActive) return;
     lockWaitUntil = performance.now() + LOCK_WAIT_MS;
+    lockPending = true;
     input.requestLock();
   };
   const releaseMouse = () => {
+    lockPending = false;
     if (input.locked) document.exitPointerLock();
   };
 
@@ -497,6 +501,12 @@ async function boot(): Promise<void> {
       if (input.consume('mute')) audio.toggleMusicMute();
 
       // Losing the mouse during play (Esc, alt-tab) pauses. A gamepad needs no mouse.
+      // A slow browser can grant the mouse after the wait above and the game has already shown
+      // Paused: the mouse arriving is the player's go-ahead, so carry on.
+      if (lockPending && input.locked) {
+        lockPending = false;
+        if (state === 'paused') state = 'playing';
+      }
       const waitingForLock = performance.now() < lockWaitUntil;
       const needsMouse = !autostart && !input.padActive;
       if (state === 'playing' && needsMouse && !input.locked && !waitingForLock) state = 'paused';

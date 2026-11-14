@@ -8,6 +8,8 @@
 - Fixed: test levels showed in the level list and paid points. They are now only listed in
   development, and like editor levels they pay no points and save no times.
 - Escape leaves the Levels, Abilities, Settings and Best Times screens.
+- Fixed: on a slow machine the game could stay on Paused with the mouse captured, when the
+  browser granted the mouse later than the game waited for it. It now carries on.
 - The view no longer swings when the mouse is first captured: a browser can report one huge
   movement at that moment, which is now ignored.
 - A stand-alone build, `npm run standalone`: the whole game in one HTML file that runs when
