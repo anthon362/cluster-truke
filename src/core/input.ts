@@ -3,7 +3,7 @@ import type { MoveInput } from '../player/movement';
 
 /** Actions the game understands. Rebinding UI arrives in M7; the table is ready. */
 export type Action =
-  'forward' | 'back' | 'left' | 'right' | 'sprint' | 'jump' | 'restart' | 'debug';
+  'forward' | 'back' | 'left' | 'right' | 'sprint' | 'jump' | 'restart' | 'debug' | 'mute';
 
 export const DEFAULT_BINDINGS: Record<Action, string[]> = {
   forward: ['KeyW', 'ArrowUp'],
@@ -14,6 +14,7 @@ export const DEFAULT_BINDINGS: Record<Action, string[]> = {
   jump: ['Space'],
   restart: ['KeyR'],
   debug: ['F3'],
+  mute: ['KeyM'],
 };
 
 const C = TUNING.camera;
@@ -28,6 +29,7 @@ export class Input {
   private readonly down = new Set<string>();
   private jumpQueued = false;
   private readonly oneShot = new Set<Action>();
+  private anyPress = false;
 
   constructor(private readonly lockTarget: HTMLElement) {
     window.addEventListener('keydown', (e) => {
@@ -35,9 +37,17 @@ export class Input {
       if (e.repeat) return;
       this.down.add(e.code);
       if (this.matches('jump', e.code)) this.jumpQueued = true;
-      for (const a of ['restart', 'debug'] as const) {
-        if (this.matches(a, e.code)) this.oneShot.add(a);
+      let system = e.code === 'Escape';
+      for (const a of ['restart', 'debug', 'mute'] as const) {
+        if (this.matches(a, e.code)) {
+          this.oneShot.add(a);
+          if (a !== 'restart') system = true;
+        }
       }
+      if (!system) this.anyPress = true;
+    });
+    this.lockTarget.addEventListener('mousedown', () => {
+      if (this.locked) this.anyPress = true;
     });
     window.addEventListener('keyup', (e) => this.down.delete(e.code));
     window.addEventListener('blur', () => this.down.clear());
@@ -67,8 +77,15 @@ export class Input {
   }
 
   /** True once per key press. */
-  consume(action: 'restart' | 'debug'): boolean {
+  consume(action: 'restart' | 'debug' | 'mute'): boolean {
     return this.oneShot.delete(action);
+  }
+
+  /** True if any gameplay key or mouse button was freshly pressed since the last call. */
+  consumeAnyPress(): boolean {
+    const v = this.anyPress;
+    this.anyPress = false;
+    return v;
   }
 
   /** Sample input for one fixed step. Jump presses are never lost between frames. */

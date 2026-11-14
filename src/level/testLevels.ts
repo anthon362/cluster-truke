@@ -29,6 +29,7 @@ export function convoyTestLevel(withBlock: boolean): LevelDef {
     paths: [CURVY_ROAD],
     convoys: [{ id: 'main', path: 'road', rows: 20, lanesUsed: [0, 1, 2], startAt: 10 }],
     scenery,
+    goal: { pos: [-25, 0, 740], width: 18, height: 12 },
   };
 }
 
@@ -62,5 +63,6 @@ export function singleTruckLevel(): LevelDef {
       },
     ],
     scenery: [],
+    goal: { pos: [0, 0, 400], width: 16, height: 12 },
   };
 }

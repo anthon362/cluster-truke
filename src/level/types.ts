@@ -34,6 +34,15 @@ export interface SceneryDef {
   lethal: boolean;
 }
 
+export interface GoalDef {
+  /** Centre of the gate's base. */
+  pos: Vec3;
+  width: number;
+  height: number;
+  /** Direction the gate faces, degrees around Y (0 = +Z). Default: along the nearest path. */
+  yaw?: number;
+}
+
 export interface LevelDef {
   id: string;
   name: string;
@@ -42,4 +51,5 @@ export interface LevelDef {
   paths: readonly PathDef[];
   convoys: readonly ConvoyDef[];
   scenery: readonly SceneryDef[];
+  goal: GoalDef;
 }

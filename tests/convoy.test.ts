@@ -138,7 +138,12 @@ describe('convoy', () => {
     let ok = 0;
     const report: string[] = [];
     for (const seed of [3, 4, 5]) {
-      const sim = new Sim({ seed, level: convoyTestLevel(false) });
+      // Goal moved out of the way: this test is about traversal, not finishing.
+      const far = {
+        ...convoyTestLevel(false),
+        goal: { pos: [10, 0, 9000], width: 18, height: 12 } as const,
+      };
+      const sim = new Sim({ seed, level: far });
       const rowOf = () => (sim.player.groundTruck ?? sim.player.lastTruck!).assignment.row;
       let guard = 0;
       while (!(sim.player.grounded && rowOf() === 19) && guard++ < 40 * HZ && sim.falls === 0) {

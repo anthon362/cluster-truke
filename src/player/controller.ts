@@ -49,6 +49,9 @@ export class PlayerController {
   /** Slightly fatter capsule used to find truck faces within cling reach. */
   private readonly reachShape: RAPIER.Capsule;
   private readonly queryGroups = groups(GROUP.PLAYER, GROUP.TRUCK);
+  /** Smaller capsule for the death test, so near misses stay misses. */
+  private readonly lethalShape: RAPIER.Capsule;
+  private readonly lethalGroups = groups(GROUP.PLAYER, GROUP.WORLD | GROUP.HAZARD);
   /** Truck side or back currently within reach (airborne only). */
   private sideTruck: Truck | null = null;
   private readonly sideNormal = new Vector3();
@@ -61,6 +64,28 @@ export class PlayerController {
   ) {
     this.shape = new RAPIER.Capsule(P.height / 2 - P.radius, P.radius);
     this.reachShape = new RAPIER.Capsule(P.height / 2 - P.radius, P.radius + P.clingReach);
+    const k = P.lethalCapsuleScale;
+    this.lethalShape = new RAPIER.Capsule((P.height / 2 - P.radius) * k, P.radius * k);
+  }
+
+  /** True while standing on or holding on to a truck. */
+  get onTruck(): boolean {
+    return this.grounded || this.clinging;
+  }
+
+  /** Report every lethal collider the (shrunken) player capsule overlaps. */
+  lethalOverlaps(visit: (colliderHandle: number) => void): void {
+    this.physics.world.intersectionsWithShape(
+      this.pos,
+      IDENTITY,
+      this.lethalShape,
+      (collider) => {
+        visit(collider.handle);
+        return true;
+      },
+      undefined,
+      this.lethalGroups,
+    );
   }
 
   /** Put the player in the air at a position with a world velocity (tests, abilities). */

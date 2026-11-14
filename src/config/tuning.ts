@@ -195,11 +195,23 @@ export const TUNING = {
     particleGravity: 18,
   },
 
-  /** Stand-in for level data until M4. */
-  testLevel: {
-    killY: -5,
-    /** Feet lower than this count as touching the ground. */
-    groundTouchY: 0.05,
+  goal: {
+    /** The gate counts as crossed this far outside its frame (player radius). */
+    margin: 0.4,
+    pillarWidth: 1.2,
+  },
+
+  ui: {
+    /** Fresh key presses are ignored this long after failing, so a late jump press does not skip the overlay. */
+    failInputDelay: 0.15,
+  },
+
+  music: {
+    bpm: 150,
+    volume: 0.14,
+    /** Scheduler look-ahead (s) and tick (ms). */
+    lookAhead: 0.2,
+    tickMs: 50,
   },
 
   score: {

@@ -90,6 +90,21 @@ export class Path {
     return (i + t) * this.spacing;
   }
 
+  /** Nearest `s` anywhere on the path (slower; for one-off lookups). */
+  projectAnywhere(pos: Vector3): number {
+    let best = 0;
+    let bestD = Infinity;
+    for (let i = 0; i < this.samples.length; i++) {
+      const p = this.samples[i];
+      const d = (p.x - pos.x) ** 2 + (p.z - pos.z) ** 2;
+      if (d < bestD) {
+        bestD = d;
+        best = i;
+      }
+    }
+    return this.project(pos, best * this.spacing);
+  }
+
   /** Signed sideways distance of a position from the centre line at `s`. */
   lateralAt(pos: Vector3, s: number): number {
     const p = this.pointAt(s, 0, tmp);

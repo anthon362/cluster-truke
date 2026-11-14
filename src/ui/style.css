@@ -48,7 +48,17 @@ body {
 .debug .warn {
   color: #ffb347;
 }
-.start {
+.timer {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 30px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.55);
+}
+.overlay {
   position: absolute;
   inset: 0;
   display: flex;
@@ -56,10 +66,61 @@ body {
   align-items: center;
   justify-content: center;
   gap: 14px;
+  text-align: center;
+}
+.overlay.hidden {
+  display: none;
+}
+.start {
   background: rgba(16, 20, 26, 0.62);
   pointer-events: auto;
   cursor: pointer;
-  text-align: center;
+}
+.failed {
+  background: rgba(120, 16, 10, 0.38);
+}
+.won {
+  background: rgba(10, 60, 62, 0.55);
+  pointer-events: auto;
+}
+.overlay h2 {
+  margin: 0;
+  font-size: 96px;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+}
+.overlay .hint {
+  font-size: 17px;
+  opacity: 0.9;
+}
+.result {
+  display: flex;
+  gap: 18px;
+  align-items: baseline;
+  font-size: 44px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.result .label {
+  font-size: 18px;
+  font-weight: 600;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.result.small {
+  font-size: 24px;
+}
+.result .new {
+  color: #ffd166;
+}
+button.go {
+  border: 0;
+  color: inherit;
+  font-family: inherit;
+  cursor: pointer;
+  margin-top: 8px;
 }
 .start h1 {
   margin: 0;
@@ -67,19 +128,19 @@ body {
   font-weight: 900;
   letter-spacing: 0.06em;
 }
-.start .go {
+.overlay .go {
   font-size: 22px;
   font-weight: 700;
   padding: 10px 26px;
   background: #ff7a1a;
   border-radius: 6px;
 }
-.start .keys {
+.overlay .keys {
   font-size: 15px;
   line-height: 1.7;
   opacity: 0.9;
 }
-.start kbd {
+.overlay kbd {
   display: inline-block;
   min-width: 1.4em;
   padding: 1px 7px;
