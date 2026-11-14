@@ -26,7 +26,12 @@ const CASES: Case[] = [
   { id: '1-2', demo: ride, demoName: 'riding one truck', minWins: 4 },
   { id: '1-3', demo: ride, demoName: 'riding one truck', minWins: 4, runner: true },
   { id: '1-4', demo: hopLane(1.0, 1), demoName: 'one lane change', minWins: 4 },
-  { id: '1-5', demo: dropTo('lower', 2, 1), demoName: 'leap to the lower convoy', minWins: 4 },
+  {
+    id: '1-5',
+    demo: dropTo('lower', 2, 1, true, true),
+    demoName: 'a running jump down to the lower convoy',
+    minWins: 4,
+  },
   { id: '1-6', demo: ride, demoName: 'riding one truck', minWins: 3 },
 ];
 

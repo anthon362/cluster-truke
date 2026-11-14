@@ -112,9 +112,9 @@ levels.push([
   level(
     6,
     'Furnace Line',
-    18,
+    20,
     12,
-    combine(melt(18), presses(250, 6), presses(380, 5.4, [0, 1, 2], 0.5)),
+    combine(melt(20), presses(250, 6), presses(380, 5.4, [0, 1, 2], 0.5)),
   ),
 ]);
 
