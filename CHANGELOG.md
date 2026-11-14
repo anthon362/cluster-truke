@@ -1,5 +1,15 @@
 # Changelog
 
+## M9 — Level editor
+
+- A level editor in the browser (main menu, Level Editor): a top-down map with drag, pan and
+  zoom, a settings panel for the selected thing, undo, and the game's own level check running
+  as you edit.
+- Every hazard and scenery box can be added; any level of the game can be opened as a copy.
+- Play the level straight from the editor; export and import it as a JSON file in the same
+  format as the built-in levels.
+- Typing in a text field no longer triggers game keys.
+
 ## M8 (part 6) — World 9: THE SUMMIT and the finale
 
 - New hazard `slide`: an avalanche that follows the road, buries the trucks it reaches and can

@@ -488,6 +488,28 @@ starts 70 m behind the rear row.
   many trucks has not been measured on a real graphics card.
 - After the last level the result screen reads SUMMIT REACHED and Next is greyed out.
 
+## M9 (level editor)
+
+M9 is not in the design document, which ends at M8. I took it to be the one thing the
+document left open: the optional level editor of section 7.4 ("a simple in-browser editor that
+edits the same JSON, with export/import as file").
+
+**Values changed from the design document:** none. No gameplay values were added; the editor
+has three of its own in `src/ui/editorScreen.ts` (snap 0.5 m, 2.6 pixels per metre when a level
+is opened, 60 undo steps).
+
+**Decisions:**
+
+- The map is 2D and seen from above, not a 3D view: placing things on a road is a 2D job, and
+  it needs no second renderer.
+- The editor has no format of its own. It holds a level file's JSON and runs `validateLevel`
+  on it after every change, so what it exports is what the game loads.
+- A level from the editor always has the id `custom`. It earns no points and saves no best
+  time or ghost: otherwise a one-truck level with the goal in front of it would be a points
+  machine.
+- Heights are typed in the panel (the middle number of `pos`); the map only moves things
+  sideways and along the road.
+
 ## What to adjust if it feels wrong
 
 | Feels like                                    | Change                                                                |

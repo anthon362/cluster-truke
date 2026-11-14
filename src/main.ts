@@ -6,6 +6,7 @@ import { ABILITIES, type AbilityId, abilityInfo } from './config/abilities';
 import { GAME_TITLE } from './config/meta';
 import { TUNING } from './config/tuning';
 import { Input } from './core/input';
+import { isCustom } from './editor/model';
 import { GameLoop } from './core/loop';
 import { claimWorldClear, loadSave, recordTime, storeSave } from './core/save';
 import { Sim } from './core/sim';
@@ -24,6 +25,7 @@ import { TruckRenderer } from './render/truckMesh';
 import { type GhostPlayer, GhostRecorder, loadGhost, storeGhost } from './replay/ghost';
 import { BestTimes } from './ui/bestTimes';
 import { DebugOverlay } from './ui/debugOverlay';
+import { EditorScreen } from './ui/editorScreen';
 import { Hud } from './ui/hud';
 import { LevelSelect } from './ui/levelSelect';
 import { Overlays } from './ui/overlays';
@@ -37,9 +39,19 @@ import { Shop } from './ui/shop';
  * failed:   attempt over, world keeps moving, any key restarts
  * won:      attempt over, result shown
  * levels / shop / settings / times: sub-screens that return to where they were opened from
+ * editor:   the level editor; Play there loads the level being edited, Quit comes back to it
  */
 type AppState =
-  'menu' | 'playing' | 'paused' | 'failed' | 'won' | 'levels' | 'shop' | 'settings' | 'times';
+  | 'menu'
+  | 'playing'
+  | 'paused'
+  | 'failed'
+  | 'won'
+  | 'levels'
+  | 'shop'
+  | 'settings'
+  | 'times'
+  | 'editor';
 
 /** Everything that belongs to one loaded level and is replaced when switching. */
 interface Loaded {
@@ -318,10 +330,13 @@ async function boot(): Promise<void> {
     shop: () => open('shop'),
     times: () => open('times'),
     settings: () => open('settings'),
+    editor: () => openEditor(),
     quit: () => {
       sfx.ui();
       releaseMouse();
-      state = 'menu';
+      // Quitting a level that came from the editor goes back to the editor.
+      if (isCustom(game.sim.level.id)) openEditor();
+      else state = 'menu';
     },
   });
   overlays.setGhost(settings.ghost);
@@ -361,6 +376,21 @@ async function boot(): Promise<void> {
     back,
   );
   const bestTimes = new BestTimes(ui, campaignLevels(LEVELS), back);
+  const editor = new EditorScreen(ui, campaignLevels(LEVELS), storage, {
+    play: (level) => {
+      editor.show(false);
+      loadLevel(level);
+    },
+    close: () => {
+      editor.show(false);
+      state = 'menu';
+    },
+  });
+  const openEditor = () => {
+    releaseMouse();
+    state = 'editor';
+    editor.show(true);
+  };
 
   const resize = () => {
     renderer.setSize(window.innerWidth, window.innerHeight, false);
@@ -421,6 +451,13 @@ async function boot(): Promise<void> {
           state = 'won';
           winSlowLeft = J.winSlowTime;
           sfx.win();
+          if (isCustom(sim.level.id)) {
+            // A level from the editor: nothing is saved and no points are earned.
+            overlays.setWinPoints([], 0, save.points);
+            overlays.setWinResult(e.time, e.time, false, false);
+            releaseMouse();
+            continue;
+          }
           const newBest = recordTime(save, sim.level.id, e.time);
           if (newBest && storeGhost(storage, sim.level.id, recorder.samples)) {
             game.ghost = loadGhost(storage, sim.level.id);

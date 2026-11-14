@@ -55,6 +55,8 @@ export class Input {
 
   constructor(private readonly lockTarget: HTMLElement) {
     window.addEventListener('keydown', (e) => {
+      // Typing in a text field (the level editor) is not playing.
+      if (isTyping(e) && !this.captureKey) return;
       if (this.captureKey) {
         e.preventDefault();
         const take = this.captureKey;
@@ -219,4 +221,14 @@ export class Input {
   private matches(action: Action, code: string): boolean {
     return this.bindings[action].includes(code);
   }
+}
+
+/** Is this key press going into a text field, a number field or a drop-down? */
+function isTyping(e: KeyboardEvent): boolean {
+  const t = e.target;
+  return (
+    t instanceof HTMLInputElement ||
+    t instanceof HTMLTextAreaElement ||
+    t instanceof HTMLSelectElement
+  );
 }
