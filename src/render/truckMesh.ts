@@ -40,6 +40,8 @@ export class TruckRenderer {
   private readonly parts: Part[] = [];
   private readonly lastState: (TruckState | null)[];
   private readonly wreckColor = new Color(PALETTE.wreck);
+  /** Carried (floating) trucks are tinted so they read as different from the convoy. */
+  private readonly carriedColor = new Color(PALETTE.carried);
 
   constructor(
     scene: Scene,
@@ -125,7 +127,8 @@ export class TruckRenderer {
             visible ? m.multiplyMatrices(base, part.locals[j]) : ZERO,
           );
           if (stateChanged && part.tint) {
-            part.mesh.setColorAt(i * n + j, t.state === 'wreck' ? this.wreckColor : WHITE);
+            const normal = t.assignment.float ? this.carriedColor : WHITE;
+            part.mesh.setColorAt(i * n + j, t.state === 'wreck' ? this.wreckColor : normal);
           }
         }
         if (stateChanged && part.tint && part.mesh.instanceColor) {

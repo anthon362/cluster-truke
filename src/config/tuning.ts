@@ -276,6 +276,50 @@ export const TUNING = {
     pillarWidth: 1.2,
   },
 
+  settings: {
+    sensitivityMin: 0.2,
+    sensitivityMax: 3,
+    /** Gamepad look speed at full stick deflection (rad/s) at sensitivity 1. */
+    padLookX: 2.8,
+    padLookY: 1.9,
+    padSensitivityMin: 0.3,
+    padSensitivityMax: 2.5,
+    padDeadzone: 0.15,
+    /** Stick response: output = input ^ curve (above the dead zone). Higher = gentler near the centre. */
+    padCurve: 1.8,
+    /** Analog triggers count as pressed above this. */
+    padTrigger: 0.35,
+  },
+
+  ghost: {
+    sampleHz: 30,
+    /** A ghost larger than this (characters, after encoding) is not stored. */
+    maxStoredChars: 60000,
+  },
+
+  quality: {
+    /** Render resolution on the low preset, as a share of native. */
+    lowRenderScale: 0.75,
+    /** Share of explosion particles on the low preset. */
+    lowParticles: 0.4,
+  },
+
+  juice: {
+    /** After a win the world runs at this speed for this long (real seconds). */
+    winSlowScale: 0.5,
+    winSlowTime: 0.15,
+    /** Speed lines appear above this player speed and are full at the second value (m/s). */
+    speedLinesFrom: 24,
+    speedLinesFull: 45,
+    speedLineCount: 36,
+    /** Landing speed that starts to shake the camera (m/s) and the strongest shake it gives (0..1). */
+    hardLanding: 9,
+    hardLandingShake: 0.5,
+    /** Seconds between random horn honks (min, max). */
+    hornMin: 3,
+    hornMax: 9,
+  },
+
   ui: {
     /** Fresh key presses are ignored this long after failing, so a late jump press does not skip the overlay. */
     failInputDelay: 0.15,

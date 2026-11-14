@@ -1,6 +1,8 @@
 /** Persistent data in localStorage under one versioned key. */
+import { type Settings, defaultSettings, sanitizeSettings } from './settings';
+
 export const SAVE_KEY = 'righop-save';
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 
 export interface SaveData {
   version: number;
@@ -13,6 +15,7 @@ export interface SaveData {
   bestTimes: Record<string, number>;
   /** Worlds whose one-time clear bonus has been paid. */
   worldsCleared: string[];
+  settings: Settings;
 }
 
 /** The slice of the Storage API that is used, so tests can pass a fake. */
@@ -29,6 +32,7 @@ export function emptySave(): SaveData {
     equipped: { movement: null, utility: null },
     bestTimes: {},
     worldsCleared: [],
+    settings: defaultSettings(),
   };
 }
 
@@ -37,7 +41,8 @@ const strings = (v: unknown): string[] =>
 
 /**
  * Build a current save from whatever was stored. Version 1 only had best
- * times; unknown or damaged fields fall back to their defaults.
+ * times and version 2 had no settings; unknown or damaged fields fall back to
+ * their defaults.
  */
 function migrate(raw: Record<string, unknown>): SaveData {
   const out = emptySave();
@@ -52,6 +57,7 @@ function migrate(raw: Record<string, unknown>): SaveData {
   }
   out.owned = strings(raw.owned);
   out.worldsCleared = strings(raw.worldsCleared);
+  out.settings = sanitizeSettings(raw.settings);
   const eq = raw.equipped as Record<string, unknown> | undefined;
   if (eq && typeof eq === 'object') {
     for (const slot of ['movement', 'utility'] as const) {

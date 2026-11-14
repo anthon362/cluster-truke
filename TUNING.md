@@ -248,6 +248,40 @@ and world 3 **WHITEOUT** (an ice road: ice patches, rotors, a snow wall, a close
   `?unlock=1` opens everything; `?level=<id>` always works.
 - **Par times** follow the same rule as world 1 (riding takes about 1.45 x par).
 
+## M7 (polish, sound, menus)
+
+**Values changed from the design document:** none. FOV range 50-140, sprint kick, landing
+dip, strafe roll and the 0.15 s of 0.5 x time on a win are as written.
+
+**Values the document did not give (added):**
+
+| Key                                      | Value             | Why                                                                                                         |
+| ---------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------- |
+| `settings.padLookX` / `padLookY`         | 2.8 / 1.9 rad/s   | Stick look speed at full deflection; separate for each axis.                                                |
+| `settings.padCurve`                      | 1.8               | Stick response curve: half deflection gives about a fifth of full speed, so small aim corrections are easy. |
+| `settings.padDeadzone`                   | 0.15              | Default dead zone (adjustable 0-50 %).                                                                      |
+| `settings.padTrigger`                    | 0.35              | How far a trigger must be pulled to count.                                                                  |
+| `ghost.sampleHz`                         | 30                | As specified.                                                                                               |
+| `ghost.maxStoredChars`                   | 60,000            | A ghost bigger than this is not stored (a normal run is about 8,000).                                       |
+| `quality.lowRenderScale`                 | 0.75              | The low preset renders at 75 % resolution.                                                                  |
+| `quality.lowParticles`                   | 0.4               | Share of explosion particles on low.                                                                        |
+| `juice.speedLines*`                      | from 24 to 45 m/s | When speed lines fade in.                                                                                   |
+| `juice.hardLanding` / `hardLandingShake` | 9 m/s / 0.5       | Landings harder than this shake the camera.                                                                 |
+| `juice.hornMin` / `hornMax`              | 3 / 9 s           | Gap between random horn honks.                                                                              |
+
+**Notes:**
+
+- **Quality presets** change render resolution (low 0.75 x at most 1 x pixel ratio, medium up
+  to 1.5 x, high up to 2 x), speed lines (off on low) and explosion particles. There are no
+  shadows or post-processing on any preset.
+- **Music is one loop per world** (150, 162 and 142 BPM); changing world swaps the pattern
+  without stopping the beat. Sound effects and music are still synthesised placeholders.
+- **Gamepad** plays the game and handles Play / pause / restart / next (A, Start, Y). The
+  level list, shop and settings still need the mouse.
+- **Horn honks are random**, not tied to panic; there is no separate non-explosive crash sound.
+- **Rebinding swaps keys** if the other action would be left with none.
+- **The first-level help line** shows only on 1-1 and only until 1-1 has been finished once.
+
 ## What to adjust if it feels wrong
 
 | Feels like                                    | Change                                                               |

@@ -31,6 +31,11 @@ export class CameraRig {
     this.dipVel = (-C.landingDip * k * 2) / C.landingDipTime;
   }
 
+  /** Add shake directly: 0 = none, 1 = the strongest. */
+  addShake(amount: number): void {
+    this.shake = Math.max(this.shake, Math.min(1, amount));
+  }
+
   /** An explosion went off `distance` metres away. */
   onExplosion(distance: number): void {
     const k = 1 - distance / C.shakeRadius;
