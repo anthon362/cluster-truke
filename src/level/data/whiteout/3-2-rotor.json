@@ -1,0 +1,72 @@
+{
+  "id": "3-2",
+  "name": "Rotor",
+  "world": "whiteout",
+  "parTime": 16,
+  "killY": -5,
+  "palette": {
+    "sky": "#e3edf3",
+    "ground": "#d4e2ea",
+    "fog": "#eaf2f6",
+    "fogFar": 320,
+    "road": "#8ea3b1"
+  },
+  "player": {
+    "convoy": "main",
+    "row": 1,
+    "lane": 1
+  },
+  "scenery": [
+    {
+      "type": "box",
+      "pos": [-9.5, 8, 290],
+      "size": [1, 16, 1],
+      "lethal": true,
+      "color": "#e5484d"
+    },
+    {
+      "type": "box",
+      "pos": [9.5, 8, 290],
+      "size": [1, 16, 1],
+      "lethal": true,
+      "color": "#e5484d"
+    }
+  ],
+  "hazards": [
+    {
+      "type": "rotor",
+      "pos": [0, 10.2, 290],
+      "radius": 6,
+      "spokes": 3,
+      "speed": 22,
+      "phase": 15,
+      "yaw": 0
+    }
+  ],
+  "paths": [
+    {
+      "id": "road",
+      "width": 14,
+      "lanes": 3,
+      "points": [
+        [0, 0, -40],
+        [0, 0, 640]
+      ]
+    }
+  ],
+  "convoys": [
+    {
+      "id": "main",
+      "path": "road",
+      "rows": 20,
+      "lanesUsed": [0, 1, 2],
+      "startAt": 50,
+      "wobble": 0.06
+    }
+  ],
+  "goal": {
+    "pos": [0, 0, 443],
+    "width": 16,
+    "height": 12
+  }
+}

@@ -218,6 +218,36 @@ fourteen is not used. All values are in `abilities.*` in `tuning.ts`; prices are
 - **`?abilities=all`** unlocks every ability for the session without saving anything;
   `?equip=towLine,slowLane` equips at start.
 
+## M6 (worlds 2 and 3)
+
+The world themes are original and were chosen by me (as asked): world 2 **OVERPASS**
+(an elevated motorway: overhead signs, steps down, drops to lower roads, carried trucks)
+and world 3 **WHITEOUT** (an ice road: ice patches, rotors, a snow wall, a closed road).
+
+**Values changed from the design document:** none.
+
+**Own earlier values changed:**
+
+| Key                    | Old  | New  | Why                                                                                                                                  |
+| ---------------------- | ---- | ---- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `truck.lateralGripIce` | 0.15 | 0.03 | At 0.15 a truck shoved sideways at 6 m/s slid only half a metre: not ice. At 0.03 it slides several metres and drifts wide in bends. |
+
+**Values the document did not give (added):** `hazards.rotorThickness` 0.7 m, `hazards.rotorHub` 1.6 m.
+
+**Interpretations:**
+
+- **Logs and bars became overhead signs.** A sign's beam is 0.8 m above the trailer roofs, so
+  a rider must jump it (a jump clears it by about 0.75 m). Signs hang from gantries whose
+  posts stand off the road. Ducking by standing on the cab is not used yet.
+- **Floating trucks are "carried" trucks** (`"float": true` on a convoy): they follow their
+  path exactly at its height, ignore gravity, and cannot be shoved or blown up.
+- **Spoked wheels became rotors**: a wheel standing across the road. Its spokes sweep above
+  the truck roofs, kill the player, and pass straight through trucks.
+- **Levels unlock in order**; finishing the last level of a world opens the next world.
+  This is derived from the best times, so there is no separate "unlocked" list in the save.
+  `?unlock=1` opens everything; `?level=<id>` always works.
+- **Par times** follow the same rule as world 1 (riding takes about 1.45 x par).
+
 ## What to adjust if it feels wrong
 
 | Feels like                                    | Change                                                               |
@@ -246,3 +276,4 @@ fourteen is not used. All values are in `abilities.*` in `tuning.ts`; prices are
 | Points come too fast / too slowly             | `score.*` (each bonus has its own value)                             |
 | An ability is too strong / weak               | `abilities.<name>.*`                                                 |
 | Prices                                        | `src/config/abilities.ts`                                            |
+| Ice too slippery / not slippery enough        | `truck.lateralGripIce`                                               |

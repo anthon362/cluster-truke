@@ -472,3 +472,11 @@ button.go {
 .popups {
   z-index: 2;
 }
+
+.level-tile.locked {
+  opacity: 0.4;
+  cursor: default;
+}
+.level-tile.locked:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
